@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
+import { useEffect } from 'react';
 
 export default function RootError({
   error,
@@ -16,9 +16,7 @@ export default function RootError({
 
   return (
     <div className="flex min-h-[50vh] flex-col items-center justify-center p-6 text-center">
-      <h2 className="text-xl font-semibold text-gray-900">
-        Something went wrong
-      </h2>
+      <h2 className="text-xl font-semibold text-gray-900">Something went wrong</h2>
       <p className="mt-2 text-sm text-gray-600">
         An unexpected error occurred while rendering this page.
       </p>

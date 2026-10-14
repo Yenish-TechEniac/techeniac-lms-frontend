@@ -120,3 +120,26 @@
   - Adopting `proxy.ts` eliminates deprecation warnings during `npm run build` and ensures long-term alignment with Next.js 16+ API conventions.
   - The routing logic (`NextResponse.next()`) and critical security disclaimer are preserved without behavioral regressions.
 - **Consequences**: Root routing logic is maintained in `proxy.ts`. Developers must export `proxy` instead of `middleware`.
+
+---
+
+## ADR-008: Development Quality Tools, Architecture Confinement, and Hook Pipeline
+
+- **Date**: 2026-10-14
+- **Status**: Accepted
+- **Context**: The frontend codebase requires strict automated quality gates to prevent code quality decay, architectural boundary erosion, secret leaks, and non-conventional git commit histories as the application scales.
+- **Options**:
+  1. Rely on default Next.js ESLint and manual code reviews.
+  2. Implement an automated multi-tier quality pipeline: ESLint 9 Flat Config with type-aware linting (`tsconfig.eslint.json`), custom architecture confinement rules, automated lint fixture verification, Husky 9 Git hooks with Gitleaks secret detection, Commitlint conventional commit enforcement, and Prettier with Tailwind CSS class sorting.
+- **Choice**: Option 2.
+- **Reasons**:
+  - Type-aware TypeScript ESLint rules enforce strict standards (`@typescript-eslint/no-explicit-any`, `no-console`, `@typescript-eslint/no-floating-promises`, `@typescript-eslint/no-misused-promises`, `simple-import-sort`, `jsx-a11y/alt-text`) without polluting production `tsconfig.json`.
+  - Architecture confinement rules (`architecture/ui-primitive-confinement`, `architecture/service-calls-only-in-hooks`) prevent UI primitives (`components/ui/**`) from importing higher tiers or business logic, and restrict direct service calls (`services/**`) to React hooks (`hooks/**`).
+  - An automated test harness (`scripts/test-lint-rules.mjs` and `lint-fixtures/`) proves deterministically that all architecture and critical quality rules trigger expected errors.
+  - Husky Git hooks (`pre-commit`, `commit-msg`) execute Gitleaks secret detection, `lint-staged` autofix and formatting, TypeScript compilation checks, and Conventional Commit validation prior to recording changes.
+  - Prettier with `prettier-plugin-tailwindcss` enforces consistent formatting and deterministic Tailwind CSS class ordering.
+  - Next.js `proxy.ts` is maintained and explicitly documented as a routing and UX mechanism rather than a security boundary; backend authorization remains authoritative.
+- **Consequences**:
+  - All commits must pass typecheck, lint, formatting, secret scanning, and commit-msg validation.
+  - Developers must have Gitleaks installed locally to commit changes.
+  - Architecture boundaries are enforced automatically during linting and in supported IDEs.

@@ -18,8 +18,12 @@ Techeniac LMS Frontend provides the student, instructor, and admin web experienc
 - `npm run dev`: Start Next.js local development server.
 - `npm run build`: Create an optimized production build.
 - `npm run start`: Start production Next.js server.
-- `npm run lint`: Run ESLint checks.
+- `npm run lint`: Run ESLint checks (`--max-warnings=0`).
+- `npm run lint:test-rules`: Run automated ESLint rule verification fixtures.
 - `npm run typecheck`: Run TypeScript static type analysis (`tsc --noEmit`).
+- `npm run format`: Format code with Prettier and Tailwind class sorting.
+- `npm run format:check`: Check code formatting with Prettier.
+- `npm run prepare`: Configure Husky Git hooks.
 - `npm test`: _(coming soon)_ Run automated unit and component tests.
 - `npm run e2e`: _(coming soon)_ Run end-to-end integration tests.
 
@@ -28,9 +32,10 @@ Techeniac LMS Frontend provides the student, instructor, and admin web experienc
 1. **No Secrets in Public Env**: Never store secrets, keys, or credentials in `NEXT_PUBLIC_*` or client code.
 2. **OpenAPI-Generated Types**: Generate API schemas/types from backend OpenAPI specs; do not hand-write them.
 3. **Server State in TanStack Query**: Keep server state in TanStack Query cache; never duplicate into local UI state.
-4. **UI Hiding Is Not Access Control**: Frontend guards/proxy are UX affordances; backend enforces authorization.
-5. **Ask Before Git/GitHub Actions**: Never run mutating Git commands without explicit per-command user approval.
-6. **No Console Log**: Prohibit `console.log` in committed code; use structured logging/observability when configured.
+4. **Proxy & UI Hiding Are Not Access Control**: `proxy.ts` and UI guards are routing/UX conveniences; backend enforces authorization.
+5. **Architecture Confinement**: `components/ui/**` cannot import higher tiers (`app`, `patterns`, `services`, `hooks`). Pages/components cannot import `services/**` directly; data access must go through `hooks/**`.
+6. **Ask Before Git/GitHub Actions**: Never run mutating Git commands without explicit per-command user approval.
+7. **No Console Log**: Prohibit `console.log` in committed code; use structured logging/observability when configured.
 
 ## Agent Governance Links
 
