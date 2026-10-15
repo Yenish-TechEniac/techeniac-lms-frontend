@@ -30,10 +30,15 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'npm'
 
-      - name: Run Gitleaks scan
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install gitleaks
+        run: |
+          wget -q https://github.com/gitleaks/gitleaks/releases/download/v8.24.3/gitleaks_8.24.3_linux_x64.tar.gz
+          tar -xzf gitleaks_8.24.3_linux_x64.tar.gz
+          sudo mv gitleaks /usr/local/bin/
+          rm gitleaks_8.24.3_linux_x64.tar.gz
+
+      - name: gitleaks scan
+        run: gitleaks detect --verbose --redact
 
       - name: Install dependencies
         run: npm ci
