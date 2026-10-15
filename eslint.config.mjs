@@ -1,28 +1,37 @@
+import path from 'node:path';
 import nextVitals from 'eslint-config-next/core-web-vitals';
 import nextTs from 'eslint-config-next/typescript';
 import prettierConfig from 'eslint-config-prettier';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import tseslint from 'typescript-eslint';
 
+function getRepoRelativePath(context) {
+  const rawFilename = context.filename ?? context.getFilename?.() ?? '';
+  const cwd = context.cwd ?? (typeof process !== 'undefined' ? process.cwd() : '');
+  const rel = (
+    cwd && path.isAbsolute(rawFilename) ? path.relative(cwd, rawFilename) : rawFilename
+  ).replace(/\\/g, '/');
+
+  // Strip 'lint-fixtures/' prefix so test fixtures go through the exact same code path as real files
+  return rel.replace(/^lint-fixtures\//, '');
+}
+
 const uiPrimitiveConfinementRule = {
   meta: {
     type: 'problem',
     docs: {
       description:
-        'Disallow components/ui/** from importing from components/app/**, components/patterns/**, services/**, or hooks/**',
+        'Disallow components/ui/** from importing from components/app/**, components/patterns/**, components/layout/**, context/**, services/**, or hooks/**',
     },
     schema: [],
     messages: {
       prohibitedImport:
-        "UI primitive '{{filename}}' must not import from '{{importPath}}'. Primitives must remain independent of app, patterns, services, and hooks.",
+        "UI primitive '{{filename}}' must not import from '{{importPath}}'. Primitives must remain independent of app, layout, patterns, context, services, and hooks.",
     },
   },
   create(context) {
-    const filename = (context.filename ?? context.getFilename?.() ?? '').replace(/\\/g, '/');
-    const isUiComponent =
-      filename.includes('/components/ui/') ||
-      filename.startsWith('components/ui/') ||
-      filename.includes('lint-fixtures/ui-imports-service');
+    const rel = getRepoRelativePath(context);
+    const isUiComponent = /^components\/ui\//.test(rel);
 
     if (!isUiComponent) {
       return {};
@@ -31,10 +40,14 @@ const uiPrimitiveConfinementRule = {
     const forbiddenPatterns = [
       /^@\/components\/app(\/.*)?$/,
       /^@\/components\/patterns(\/.*)?$/,
+      /^@\/components\/layout(\/.*)?$/,
+      /^@\/context(\/.*)?$/,
       /^@\/services(\/.*)?$/,
       /^@\/hooks(\/.*)?$/,
       /^\.\.?\/(.*\/)?(components\/)?app(\/.*)?$/,
       /^\.\.?\/(.*\/)?(components\/)?patterns(\/.*)?$/,
+      /^\.\.?\/(.*\/)?(components\/)?layout(\/.*)?$/,
+      /^\.\.?\/(.*\/)?context(\/.*)?$/,
       /^\.\.?\/(.*\/)?services(\/.*)?$/,
       /^\.\.?\/(.*\/)?hooks(\/.*)?$/,
     ];
@@ -49,7 +62,7 @@ const uiPrimitiveConfinementRule = {
           context.report({
             node: node.source,
             messageId: 'prohibitedImport',
-            data: { filename, importPath },
+            data: { filename: rel, importPath },
           });
         }
       },
@@ -71,15 +84,8 @@ const serviceCallsOnlyInHooksRule = {
     },
   },
   create(context) {
-    const filename = (context.filename ?? context.getFilename?.() ?? '').replace(/\\/g, '/');
-    const isAppOrComponent =
-      (filename.includes('/app/') ||
-        filename.startsWith('app/') ||
-        filename.includes('/components/') ||
-        filename.startsWith('components/') ||
-        filename.includes('lint-fixtures/page-imports-service')) &&
-      !filename.includes('/components/ui/') &&
-      !filename.includes('lint-fixtures/ui-imports-service');
+    const rel = getRepoRelativePath(context);
+    const isAppOrComponent = /^(app|components)\//.test(rel) && !rel.startsWith('components/ui/');
 
     if (!isAppOrComponent) {
       return {};
@@ -97,7 +103,7 @@ const serviceCallsOnlyInHooksRule = {
           context.report({
             node: node.source,
             messageId: 'prohibitedServiceImport',
-            data: { filename, importPath },
+            data: { filename: rel, importPath },
           });
         }
       },

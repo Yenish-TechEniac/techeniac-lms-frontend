@@ -2,6 +2,8 @@
 
 import { useEffect } from 'react';
 
+import { Button } from '@/components/ui/Button';
+
 export default function RootError({
   error,
   reset,
@@ -16,17 +18,13 @@ export default function RootError({
 
   return (
     <div className="flex min-h-[50vh] flex-col items-center justify-center p-6 text-center">
-      <h2 className="text-xl font-semibold text-gray-900">Something went wrong</h2>
-      <p className="mt-2 text-sm text-gray-600">
+      <h1 className="text-foreground text-xl font-semibold tracking-tight">Something went wrong</h1>
+      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
         An unexpected error occurred while rendering this page.
       </p>
-      <button
-        type="button"
-        onClick={() => reset()}
-        className="mt-4 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
-      >
+      <Button onClick={() => reset()} className="mt-4">
         Try again
-      </button>
+      </Button>
     </div>
   );
 }

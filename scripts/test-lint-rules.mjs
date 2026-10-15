@@ -7,11 +7,15 @@ const rootDir = path.resolve(__dirname, '..');
 
 const fixtures = [
   {
-    file: 'lint-fixtures/ui-imports-service.tsx',
+    file: 'lint-fixtures/components/ui/Button.tsx',
     expectedRule: 'architecture/ui-primitive-confinement',
   },
   {
-    file: 'lint-fixtures/page-imports-service.tsx',
+    file: 'lint-fixtures/components/ui/ButtonContext.tsx',
+    expectedRule: 'architecture/ui-primitive-confinement',
+  },
+  {
+    file: 'lint-fixtures/app/page.tsx',
     expectedRule: 'architecture/service-calls-only-in-hooks',
   },
   {
@@ -34,6 +38,11 @@ const fixtures = [
     file: 'lint-fixtures/jsx-a11y-img-alt.tsx',
     expectedRule: 'jsx-a11y/alt-text',
   },
+];
+
+const negativeFixtures = [
+  'lint-fixtures/hooks/useCourses.ts',
+  'lint-fixtures/components/ui/ValidButton.tsx',
 ];
 
 async function runFixtureTests() {
@@ -76,13 +85,35 @@ async function runFixtureTests() {
     }
   }
 
+  console.log('\nTesting negative fixtures (valid code must pass with 0 errors)...\n');
+  for (const file of negativeFixtures) {
+    const filePath = path.join(rootDir, file);
+    const results = await fixtureEslint.lintFiles([filePath]);
+    const fileResult = results[0];
+
+    if (!fileResult) {
+      console.error(`[FAIL] No lint results produced for negative fixture ${file}`);
+      totalFailures++;
+      continue;
+    }
+
+    const messages = fileResult.messages;
+    if (messages.length > 0) {
+      const issues = messages.map((m) => `${m.ruleId ?? 'error'}: ${m.message}`).join(', ');
+      console.error(`[FAIL] Negative fixture ${file} had unexpected errors: ${issues}`);
+      totalFailures++;
+    } else {
+      console.log(`[PASS] Negative fixture ${file} passed cleanly with 0 errors`);
+    }
+  }
+
   console.log('\n----------------------------------------');
   if (totalFailures > 0) {
     console.error(`Fixture testing failed with ${totalFailures} error(s).`);
     process.exit(1);
   } else {
     console.log(
-      `All ${fixtures.length} fixtures passed validation against their expected rule IDs.`,
+      `All ${fixtures.length} positive fixtures and ${negativeFixtures.length} negative fixtures passed validation.`,
     );
     process.exit(0);
   }

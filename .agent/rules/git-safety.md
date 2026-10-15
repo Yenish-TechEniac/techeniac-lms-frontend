@@ -17,5 +17,6 @@ These rules are non-negotiable and apply to all agents and automated tools worki
 
 ## Branch Discipline
 
-- For TASK F0, foundation work is conducted directly on the existing `main` branch as explicitly requested by the user. Do not create a feature branch.
-- For standard future development workflows, feature branches should follow branch naming conventions and use pull requests with squash merging.
+- All work must be conducted on feature, fix, or chore branches (`feat/*`, `fix/*`, `chore/*`) created from `dev`.
+- Direct commits to protected branches (`main`, `staging`, and `dev`) are strictly prohibited and blocked by pre-commit hooks.
+- All changes must arrive via Pull Requests with squash merging.

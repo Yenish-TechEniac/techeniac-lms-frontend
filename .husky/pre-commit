@@ -15,8 +15,12 @@ if ! command -v gitleaks >/dev/null 2>&1; then
   exit 1
 fi
 
-# Run Gitleaks against staged changes only
-gitleaks protect --staged --verbose
+# Run Gitleaks against staged changes only (supports modern 'git --staged' and legacy 'protect --staged')
+if gitleaks --help | grep -qw "git"; then
+  gitleaks git --staged
+else
+  gitleaks protect --staged
+fi
 
 # Run lint-staged (ESLint and Prettier on staged files)
 npx lint-staged

@@ -35,9 +35,9 @@
 ## Architectural Principles
 
 1. **Server State vs Client State**:
-   - Server state (courses, users, enrollments) is managed and cached exclusively via TanStack Query. It is never copied into or synchronized with local global state managers.
+   - Server state (courses, users, enrollments) will be managed and cached exclusively via TanStack Query (planned for installation in upcoming data fetching PR). It is never copied into or synchronized with local global state managers.
 2. **Contract-Driven Typing**:
-   - Types for backend resources and API payloads must be generated from the backend's OpenAPI contract rather than manually typed to prevent interface drift.
+   - Types for backend resources and API payloads will be generated from the backend's OpenAPI contract rather than manually typed to prevent interface drift (planned code generation pipeline in upcoming PR).
 3. **Decoupled Repositories**:
    - The frontend remains fully autonomous from the backend repository, communicating only over standardized HTTP/REST APIs.
 4. **Security Boundary Distinction**:

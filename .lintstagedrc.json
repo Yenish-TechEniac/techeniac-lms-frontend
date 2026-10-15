@@ -1,12 +1,4 @@
 {
-  "{app,components,hooks,services,lib,context}/**/*.{ts,tsx}": [
-    "eslint --fix --max-warnings 0 --no-warn-ignored",
-    "prettier --write"
-  ],
-  "*.{ts,tsx}": ["eslint --fix --max-warnings 0 --no-warn-ignored", "prettier --write"],
-  "*.{js,mjs,md}": ["prettier --write"],
-  ".agent/**/*.md": ["prettier --write"],
-  "{app,components,public}/**/*.{css,json,md}": ["prettier --write"],
-  "package.json": ["prettier --write"],
-  "tsconfig*.json": ["prettier --write"]
+  "*.{js,mjs,cjs,ts,tsx}": ["eslint --fix --max-warnings 0 --no-warn-ignored", "prettier --write"],
+  "*.{json,css,md}": ["prettier --write"]
 }
