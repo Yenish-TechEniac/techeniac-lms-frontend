@@ -143,3 +143,65 @@
   - All commits must pass typecheck, lint, formatting, secret scanning, and commit-msg validation.
   - Developers must have Gitleaks installed locally to commit changes.
   - Architecture boundaries are enforced automatically during linting and in supported IDEs.
+
+---
+
+## ADR-009: Centralized Reusable Validation Primitives with Zod
+
+- **Date**: 2026-10-15
+- **Status**: Accepted
+- **Context**: User input across frontend forms (e.g., authentication, password reset, account management, profile editing) requires client-side validation to provide immediate feedback. Implementing ad-hoc schemas across different components leads to duplicated logic, inconsistent error messaging, and drift from backend validation rules.
+- **Options**:
+  1. Define independent inline Zod schemas within individual form components.
+  2. Rely solely on HTML5 input attributes and backend validation responses.
+  3. Establish centralized, reusable atomic validation schemas in `lib/validation/` using Zod.
+- **Choice**: Option 3 (Centralized atomic schemas in `lib/validation/`).
+- **Reasons**:
+  - Parity with backend constraints: Enforces exact parity with `techeniac-lms-backend` validation rules (`passwordSchema`, `emailSchema`, `uuidSchema`), guaranteeing identical password complexity (min 8, max 128, uppercase, lowercase, number, special character) and email formats.
+  - DRY & Composable: Individual form schemas (login, registration, change password) compose these centralized primitives directly rather than duplicating validation rules.
+  - Type Inference: Zod provides automatic TypeScript type inference (`z.infer<typeof schema>`), ensuring end-to-end type safety between form state and validated data.
+- **Consequences**:
+  - All reusable validation primitives reside in `lib/validation/common.schemas.ts` and are re-exported via `lib/validation/index.ts`.
+  - Component forms import shared primitives from `@/lib/validation` when constructing composite form schemas.
+
+---
+
+## ADR-010: GitHub Actions CI Pipeline for Universal Pull Requests
+
+- **Date**: 2026-10-15
+- **Status**: Accepted
+- **Context**: To guarantee repository integrity, prevent broken builds, and protect against secret leaks before merging code, continuous integration must run on all pull requests and main pushes.
+- **Options**:
+  1. Trigger CI solely on pull requests targeting `main`.
+  2. Rely only on local pre-commit hooks without automated remote CI verification.
+  3. Universal pull request workflow triggering on any pull request between any branches plus pushes to `main`.
+- **Choice**: Option 3 (Universal pull request trigger with fail-fast stages).
+- **Reasons**:
+  - Covers all PR branches: Developers frequently open PRs into feature branches or release branches before merging to `main`; running checks on all PRs guarantees defects are caught early regardless of branching path.
+  - Fail-fast quality gates: The job executes secret scanning (Gitleaks), deterministic installation (`npm ci`), static typing (`tsc --noEmit`), linting (`eslint --max-warnings=0`), architecture boundary verification (`npm run lint:test-rules`), formatting check (`prettier --check`), and Turbopack production build (`next build`).
+  - Next.js build cache: Leverages GitHub Actions caching for `.next/cache` to keep CI run times under 2 minutes.
+  - Concurrency management: Automatically cancels stale in-flight runs when new commits are pushed to the same PR.
+- **Consequences**:
+  - All pull requests require a green CI status check to pass quality review.
+  - CI workflow is maintained at `.github/workflows/ci.yml`.
+
+---
+
+## ADR-011: Branching Hierarchy & Protected Branches Strategy
+
+- **Date**: 2026-10-15
+- **Status**: Accepted
+- **Context**: As development scales across multiple contributors, a disciplined branching strategy is necessary to prevent untested code or direct commits from polluting integration (`dev`), staging (`staging`), and production (`main`) branches.
+- **Options**:
+  1. Trunk-based development allowing direct commits to `main` by core maintainers.
+  2. Single default branch (`main`) with feature branches.
+  3. Tiered Gitflow-inspired hierarchy ($\text{main} \leftarrow \text{staging} \leftarrow \text{dev} \leftarrow \text{feat/*}$) with protected branches enforced locally and remotely.
+- **Choice**: Option 3 (Tiered branch hierarchy with protected branches).
+- **Reasons**:
+  - Clear separation of concerns: `main` tracks production releases, `staging` tracks pre-production/QA verification, and `dev` serves as the shared integration target.
+  - Multi-tier enforcement: Direct commits to `main`, `staging`, and `dev` are prevented locally via the `.husky/pre-commit` hook and remotely via GitHub branch protection rules.
+  - Unified CI: The GitHub Actions CI pipeline runs on every Pull Request between any branches and validates post-merge builds across `main`, `staging`, and `dev`.
+- **Consequences**:
+  - Developers must work in feature/fix branches (`feat/*`, `fix/*`, `chore/*`) created off `dev`.
+  - Direct commits on `main`, `staging`, or `dev` trigger immediate failure in `.husky/pre-commit`.
+  - Merging into protected branches requires Pull Requests and passing CI checks.

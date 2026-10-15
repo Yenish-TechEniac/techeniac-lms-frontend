@@ -1,17 +1,21 @@
 # Development Conventions
 
-## Branch Naming & Workflow
+## Branch Hierarchy & Workflow
 
-For feature and maintenance work (post-foundation setup), use semantic branch prefixes:
+The repository follows a tiered branch hierarchy:
 
-- `feat/<short-description>`: New client feature or page.
-- `fix/<short-description>`: Bug fix in UI or client state.
-- `chore/<short-description>`: Tooling, dependency updates, maintenance.
-- `docs/<short-description>`: Documentation changes.
-- `refactor/<short-description>`: Code restructuring without UI behavior changes.
-- `test/<short-description>`: Adding or modifying automated tests.
+$$\text{main (Production)} \longleftarrow \text{staging (Pre-production)} \longleftarrow \text{dev (Integration)} \longleftarrow \text{feature/fix branches}$$
 
-_Note_: For TASK F0, work was explicitly authorized to occur directly on `main` to establish the foundational frontend baseline.
+- **`main`**: Production-ready code only. Direct commits prohibited.
+- **`staging`**: Pre-production testing and QA. Direct commits prohibited.
+- **`dev`**: Daily integration branch. Direct commits prohibited.
+- **Feature / Maintenance Branches**: Branched off `dev` using semantic prefixes:
+  - `feat/<short-description>`: New client feature or page.
+  - `fix/<short-description>`: Bug fix in UI or client state.
+  - `chore/<short-description>`: Tooling, dependency updates, maintenance.
+  - `docs/<short-description>`: Documentation changes.
+  - `refactor/<short-description>`: Code restructuring without UI behavior changes.
+  - `test/<short-description>`: Adding or modifying automated tests.
 
 ## Commit Standards
 
@@ -25,9 +29,9 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) specific
 
 ## Pull Request Discipline
 
+- **Protected Branches**: Direct commits to `main`, `staging`, and `dev` are strictly prohibited locally via Husky pre-commit hooks and remotely via GitHub branch protection rules. All changes must arrive via Pull Requests.
 - **Diff Size**: Pull requests should ideally remain under ~400 lines of changed code to facilitate thorough, high-quality peer review.
-- **Merge Strategy**: Squash merging is mandatory for feature branches merged into `main`. This maintains a linear, clean history on `main` while giving developers freedom to create granular commits during development.
-- **Main Branch Protection**: Direct commits to `main` are prohibited during standard team workflows. Changes must pass automated checks and code review before merging.
+- **Merge Strategy**: Squash merging is mandatory for feature branches merged into `dev` or higher tiers. This maintains a linear, clean history while giving developers freedom to create granular commits during development.
 
 ## TypeScript Standards
 

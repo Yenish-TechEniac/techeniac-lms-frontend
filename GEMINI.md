@@ -8,7 +8,7 @@ Techeniac LMS Frontend provides the student, instructor, and admin web experienc
 - `components/`: UI components organized by tier (`ui/`, `patterns/`, `layout/`, `app/`).
 - `hooks/`: Reusable custom React hooks.
 - `services/`: API client services communicating with `/api/v1`.
-- `lib/`: Shared utility functions and third-party client instantiations.
+- `lib/`: Shared utility functions, validation schemas (`lib/validation/`), and third-party client instantiations.
 - `context/`: Lightweight client-only React contexts.
 - `proxy.ts`: Cheap edge routing/redirect placeholder (Next.js 16 convention; not security).
 - `.agent/`: Engineering standards, architecture decisions, and non-negotiable rules.
@@ -34,8 +34,9 @@ Techeniac LMS Frontend provides the student, instructor, and admin web experienc
 3. **Server State in TanStack Query**: Keep server state in TanStack Query cache; never duplicate into local UI state.
 4. **Proxy & UI Hiding Are Not Access Control**: `proxy.ts` and UI guards are routing/UX conveniences; backend enforces authorization.
 5. **Architecture Confinement**: `components/ui/**` cannot import higher tiers (`app`, `patterns`, `services`, `hooks`). Pages/components cannot import `services/**` directly; data access must go through `hooks/**`.
-6. **Ask Before Git/GitHub Actions**: Never run mutating Git commands without explicit per-command user approval.
+6. **No Direct Commits to Protected Branches**: Direct commits to `main`, `staging`, and `dev` are strictly prohibited; all changes must arrive via Pull Requests. Never run mutating Git commands without explicit per-command user approval.
 7. **No Console Log**: Prohibit `console.log` in committed code; use structured logging/observability when configured.
+8. **Continuous Integration**: All Pull Requests must pass the GitHub Actions CI pipeline (Gitleaks, typecheck, lint, architecture rule fixtures, format check, and Next.js build) before merging.
 
 ## Agent Governance Links
 

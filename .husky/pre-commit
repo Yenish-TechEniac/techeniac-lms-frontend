@@ -1,5 +1,13 @@
 #!/usr/bin/env sh
 
+# Disallow direct commits to main, staging, and dev
+current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+if [ "$current_branch" = "main" ] || [ "$current_branch" = "staging" ] || [ "$current_branch" = "dev" ]; then
+  echo "ERROR: Direct commits to '$current_branch' are prohibited." >&2
+  echo "Please branch out (e.g. git switch -c feat/<feature-name>) and raise a Pull Request." >&2
+  exit 1
+fi
+
 # Fail if Gitleaks is missing from PATH
 if ! command -v gitleaks >/dev/null 2>&1; then
   echo "ERROR: Gitleaks is required for pre-commit verification but was not found in PATH." >&2

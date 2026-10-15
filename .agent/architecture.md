@@ -28,7 +28,7 @@
   - `app/`: Feature-specific composite views tied directly to LMS pages.
 - **`hooks/`**: Custom, reusable React hooks for UI interactions and device capabilities.
 - **`services/`**: API interaction services connecting to `NEXT_PUBLIC_API_BASE_URL` (`/api/v1`).
-- **`lib/`**: Generic pure utility functions and client library wrappers.
+- **`lib/`**: Generic pure utility functions, client library wrappers, and client-side validation schemas (`lib/validation/`).
 - **`context/`**: React contexts reserved strictly for localized client-only UI state (theme, sidebar toggle).
 - **`proxy.ts`**: Edge routing/proxy placeholder for early UX redirects (Next.js 16 convention replacing deprecated `middleware.ts`).
 
