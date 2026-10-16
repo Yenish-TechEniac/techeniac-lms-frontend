@@ -20,3 +20,10 @@ These rules are non-negotiable and apply to all agents and automated tools worki
 - All work must be conducted on feature, fix, or chore branches (`feat/*`, `fix/*`, `chore/*`) created from `dev`.
 - Direct commits to protected branches (`main`, `staging`, and `dev`) are strictly prohibited and blocked by pre-commit hooks.
 - All changes must arrive via Pull Requests with squash merging.
+- **Pre-Coding Branch Planning & Permission**: Before writing or modifying any code for any feature, module, or change request:
+  - Check the active branch.
+  - Identify the exact branch needed (`feat/*`, `fix/*`, `chore/*`).
+  - For large features/modules, propose a complete multi-branch roadmap upfront and get user approval.
+  - Ask for explicit user permission before creating or switching branches.
+  - Always verify that the repository is on the target branch before applying any code changes.
+- **Diff Size Limit & User Confirmation**: Changes in a single branch or PR must not exceed ~400 lines of code. If a planned implementation or task requires more than 400 lines of code change in a single branch, the agent must ask the user for explicit permission/confirmation before making those changes (or propose splitting them into smaller PRs).

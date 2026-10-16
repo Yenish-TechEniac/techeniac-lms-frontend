@@ -34,9 +34,10 @@ Techeniac LMS Frontend provides the student, instructor, and admin web experienc
 3. **Server State in TanStack Query**: Keep server state in TanStack Query cache; never duplicate into local UI state.
 4. **Proxy & UI Hiding Are Not Access Control**: `proxy.ts` and UI guards are routing/UX conveniences; backend enforces authorization.
 5. **Architecture Confinement**: `components/ui/**` cannot import higher tiers (`app`, `patterns`, `services`, `hooks`). Pages/components cannot import `services/**` directly; data access must go through `hooks/**`.
-6. **No Direct Commits to Protected Branches**: Direct commits to `main`, `staging`, and `dev` are strictly prohibited; all changes must arrive via Pull Requests. Never run mutating Git commands without explicit per-command user approval.
+6. **No Direct Commits to Protected Branches & Mandatory Branch Planning**: Direct commits to `main`, `staging`, and `dev` are strictly prohibited; all changes must arrive via Pull Requests. Before any code changes, identify the target branch (`feat/*`, `fix/*`, `chore/*`), present multi-branch roadmaps for large features upfront, obtain explicit user approval before creating/switching branches, and ensure the workspace is on the target branch before writing code. Never run mutating Git commands without explicit per-command user approval.
 7. **No Console Log**: Prohibit `console.log` in committed code; use structured logging/observability when configured.
 8. **Continuous Integration**: All Pull Requests must pass the GitHub Actions CI pipeline (Gitleaks, typecheck, lint, architecture rule fixtures, format check, and Next.js build) before merging.
+9. **Branch Diff Limit (<400 Lines)**: Changes in a single branch or PR must not exceed ~400 lines of code. If more than 400 lines are needed in one branch, prompt and ask the user for confirmation before making those changes, or break them down into a multi-branch roadmap.
 
 ## Agent Governance Links
 
