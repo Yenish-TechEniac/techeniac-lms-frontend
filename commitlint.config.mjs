@@ -1,11 +1,11 @@
 const BACKEND_COMMIT_REGEX =
-  /^(feat|fix|bug|docs|style|refactor|test|chore|perf|ci|build|revert)(\(.+\))?: .{1,50}$/;
+  /^(feat|fix|bug|docs|style|refactor|test|chore|perf|ci|build|revert)(\(.+\))?!?: .{1,50}$/;
 
 const config = {
   extends: ['@commitlint/config-conventional'],
   parserPreset: {
     parserOpts: {
-      headerPattern: /^(\w+)(?:\((.+)\))?: (.+)$/,
+      headerPattern: /^(\w+)(?:\((.+)\))?!?: (.+)$/,
       headerCorrespondence: ['type', 'scope', 'subject'],
     },
   },
@@ -17,7 +17,7 @@ const config = {
           const isValid = BACKEND_COMMIT_REGEX.test(header ?? '');
           return [
             isValid,
-            `header must match backend regex pattern "^(feat|fix|bug|docs|style|refactor|test|chore|perf|ci|build|revert)(\\(.+\\))?: .{1,50}$"`,
+            `header must match backend regex pattern "^(feat|fix|bug|docs|style|refactor|test|chore|perf|ci|build|revert)(\\(.+\\))?!?: .{1,50}$"`,
           ];
         },
       },

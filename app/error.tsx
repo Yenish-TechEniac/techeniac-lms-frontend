@@ -1,28 +1,31 @@
 'use client';
 
-import { useEffect } from 'react';
-
 import { Button } from '@/components/ui/Button';
+import { Typography } from '@/components/ui/Typography';
+
+// TODO(FE-OBSERVABILITY): Wire up external error reporting service (e.g., Sentry)
 
 export default function RootError({
   error,
-  reset,
+  retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  retry: () => void;
 }) {
-  useEffect(() => {
-    // Report error to an external observability service in production
-    // Avoid console.log per strict code conventions
-  }, [error]);
-
   return (
     <div className="flex min-h-[50vh] flex-col items-center justify-center p-6 text-center">
-      <h1 className="text-foreground text-xl font-semibold tracking-tight">Something went wrong</h1>
-      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+      <Typography as="h1" variant="h3">
+        Something went wrong
+      </Typography>
+      <Typography variant="muted" className="mt-2">
         An unexpected error occurred while rendering this page.
-      </p>
-      <Button onClick={() => reset()} className="mt-4">
+      </Typography>
+      {error.digest && (
+        <Typography variant="code" className="mt-2 text-xs">
+          Reference: {error.digest}
+        </Typography>
+      )}
+      <Button onClick={() => retry()} className="mt-4">
         Try again
       </Button>
     </div>
