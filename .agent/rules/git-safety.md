@@ -19,7 +19,7 @@ These rules are non-negotiable and apply to all agents and automated tools worki
 
 - All work must be conducted on feature, fix, or chore branches (`feat/*`, `fix/*`, `chore/*`) created from `dev`.
 - Direct commits to protected branches (`main`, `staging`, and `dev`) are strictly prohibited and blocked by pre-commit hooks.
-- All changes must arrive via Pull Requests with squash merging.
+- All changes must arrive via reviewed and CI-passed Pull Requests with Conventional Commits.
 - **Pre-Coding Branch Planning & Permission**: Before writing or modifying any code for any feature, module, or change request:
   - Check the active branch.
   - Identify the exact branch needed (`feat/*`, `fix/*`, `chore/*`).
