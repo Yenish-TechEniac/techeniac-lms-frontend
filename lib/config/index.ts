@@ -4,17 +4,19 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   NEXT_PUBLIC_API_BASE_URL: z
     .string({ required_error: 'NEXT_PUBLIC_API_BASE_URL is required' })
-    .url('NEXT_PUBLIC_API_BASE_URL must be a valid URL')
-    .default('http://localhost:4000/api/v1'),
+    .url('NEXT_PUBLIC_API_BASE_URL must be a valid URL'),
 });
 
 export type Env = z.infer<typeof envSchema>;
-export type AppConfig = Env;
 
 function loadEnv(): Env {
+  const isDevelopment = (process.env.NODE_ENV ?? 'development') === 'development';
+
   const rawEnv = {
     NODE_ENV: process.env.NODE_ENV,
-    NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
+    NEXT_PUBLIC_API_BASE_URL:
+      process.env.NEXT_PUBLIC_API_BASE_URL ||
+      (isDevelopment ? 'http://localhost:4000/api/v1' : undefined),
   };
 
   const result = envSchema.safeParse(rawEnv);
@@ -31,4 +33,3 @@ function loadEnv(): Env {
 }
 
 export const env = loadEnv();
-export const config = env;

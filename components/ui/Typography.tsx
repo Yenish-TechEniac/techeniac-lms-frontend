@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { cn } from '@/lib/cn';
+
 export type TypographyVariant =
   'h1' | 'h2' | 'h3' | 'h4' | 'p' | 'lead' | 'large' | 'small' | 'muted' | 'code';
 
@@ -19,7 +21,10 @@ const defaultElementMap: Record<TypographyVariant, TypographyElement> = {
   code: 'code',
 };
 
-export function getTypographyClassName(variant: TypographyVariant = 'p', className = ''): string {
+export function getTypographyClassName(
+  variant: TypographyVariant = 'p',
+  className?: string,
+): string {
   const variants: Record<TypographyVariant, string> = {
     h1: 'text-3xl font-bold tracking-tight text-foreground sm:text-4xl',
     h2: 'text-2xl font-semibold tracking-tight text-foreground',
@@ -33,7 +38,7 @@ export function getTypographyClassName(variant: TypographyVariant = 'p', classNa
     code: 'rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] font-semibold text-foreground dark:bg-white/[.08]',
   };
 
-  return `${variants[variant]} ${className}`.trim();
+  return cn(variants[variant], className);
 }
 
 export interface TypographyProps extends React.HTMLAttributes<HTMLElement> {

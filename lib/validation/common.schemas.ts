@@ -26,5 +26,3 @@ export const createTrimmedStringSchema = (fieldName: string, min = 1, max = 255)
     .trim()
     .min(min, `${fieldName} must be at least ${min} characters`)
     .max(max, `${fieldName} must not exceed ${max} characters`);
-
-export const trimmedString = createTrimmedStringSchema;

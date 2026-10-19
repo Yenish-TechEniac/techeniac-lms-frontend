@@ -1,6 +1,4 @@
-import Link from 'next/link';
-
-import { getButtonClassName } from '@/components/ui/Button';
+import { Button } from '@/components/ui/Button';
 import { Typography } from '@/components/ui/Typography';
 
 export default function Home() {
@@ -14,9 +12,9 @@ export default function Home() {
           Modern learning management platform for students, instructors, and administrators.
         </Typography>
         <div className="mt-4 flex gap-4">
-          <Link href="/login" className={getButtonClassName('primary')}>
-            Get Started
-          </Link>
+          <Button disabled aria-disabled="true">
+            Get Started (Coming soon)
+          </Button>
         </div>
       </main>
     </div>
