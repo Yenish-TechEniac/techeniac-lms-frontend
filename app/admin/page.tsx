@@ -149,27 +149,35 @@ export default function AdminPage() {
             </div>
           </div>
 
-          {/* Module 4: Submissions */}
-          <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
+          {/* Module 4: Submissions & Audits */}
+          <Link
+            href="/admin/audit-logs"
+            className="group flex flex-col justify-between rounded-xl border border-blue-200 bg-blue-50/50 p-5 shadow-xs transition-all hover:border-blue-300 hover:bg-blue-50 hover:shadow-sm"
+          >
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                <span className="text-[10px] font-bold tracking-wider text-blue-700 uppercase">
                   Module 4
                 </span>
-                <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
-                  Upcoming
+                <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-800">
+                  Operational
                 </span>
               </div>
-              <h3 className="mt-2 text-base font-bold text-slate-900">Submissions & Audits</h3>
+              <h3 className="mt-2 text-base font-bold text-slate-900 transition-colors group-hover:text-blue-700">
+                Submissions & Audits
+              </h3>
               <p className="mt-1 text-xs leading-relaxed text-slate-600">
-                Mentee assignment submissions, mentor review rubrics, resubmissions, and audit
-                history.
+                System events, entity changes, authentication tracking, and before/after diff
+                modals.
               </p>
             </div>
-            <div className="mt-4 border-t border-slate-100 pt-3">
-              <span className="text-[11px] text-slate-400">Scheduled next</span>
+            <div className="mt-4 flex items-center justify-between border-t border-blue-100 pt-3">
+              <span className="text-[11px] font-semibold text-blue-700 group-hover:underline">
+                View Audit Logs &rarr;
+              </span>
+              <span className="text-[10px] font-medium text-blue-600">Live API Active</span>
             </div>
-          </div>
+          </Link>
         </div>
 
         {/* System Telemetry */}

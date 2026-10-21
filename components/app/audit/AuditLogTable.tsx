@@ -46,7 +46,7 @@ const INITIAL_LOGS: AuditLogEntry[] = [
     entityId: 'usr-3',
     action: 'ROLE_CHANGE',
     summary: 'Promoted Mentee Priya Patel to Mentor. Batch memberships closed.',
-    createdAt: '2026-10-19 14:32:08 UTC',
+    createdAt: '2026-10-19 20:02:08 IST',
     oldValue: { role: 'MENTEE', status: 'ACTIVE', batchId: 'FE-25Q1' },
     newValue: { role: 'MENTOR', status: 'ACTIVE', batchId: null },
   },
@@ -60,7 +60,7 @@ const INITIAL_LOGS: AuditLogEntry[] = [
     entityId: 'crs-901',
     action: 'LIVE_EDIT',
     summary: 'Live updated topic title: "Git & GitHub Workflow". Recalculated allocations.',
-    createdAt: '2026-10-19 09:44:12 UTC',
+    createdAt: '2026-10-19 15:14:12 IST',
     oldValue: { title: 'Git Workflow' },
     newValue: { title: 'Git & GitHub Workflow' },
   },
@@ -74,7 +74,7 @@ const INITIAL_LOGS: AuditLogEntry[] = [
     entityId: null,
     action: 'FAILED_LOGIN',
     summary: 'Failed login attempt for email "wrong@company.com" (invalid credentials).',
-    createdAt: '2026-10-18 14:02:11 UTC',
+    createdAt: '2026-10-18 19:32:11 IST',
     oldValue: { email: 'wrong@company.com' },
     newValue: null,
   },
@@ -113,7 +113,20 @@ function formatTimestamp(isoString: string): string {
   try {
     const date = new Date(isoString);
     if (isNaN(date.getTime())) return isoString;
-    return date.toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
+    return (
+      new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Kolkata',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hourCycle: 'h23',
+      })
+        .format(date)
+        .replace(',', '') + ' IST'
+    );
   } catch {
     return isoString;
   }
@@ -415,7 +428,7 @@ export function AuditLogTable() {
               <table className="w-full border-collapse text-left text-sm">
                 <thead className="border-b border-slate-200/80 bg-slate-50/80 text-xs font-semibold tracking-wider text-slate-500 uppercase">
                   <tr>
-                    <th className="px-6 py-3.5">Timestamp (UTC)</th>
+                    <th className="px-6 py-3.5">Timestamp (IST)</th>
                     <th className="px-4 py-3.5">Type</th>
                     <th className="px-4 py-3.5">Actor</th>
                     <th className="px-4 py-3.5">Target Entity</th>

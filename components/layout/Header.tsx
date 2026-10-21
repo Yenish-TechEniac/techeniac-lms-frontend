@@ -35,6 +35,7 @@ export function Header() {
           nav: [
             { label: 'Overview', href: '/admin' },
             { label: 'Users', href: '/admin/users' },
+            { label: 'Audit Logs', href: '/admin/audit-logs' },
             { label: 'Batches', href: '#' },
             { label: 'Curriculum', href: '#' },
           ],
