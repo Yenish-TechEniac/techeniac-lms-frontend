@@ -69,21 +69,21 @@
 
 ---
 
-## ADR-005: Squash Merging for Feature Branches
+## ADR-005: Pull Request Merging & Linear History Discipline
 
-- **Date**: 2026-10-14
+- **Date**: 2026-10-14 (Updated: 2026-10-19)
 - **Status**: Accepted
-- **Context**: A Git branching and merging strategy is required to maintain a readable, bisectable history on the `main` branch.
+- **Context**: A Git branching and merging strategy is required to maintain a readable, bisectable history across integration branches.
 - **Options**:
-  1. Merge commits (`git merge --no-ff`)
+  1. Merge commits via Pull Requests (`git merge --no-ff`)
   2. Fast-forward rebase
   3. Squash merge via Pull Requests
-- **Choice**: Squash merging for all feature branches merged into `main`.
+- **Choice**: Merge commits via reviewed Pull Requests with Conventional Commits for all branches merged into `dev`, with structured promotion across `dev` -> `staging` -> `main`.
 - **Reasons**:
-  - Collapses noisy intermediate commits ("wip", "fix typo") into a single atomic commit on `main`.
-  - Ensures every commit on `main` follows the Conventional Commits specification.
-  - Simplifies rollbacks (`git revert`) and git bisect operations.
-- **Consequences**: Individual commit histories on feature branches are discarded upon merge; the PR title and description become the squash commit message.
+  - Preserves complete development commit history and author attribution across pull requests.
+  - Produces traceable PR merge points linking features and fixes to their PR context.
+  - Maintains strict semantic versioning and changelog accuracy through Conventional Commits.
+- **Consequences**: Individual commit histories on feature branches are preserved upon merge. Developers must write Conventional Commit messages for all commits on working branches.
 
 ---
 
