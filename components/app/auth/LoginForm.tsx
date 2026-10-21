@@ -2,11 +2,11 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/hooks/useAuth';
-import { getRolePortalPath } from '@/hooks/useRoleGuard';
+import { redirectUserByRole, useRoleRedirect } from '@/hooks/useRoleRedirect';
 import { type LoginFormData, loginSchema } from '@/lib/validation';
 
 export interface LoginFormProps {
@@ -15,22 +15,13 @@ export interface LoginFormProps {
 
 export function LoginForm({ onSubmitSuccess }: LoginFormProps) {
   const router = useRouter();
-  const { user, isAuthenticated, isLoading, login } = useAuth();
+  const { login } = useAuth();
+  useRoleRedirect({ redirectAuthenticatedToPortal: true, requireAuth: false });
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (!isLoading && isAuthenticated && user) {
-      if (user.mustChangePassword) {
-        router.replace('/change-password');
-      } else {
-        router.replace(getRolePortalPath(user.role));
-      }
-    }
-  }, [isLoading, isAuthenticated, user, router]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -56,10 +47,8 @@ export function LoginForm({ onSubmitSuccess }: LoginFormProps) {
       const loggedInUser = await login(result.data);
       if (onSubmitSuccess) {
         onSubmitSuccess(result.data);
-      } else if (loggedInUser.mustChangePassword) {
-        router.push('/change-password');
       } else {
-        router.push(getRolePortalPath(loggedInUser.role));
+        redirectUserByRole(router, loggedInUser, 'push');
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Invalid email or password';

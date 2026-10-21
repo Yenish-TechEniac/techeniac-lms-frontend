@@ -3,10 +3,10 @@
 import React from 'react';
 
 import { Header } from '@/components/layout/Header';
-import { useRoleGuard } from '@/hooks/useRoleGuard';
+import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 
 export default function MentorPage() {
-  const { user, isAuthorized } = useRoleGuard('MENTOR');
+  const { user, isAuthorized } = useRoleRedirect({ allowedRoles: ['MENTOR'] });
 
   if (!isAuthorized || !user) {
     return (

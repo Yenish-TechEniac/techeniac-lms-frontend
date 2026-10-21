@@ -1,25 +1,15 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import React, { useEffect } from 'react';
+import React from 'react';
 
 import { AuthShell } from '@/components/app/auth/AuthShell';
 import { ChangePasswordForm } from '@/components/app/auth/ChangePasswordForm';
-import { useAuth } from '@/hooks/useAuth';
+import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 
 export default function ChangePasswordPage() {
-  const router = useRouter();
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { isAuthorized } = useRoleRedirect({ allowMustChangePassword: true });
 
-  useEffect(() => {
-    if (!isLoading) {
-      if (!isAuthenticated || !user) {
-        router.replace('/login');
-      }
-    }
-  }, [isLoading, isAuthenticated, user, router]);
-
-  if (isLoading || !isAuthenticated || !user) {
+  if (!isAuthorized) {
     return (
       <div className="flex min-h-screen flex-1 items-center justify-center bg-slate-50 p-6">
         <div className="flex flex-col items-center gap-3">

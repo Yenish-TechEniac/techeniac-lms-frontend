@@ -1,26 +1,11 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import React, { useEffect } from 'react';
+import React from 'react';
 
-import { useAuth } from '@/hooks/useAuth';
-import { getRolePortalPath } from '@/hooks/useRoleGuard';
+import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 
 export default function RootPage() {
-  const router = useRouter();
-  const { user, isAuthenticated, isLoading } = useAuth();
-
-  useEffect(() => {
-    if (!isLoading) {
-      if (!isAuthenticated || !user) {
-        router.replace('/login');
-      } else if (user.mustChangePassword) {
-        router.replace('/change-password');
-      } else {
-        router.replace(getRolePortalPath(user.role));
-      }
-    }
-  }, [isLoading, isAuthenticated, user, router]);
+  useRoleRedirect({ redirectAuthenticatedToPortal: true });
 
   return (
     <div className="flex min-h-screen flex-1 items-center justify-center bg-slate-50 p-6">

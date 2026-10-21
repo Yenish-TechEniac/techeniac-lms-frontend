@@ -9,13 +9,13 @@ export interface AuthShellProps {
 export function AuthShell({ children, title, subtitle }: AuthShellProps) {
   return (
     <div className="flex min-h-screen w-full flex-col bg-white selection:bg-blue-100 selection:text-blue-700 md:flex-row">
-      {/* Left 50%: Calm Sky Soft Branding Panel */}
-      <div className="relative flex min-h-[380px] w-full flex-col justify-between overflow-hidden border-r border-[#DBEAFE] bg-[#EFF6FF] p-8 sm:p-12 md:min-h-screen md:w-1/2 lg:p-16">
+      {/* Left 50%: Calm Sky Soft Branding Panel (Collapses to compact header on mobile) */}
+      <div className="relative flex w-full flex-col justify-between overflow-hidden border-b border-[#DBEAFE] bg-[#EFF6FF] p-4 sm:p-6 md:min-h-screen md:w-1/2 md:border-r md:border-b-0 md:p-12 lg:p-16">
         {/* Ambient Decorative Geometry */}
         <div className="pointer-events-none absolute -top-24 -left-24 h-96 w-96 rounded-full bg-[#DBEAFE]/40 blur-3xl" />
         <div className="pointer-events-none absolute right-0 -bottom-20 h-80 w-80 rounded-full bg-[#BFDBFE]/30 blur-2xl" />
 
-        {/* Top Header Brand */}
+        {/* Top Header Brand (Compact on mobile, top bar on desktop) */}
         <div className="relative z-10 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-[#3B82F6] text-lg font-bold text-white shadow-sm">
             T
@@ -28,8 +28,8 @@ export function AuthShell({ children, title, subtitle }: AuthShellProps) {
           </div>
         </div>
 
-        {/* Center Hero Messaging */}
-        <div className="relative z-10 my-auto max-w-lg py-8">
+        {/* Center Hero Messaging (Desktop only, hidden on mobile to keep form above the fold) */}
+        <div className="relative z-10 my-auto hidden max-w-lg py-8 md:block">
           <div className="relative mb-6 flex h-20 w-20 items-center justify-center rounded-[20px] border border-[#BFDBFE] bg-white shadow-[0_8px_24px_rgba(59,130,246,0.08)]">
             <svg
               className="h-10 w-10 text-[#3B82F6]"
@@ -83,15 +83,15 @@ export function AuthShell({ children, title, subtitle }: AuthShellProps) {
           </div>
         </div>
 
-        {/* Bottom Footer Meta */}
-        <div className="relative z-10 flex items-center justify-between pt-4 font-mono text-xs text-slate-400">
+        {/* Bottom Footer Meta (Desktop only) */}
+        <div className="relative z-10 hidden items-center justify-between pt-4 font-mono text-xs text-slate-400 md:flex">
           <span>OPERATIONAL CONSOLE</span>
           <span>ENTERPRISE SPEC v2.0</span>
         </div>
       </div>
 
       {/* Right 50%: Content Layout */}
-      <div className="flex min-h-screen w-full items-center justify-center bg-white p-6 sm:p-10 md:w-1/2 lg:p-16">
+      <div className="flex w-full flex-1 items-center justify-center bg-white p-6 sm:p-10 md:min-h-screen md:w-1/2 lg:p-16">
         <div className="flex w-full max-w-[440px] flex-col justify-center">
           <div className="mb-8">
             <h2 className="mb-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">

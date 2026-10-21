@@ -3,10 +3,10 @@
 import React from 'react';
 
 import { Header } from '@/components/layout/Header';
-import { useRoleGuard } from '@/hooks/useRoleGuard';
+import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 
 export default function MenteePage() {
-  const { user, isAuthorized } = useRoleGuard('MENTEE');
+  const { user, isAuthorized } = useRoleRedirect({ allowedRoles: ['MENTEE'] });
 
   if (!isAuthorized || !user) {
     return (

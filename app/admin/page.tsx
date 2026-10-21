@@ -3,10 +3,10 @@
 import React from 'react';
 
 import { Header } from '@/components/layout/Header';
-import { useRoleGuard } from '@/hooks/useRoleGuard';
+import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 
 export default function AdminPage() {
-  const { user, isAuthorized } = useRoleGuard('SUPER_ADMIN');
+  const { user, isAuthorized } = useRoleRedirect({ allowedRoles: ['SUPER_ADMIN'] });
 
   if (!isAuthorized || !user) {
     return (
