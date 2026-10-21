@@ -1,28 +1,14 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import React, { useEffect } from 'react';
+import React from 'react';
 
 import { Header } from '@/components/layout/Header';
-import { useAuth } from '@/hooks/useAuth';
+import { useRoleGuard } from '@/hooks/useRoleGuard';
 
 export default function MentorPage() {
-  const router = useRouter();
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthorized } = useRoleGuard('MENTOR');
 
-  useEffect(() => {
-    if (!isLoading) {
-      if (!isAuthenticated || !user) {
-        router.replace('/login');
-      } else if (user.mustChangePassword) {
-        router.replace('/change-password');
-      } else if (user.role === 'MENTEE') {
-        router.replace('/mentee');
-      }
-    }
-  }, [isLoading, isAuthenticated, user, router]);
-
-  if (isLoading || !isAuthenticated || !user || user.role === 'MENTEE') {
+  if (!isAuthorized || !user) {
     return (
       <div className="flex min-h-screen flex-1 items-center justify-center bg-slate-50 p-6">
         <div className="flex flex-col items-center gap-3">

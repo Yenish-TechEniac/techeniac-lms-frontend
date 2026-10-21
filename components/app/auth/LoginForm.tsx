@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react';
 
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/hooks/useAuth';
+import { getRolePortalPath } from '@/hooks/useRoleGuard';
 import { type LoginFormData, loginSchema } from '@/lib/validation';
 
 export interface LoginFormProps {
@@ -25,12 +26,8 @@ export function LoginForm({ onSubmitSuccess }: LoginFormProps) {
     if (!isLoading && isAuthenticated && user) {
       if (user.mustChangePassword) {
         router.replace('/change-password');
-      } else if (user.role === 'SUPER_ADMIN') {
-        router.replace('/admin');
-      } else if (user.role === 'MENTOR') {
-        router.replace('/mentor');
       } else {
-        router.replace('/mentee');
+        router.replace(getRolePortalPath(user.role));
       }
     }
   }, [isLoading, isAuthenticated, user, router]);
@@ -61,12 +58,8 @@ export function LoginForm({ onSubmitSuccess }: LoginFormProps) {
         onSubmitSuccess(result.data);
       } else if (loggedInUser.mustChangePassword) {
         router.push('/change-password');
-      } else if (loggedInUser.role === 'SUPER_ADMIN') {
-        router.push('/admin');
-      } else if (loggedInUser.role === 'MENTOR') {
-        router.push('/mentor');
       } else {
-        router.push('/mentee');
+        router.push(getRolePortalPath(loggedInUser.role));
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Invalid email or password';

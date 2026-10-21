@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
 
 import { useAuth } from '@/hooks/useAuth';
+import { getRolePortalPath } from '@/hooks/useRoleGuard';
 
 export default function RootPage() {
   const router = useRouter();
@@ -15,12 +16,8 @@ export default function RootPage() {
         router.replace('/login');
       } else if (user.mustChangePassword) {
         router.replace('/change-password');
-      } else if (user.role === 'SUPER_ADMIN') {
-        router.replace('/admin');
-      } else if (user.role === 'MENTOR') {
-        router.replace('/mentor');
       } else {
-        router.replace('/mentee');
+        router.replace(getRolePortalPath(user.role));
       }
     }
   }, [isLoading, isAuthenticated, user, router]);
