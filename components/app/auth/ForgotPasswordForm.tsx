@@ -13,10 +13,13 @@ export function ForgotPasswordForm() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDispatched, setIsDispatched] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [resendStatus, setResendStatus] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
+    setResendStatus(null);
 
     const result = forgotPasswordSchema.safeParse({ email });
     if (!result.success) {
@@ -32,6 +35,19 @@ export function ForgotPasswordForm() {
     } finally {
       setIsSubmitting(false);
       setIsDispatched(true);
+    }
+  };
+
+  const handleResend = async () => {
+    setIsResending(true);
+    setResendStatus(null);
+    try {
+      await forgotPassword(email);
+    } catch {
+      // Suppress server errors to prevent user account enumeration
+    } finally {
+      setIsResending(false);
+      setResendStatus('A new reset link has been sent if this email is registered.');
     }
   };
 
@@ -53,18 +69,38 @@ export function ForgotPasswordForm() {
           <h3 className="mb-1 text-xl font-bold text-slate-900">Check your email</h3>
           <p className="text-sm leading-relaxed text-slate-600">
             We sent a password reset link to{' '}
-            <span className="font-semibold text-slate-800">{email}</span>. The link is valid for 15
+            <span className="font-semibold text-slate-800">{email}</span>. The link is valid for 30
             minutes.
           </p>
         </div>
 
+        {resendStatus ? (
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-2.5 text-xs font-medium text-emerald-800">
+            {resendStatus}
+          </div>
+        ) : null}
+
         <div className="space-y-3 pt-2">
           <button
             type="button"
-            onClick={() => setIsDispatched(false)}
-            className="h-11 w-full rounded-[12px] border border-slate-200 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+            onClick={() => {
+              void handleResend();
+            }}
+            disabled={isResending}
+            className="flex h-11 w-full cursor-pointer items-center justify-center rounded-[12px] bg-slate-100 text-sm font-semibold text-slate-800 transition-colors hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Send again
+            {isResending ? 'Resending link...' : 'Resend link'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setIsDispatched(false);
+              setResendStatus(null);
+            }}
+            className="h-11 w-full cursor-pointer rounded-[12px] border border-slate-200 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+          >
+            Use a different email
           </button>
 
           <Link
