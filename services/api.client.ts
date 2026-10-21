@@ -13,13 +13,21 @@ export class ApiError extends Error {
   public readonly code: string;
   public readonly status: number;
   public readonly details?: unknown;
+  public readonly retryAfter?: number | undefined;
 
-  constructor(status: number, message: string, code = 'REQUEST_ERROR', details?: unknown) {
+  constructor(
+    status: number,
+    message: string,
+    code = 'REQUEST_ERROR',
+    details?: unknown,
+    retryAfter?: number,
+  ) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.code = code;
     this.details = details;
+    this.retryAfter = retryAfter;
   }
 }
 
@@ -75,11 +83,19 @@ export async function apiClient<T>(endpoint: string, options: RequestOptions = {
 
   if (!response.ok) {
     const errData = data as ApiErrorResponse | null;
-    const message =
+    const retryAfterHeader = response.headers.get('Retry-After');
+    const retryAfter = retryAfterHeader ? parseInt(retryAfterHeader, 10) : undefined;
+
+    let message =
       errData?.error?.message || errData?.message || response.statusText || 'An error occurred';
-    const code = errData?.error?.code || 'HTTP_ERROR';
+    if (response.status === 429 && retryAfter && !errData?.error?.message) {
+      const minutes = Math.ceil(retryAfter / 60);
+      message = `Too many requests. Please try again in ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}.`;
+    }
+
+    const code = errData?.error?.code || (response.status === 429 ? 'RATE_LIMITED' : 'HTTP_ERROR');
     const details = errData?.error?.details;
-    throw new ApiError(response.status, message, code, details);
+    throw new ApiError(response.status, message, code, details, retryAfter);
   }
 
   return data as T;
