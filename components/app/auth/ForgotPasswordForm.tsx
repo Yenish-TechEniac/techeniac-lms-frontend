@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import React, { useState } from 'react';
 
+import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/hooks/useAuth';
 import { forgotPasswordSchema } from '@/lib/validation';
@@ -18,6 +19,7 @@ export function ForgotPasswordForm() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setError(null);
     setResendStatus(null);
 
@@ -39,6 +41,7 @@ export function ForgotPasswordForm() {
   };
 
   const handleResend = async () => {
+    if (isResending) return;
     setIsResending(true);
     setResendStatus(null);
     try {
@@ -136,7 +139,7 @@ export function ForgotPasswordForm() {
           hasError={Boolean(error)}
           disabled={isSubmitting}
         />
-        {error ? <p className="mt-1 text-xs font-medium text-red-500">{error}</p> : null}
+        <FieldError error={error} />
       </div>
 
       <button

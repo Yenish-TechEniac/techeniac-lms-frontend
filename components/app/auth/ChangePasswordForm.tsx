@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import React, { useMemo, useState } from 'react';
 
+import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/hooks/useAuth';
 import { changePasswordSchema } from '@/lib/validation';
@@ -36,6 +37,7 @@ export function ChangePasswordForm() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setErrors({});
 
     const result = changePasswordSchema.safeParse({
@@ -114,7 +116,7 @@ export function ChangePasswordForm() {
       noValidate
     >
       {errors.general ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           {errors.general}
         </div>
       ) : null}
@@ -143,7 +145,7 @@ export function ChangePasswordForm() {
           <button
             type="button"
             onClick={() => setShowCurrentPassword((prev) => !prev)}
-            className="absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400 transition-colors hover:text-slate-600 focus:outline-none"
+            className="absolute inset-y-0 right-0 my-auto mr-1.5 flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition-colors hover:text-slate-600 focus:outline-none focus-visible:text-slate-700 focus-visible:ring-2 focus-visible:ring-blue-500"
             title={showCurrentPassword ? 'Hide password' : 'Show password'}
             aria-label={showCurrentPassword ? 'Hide password' : 'Show password'}
           >
@@ -174,9 +176,7 @@ export function ChangePasswordForm() {
             )}
           </button>
         </div>
-        {errors.currentPassword ? (
-          <p className="mt-0.5 text-xs font-medium text-red-500">{errors.currentPassword}</p>
-        ) : null}
+        <FieldError error={errors.currentPassword} />
       </div>
 
       {/* New Password */}
@@ -198,7 +198,7 @@ export function ChangePasswordForm() {
           <button
             type="button"
             onClick={() => setShowNewPassword((prev) => !prev)}
-            className="absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400 transition-colors hover:text-slate-600 focus:outline-none"
+            className="absolute inset-y-0 right-0 my-auto mr-1.5 flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition-colors hover:text-slate-600 focus:outline-none focus-visible:text-slate-700 focus-visible:ring-2 focus-visible:ring-blue-500"
             title={showNewPassword ? 'Hide password' : 'Show password'}
             aria-label={showNewPassword ? 'Hide password' : 'Show password'}
           >
@@ -229,9 +229,7 @@ export function ChangePasswordForm() {
             )}
           </button>
         </div>
-        {errors.newPassword ? (
-          <p className="mt-0.5 text-xs font-medium text-red-500">{errors.newPassword}</p>
-        ) : null}
+        <FieldError error={errors.newPassword} />
       </div>
 
       {/* Criteria Checklist */}
@@ -275,7 +273,7 @@ export function ChangePasswordForm() {
           <button
             type="button"
             onClick={() => setShowConfirmPassword((prev) => !prev)}
-            className="absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400 transition-colors hover:text-slate-600 focus:outline-none"
+            className="absolute inset-y-0 right-0 my-auto mr-1.5 flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition-colors hover:text-slate-600 focus:outline-none focus-visible:text-slate-700 focus-visible:ring-2 focus-visible:ring-blue-500"
             title={showConfirmPassword ? 'Hide password' : 'Show password'}
             aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
           >
@@ -306,9 +304,7 @@ export function ChangePasswordForm() {
             )}
           </button>
         </div>
-        {errors.confirmPassword ? (
-          <p className="mt-0.5 text-xs font-medium text-red-500">{errors.confirmPassword}</p>
-        ) : null}
+        <FieldError error={errors.confirmPassword} />
       </div>
 
       <button

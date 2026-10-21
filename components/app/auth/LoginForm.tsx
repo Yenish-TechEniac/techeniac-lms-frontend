@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 
+import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/hooks/useAuth';
 import { redirectUserByRole, useRoleRedirect } from '@/hooks/useRoleRedirect';
@@ -25,6 +26,7 @@ export function LoginForm({ onSubmitSuccess }: LoginFormProps) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setErrors({});
 
     const result = loginSchema.safeParse({ email, password });
@@ -67,7 +69,7 @@ export function LoginForm({ onSubmitSuccess }: LoginFormProps) {
       noValidate
     >
       {errors.general ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           {errors.general}
         </div>
       ) : null}
@@ -87,9 +89,7 @@ export function LoginForm({ onSubmitSuccess }: LoginFormProps) {
           hasError={Boolean(errors.email)}
           disabled={isSubmitting}
         />
-        {errors.email ? (
-          <p className="mt-1 text-xs font-medium text-red-500">{errors.email}</p>
-        ) : null}
+        <FieldError error={errors.email} />
       </div>
 
       {/* Password Field */}
@@ -121,7 +121,7 @@ export function LoginForm({ onSubmitSuccess }: LoginFormProps) {
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400 transition-colors hover:text-slate-600 focus:outline-none"
+            className="absolute inset-y-0 right-0 my-auto mr-1.5 flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition-colors hover:text-slate-600 focus:outline-none focus-visible:text-slate-700 focus-visible:ring-2 focus-visible:ring-blue-500"
             title={showPassword ? 'Hide password' : 'Show password'}
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
@@ -152,9 +152,7 @@ export function LoginForm({ onSubmitSuccess }: LoginFormProps) {
             )}
           </button>
         </div>
-        {errors.password ? (
-          <p className="mt-1 text-xs font-medium text-red-500">{errors.password}</p>
-        ) : null}
+        <FieldError error={errors.password} />
       </div>
 
       {/* Action Section */}
