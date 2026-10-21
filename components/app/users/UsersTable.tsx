@@ -1,11 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { BulkImportModal } from '@/components/app/users/BulkImportModal';
 import { ChangeRoleModal } from '@/components/app/users/ChangeRoleModal';
 import { CreateUserDrawer } from '@/components/app/users/CreateUserDrawer';
+import { EditUserModal } from '@/components/app/users/EditUserModal';
+import { useAuth } from '@/hooks/useAuth';
+import { useUsers } from '@/hooks/useUsers';
 import {
   type ChangeRoleFormData,
   type CreateUserFormData,
@@ -27,127 +31,170 @@ export interface UserItem {
   isLastSuperAdmin?: boolean;
 }
 
-const INITIAL_USERS: UserItem[] = [
-  {
-    id: 'usr-1',
-    name: 'Devon Vance',
-    email: 'devon.vance@company.internal',
-    role: 'SUPER_ADMIN',
-    status: 'ACTIVE',
-    hasLoggedIn: true,
-    isLastSuperAdmin: true,
-  },
-  {
-    id: 'usr-2',
-    name: 'Alex Chen',
-    email: 'alex.chen@enterprise.internal',
-    role: 'MENTOR',
-    status: 'ACTIVE',
-    batch: 'FE-25Q1',
-    hasLoggedIn: true,
-    activeMenteesCount: 4,
-  },
-  {
-    id: 'usr-3',
-    name: 'Priya Patel',
-    email: 'priya.patel@enterprise.internal',
-    role: 'MENTEE',
-    status: 'ACTIVE',
-    batch: 'FE-25Q1',
-    mentorName: 'Alex Chen',
-    hasLoggedIn: true,
-  },
-  {
-    id: 'usr-4',
-    name: 'Marcus Brody',
-    email: 'marcus.brody@enterprise.internal',
-    role: 'MENTEE',
-    status: 'ACTIVE',
-    batch: 'FE-25Q1',
-    mentorName: 'Alex Chen',
-    hasLoggedIn: false,
-  },
-  {
-    id: 'usr-5',
-    name: 'Elena Rostova',
-    email: 'elena.rostova@enterprise.internal',
-    role: 'MENTOR',
-    status: 'INACTIVE',
-    hasLoggedIn: true,
-    activeMenteesCount: 0,
-  },
-];
-
 export function UsersTable() {
-  const [users, setUsers] = useState<UserItem[]>(INITIAL_USERS);
+  const router = useRouter();
+  const { user: currentUser, isAuthenticated, isLoading: isAuthLoading } = useAuth();
+
   const [search, setSearch] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
   const [selectedBatch, setSelectedBatch] = useState<string>('ALL');
 
+  useEffect(() => {
+    if (!isAuthLoading) {
+      if (!isAuthenticated || !currentUser) {
+        router.replace('/login');
+      } else if (currentUser.mustChangePassword) {
+        router.replace('/change-password');
+      } else if (currentUser.role !== 'SUPER_ADMIN') {
+        router.replace(currentUser.role === 'MENTOR' ? '/mentor' : '/mentee');
+      }
+    }
+  }, [isAuthLoading, isAuthenticated, currentUser, router]);
+
+  const {
+    users: apiUsers,
+    total: totalCount,
+    isLoading,
+    fetchUsers,
+    createUser,
+    updateUser,
+    changeRole,
+    toggleStatus,
+    resendInvite,
+  } = useUsers();
+
   // Modal controls
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
   const [userToChangeRole, setUserToChangeRole] = useState<UserItem | null>(null);
+  const [userToEdit, setUserToEdit] = useState<UserItem | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setTimeout(() => {
+      setToastMessage((current) => (current === message ? null : current));
+    }, 4000);
+  };
+
+  const activeAdminsCount = useMemo(
+    () => apiUsers.filter((u) => u.role === 'SUPER_ADMIN' && u.isActive).length,
+    [apiUsers],
+  );
+
+  const users: UserItem[] = useMemo(() => {
+    return apiUsers.map((u) => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      role: u.role,
+      status: u.isActive ? 'ACTIVE' : 'INACTIVE',
+      hasLoggedIn: u.lastLoginAt !== null,
+      isLastSuperAdmin: u.role === 'SUPER_ADMIN' && activeAdminsCount <= 1,
+    }));
+  }, [apiUsers, activeAdminsCount]);
+
+  const handleFilterUpdate = (newRole: string, newStatus: string, newSearch: string) => {
+    void fetchUsers({
+      role: newRole !== 'ALL' ? newRole : undefined,
+      status: newStatus !== 'ALL' ? newStatus : undefined,
+      search: newSearch.trim() || undefined,
+    });
+  };
 
   // Filtered dataset
   const filteredUsers = useMemo(() => {
     return users.filter((u) => {
-      const matchesSearch =
-        u.name.toLowerCase().includes(search.toLowerCase()) ||
-        u.email.toLowerCase().includes(search.toLowerCase());
-      const matchesRole = selectedRole === 'ALL' || u.role === selectedRole;
-      const matchesStatus = selectedStatus === 'ALL' || u.status === selectedStatus;
       const matchesBatch = selectedBatch === 'ALL' || u.batch === selectedBatch;
-
-      return matchesSearch && matchesRole && matchesStatus && matchesBatch;
+      return matchesBatch;
     });
-  }, [users, search, selectedRole, selectedStatus, selectedBatch]);
+  }, [users, selectedBatch]);
 
   // Telemetry counts
-  const totalCount = users.length;
   const activeCount = users.filter((u) => u.status === 'ACTIVE').length;
   const inactiveCount = users.filter((u) => u.status === 'INACTIVE').length;
 
-  const handleCreateUser = (data: CreateUserFormData) => {
-    const newUser: UserItem = {
-      id: `usr-${Date.now()}`,
-      name: data.name,
-      email: data.email,
-      role: data.role,
-      status: 'ACTIVE',
-      hasLoggedIn: false,
-    };
-    setUsers((prev) => [newUser, ...prev]);
+  const handleCreateUser = async (data: CreateUserFormData) => {
+    try {
+      const newUser = await createUser(data);
+      showToast(`User ${newUser.name} created successfully.`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to create user';
+      showToast(msg);
+    }
   };
 
-  const handleRoleChangeSuccess = (userId: string, data: ChangeRoleFormData) => {
-    setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role: data.newRole } : u)));
+  const handleRoleChangeSuccess = async (userId: string, data: ChangeRoleFormData) => {
+    try {
+      await changeRole(userId, data);
+      showToast(`Role updated to ${data.newRole}.`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to update role';
+      showToast(msg);
+    }
   };
 
-  const handleBulkImport = (rows: CsvUserRow[]) => {
-    const importedUsers: UserItem[] = rows.map((r, i) => ({
-      id: `usr-bulk-${Date.now()}-${i}`,
-      name: r.name,
-      email: r.email,
-      role: r.role,
-      status: 'ACTIVE',
-      hasLoggedIn: false,
-    }));
-    setUsers((prev) => [...importedUsers, ...prev]);
+  const handleEditUserSuccess = async (userId: string, data: { name: string; email: string }) => {
+    try {
+      await updateUser(userId, data);
+      showToast(`User ${data.name} updated successfully.`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to update user';
+      showToast(msg);
+    }
   };
 
-  const handleToggleStatus = (userId: string) => {
-    setUsers((prev) =>
-      prev.map((u) => {
-        if (u.id === userId) {
-          const nextStatus: UserStatus = u.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-          return { ...u, status: nextStatus };
-        }
-        return u;
-      }),
+  const handleResendInvite = async (userId: string, userName: string) => {
+    try {
+      const res = await resendInvite(userId);
+      showToast(res.message);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : `Failed to resend invite to ${userName}`;
+      showToast(msg);
+    }
+  };
+
+  const handleBulkImport = async (rows: CsvUserRow[]) => {
+    let successCount = 0;
+    for (const r of rows) {
+      try {
+        await createUser({
+          name: r.name,
+          email: r.email,
+          role: r.role,
+        });
+        successCount++;
+      } catch {
+        // Continue processing remaining rows
+      }
+    }
+    showToast(`Bulk import complete: ${successCount} user(s) created.`);
+  };
+
+  const handleToggleStatus = async (userId: string) => {
+    const user = users.find((u) => u.id === userId);
+    if (!user) return;
+    const nextActivate = user.status !== 'ACTIVE';
+    try {
+      await toggleStatus(userId, nextActivate);
+      showToast(`User ${nextActivate ? 'activated' : 'deactivated'} successfully.`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to toggle status';
+      showToast(msg);
+    }
+  };
+
+  if (isAuthLoading || !isAuthenticated || !currentUser || currentUser.role !== 'SUPER_ADMIN') {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-600 border-t-transparent" />
+          <p className="text-sm font-medium text-slate-500">Verifying administrator access...</p>
+        </div>
+      </div>
     );
-  };
+  }
 
   return (
     <div className="space-y-6">
@@ -155,9 +202,11 @@ export function UsersTable() {
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <div className="mb-1 flex items-center gap-2 text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            <span>Administration</span>
+            <Link href="/admin" className="transition-colors hover:text-purple-700">
+              Administration
+            </Link>
             <span>/</span>
-            <span className="text-blue-600">User Directory</span>
+            <span className="text-purple-700">User Directory</span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">Users</h1>
           <p className="mt-1 max-w-2xl text-sm text-slate-600">
@@ -189,7 +238,10 @@ export function UsersTable() {
       <div className="flex w-fit items-center gap-2 rounded-xl bg-slate-100 p-1 text-xs font-semibold">
         <button
           type="button"
-          onClick={() => setSelectedStatus('ALL')}
+          onClick={() => {
+            setSelectedStatus('ALL');
+            handleFilterUpdate(selectedRole, 'ALL', search);
+          }}
           className={`flex items-center gap-2 rounded-lg px-3 py-1.5 transition-all ${
             selectedStatus === 'ALL'
               ? 'bg-white text-slate-900 shadow-sm'
@@ -203,7 +255,10 @@ export function UsersTable() {
         </button>
         <button
           type="button"
-          onClick={() => setSelectedStatus('ACTIVE')}
+          onClick={() => {
+            setSelectedStatus('ACTIVE');
+            handleFilterUpdate(selectedRole, 'ACTIVE', search);
+          }}
           className={`flex items-center gap-2 rounded-lg px-3 py-1.5 transition-all ${
             selectedStatus === 'ACTIVE'
               ? 'bg-white text-slate-900 shadow-sm'
@@ -216,7 +271,10 @@ export function UsersTable() {
         </button>
         <button
           type="button"
-          onClick={() => setSelectedStatus('INACTIVE')}
+          onClick={() => {
+            setSelectedStatus('INACTIVE');
+            handleFilterUpdate(selectedRole, 'INACTIVE', search);
+          }}
           className={`flex items-center gap-2 rounded-lg px-3 py-1.5 transition-all ${
             selectedStatus === 'INACTIVE'
               ? 'bg-white text-slate-900 shadow-sm'
@@ -238,7 +296,11 @@ export function UsersTable() {
             <input
               type="text"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSearch(val);
+                handleFilterUpdate(selectedRole, selectedStatus, val);
+              }}
               placeholder="Search by name or email..."
               className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pr-3 pl-9 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none"
             />
@@ -248,7 +310,11 @@ export function UsersTable() {
           <div className="md:col-span-2">
             <select
               value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedRole(val);
+                handleFilterUpdate(val, selectedStatus, search);
+              }}
               className="h-10 w-full cursor-pointer rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-900 transition-all focus:border-blue-500 focus:outline-none"
             >
               <option value="ALL">All Roles</option>
@@ -279,6 +345,7 @@ export function UsersTable() {
                 setSelectedRole('ALL');
                 setSelectedStatus('ALL');
                 setSelectedBatch('ALL');
+                handleFilterUpdate('ALL', 'ALL', '');
               }}
               className="p-2 text-xs font-semibold text-blue-600 hover:text-blue-700"
             >
@@ -294,7 +361,7 @@ export function UsersTable() {
           <table className="w-full border-collapse text-left text-sm">
             <thead className="border-b border-slate-200/80 bg-slate-50/80 text-xs font-semibold tracking-wider text-slate-500 uppercase">
               <tr>
-                <th className="px-6 py-3.5">User</th>
+                <th className="px-6 py-3.5">Name</th>
                 <th className="px-4 py-3.5">Email</th>
                 <th className="px-4 py-3.5">Role</th>
                 <th className="px-4 py-3.5">Batch</th>
@@ -304,7 +371,16 @@ export function UsersTable() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredUsers.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-slate-400">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-purple-600 border-t-transparent" />
+                      <span>Loading user directory...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredUsers.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
                     No users match your filters.
@@ -312,32 +388,42 @@ export function UsersTable() {
                 </tr>
               ) : (
                 filteredUsers.map((u) => {
-                  const initials = u.name
-                    .split(' ')
-                    .map((n) => n[0])
-                    .join('')
-                    .slice(0, 2)
-                    .toUpperCase();
+                  const initials =
+                    (u.name || 'User')
+                      .split(' ')
+                      .filter(Boolean)
+                      .map((n) => n[0])
+                      .join('')
+                      .slice(0, 2)
+                      .toUpperCase() || 'U';
 
                   return (
                     <tr key={u.id} className="transition-colors hover:bg-slate-50/60">
                       {/* Name & Avatar */}
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-purple-100 text-xs font-bold text-purple-700">
                             {initials}
                           </div>
                           <div>
-                            <Link
-                              href={`/admin/users/${u.id}/360`}
-                              className="font-semibold text-slate-900 transition-colors hover:text-blue-600"
-                            >
-                              {u.name}
-                            </Link>
+                            <span className="block font-semibold text-slate-900">
+                              {u.name || '—'}
+                            </span>
                             {!u.hasLoggedIn ? (
-                              <span className="block text-[10px] font-medium text-amber-600">
-                                Invite pending (Not logged in)
-                              </span>
+                              <div className="mt-0.5 flex items-center gap-1.5">
+                                <span className="text-[10px] font-medium text-amber-600">
+                                  Invite pending
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    void handleResendInvite(u.id, u.name);
+                                  }}
+                                  className="text-[10px] font-semibold text-purple-600 hover:text-purple-800 hover:underline"
+                                >
+                                  Resend
+                                </button>
+                              </div>
                             ) : null}
                           </div>
                         </div>
@@ -391,7 +477,14 @@ export function UsersTable() {
 
                       {/* Actions */}
                       <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setUserToEdit(u)}
+                            className="rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                          >
+                            Edit
+                          </button>
                           <button
                             type="button"
                             onClick={() => setUserToChangeRole(u)}
@@ -401,7 +494,9 @@ export function UsersTable() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleToggleStatus(u.id)}
+                            onClick={() => {
+                              void handleToggleStatus(u.id);
+                            }}
                             className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${
                               u.status === 'ACTIVE'
                                 ? 'text-red-600 hover:bg-red-50'
@@ -425,21 +520,47 @@ export function UsersTable() {
       <CreateUserDrawer
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
-        onSuccess={handleCreateUser}
+        onSuccess={(data) => {
+          void handleCreateUser(data);
+        }}
+      />
+
+      <EditUserModal
+        user={userToEdit}
+        isOpen={Boolean(userToEdit)}
+        onClose={() => setUserToEdit(null)}
+        onSuccess={(id, data) => {
+          void handleEditUserSuccess(id, data);
+        }}
       />
 
       <ChangeRoleModal
         user={userToChangeRole}
         isOpen={Boolean(userToChangeRole)}
         onClose={() => setUserToChangeRole(null)}
-        onSuccess={handleRoleChangeSuccess}
+        onSuccess={(id, data) => {
+          void handleRoleChangeSuccess(id, data);
+        }}
       />
 
       <BulkImportModal
         isOpen={isBulkImportOpen}
         onClose={() => setIsBulkImportOpen(false)}
-        onImportComplete={handleBulkImport}
+        onImportComplete={(rows) => {
+          void handleBulkImport(rows);
+        }}
       />
+
+      {toastMessage ? (
+        <div
+          role="status"
+          aria-live="polite"
+          className="animate-in fade-in fixed right-6 bottom-6 z-50 flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-medium text-white shadow-lg"
+        >
+          <span>✅</span>
+          <span>{toastMessage}</span>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -1,13 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 
 import { useAuth } from '@/hooks/useAuth';
 
 export function Header() {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, logout } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -30,11 +31,12 @@ export function Header() {
           subtitle: 'Admin Console',
           homeUrl: '/admin',
           badgeColor: 'bg-purple-100 text-purple-800',
+          activeColor: 'bg-purple-50 text-purple-700',
           nav: [
-            { label: 'Overview', href: '/admin', active: true },
-            { label: 'Users', href: '#', active: false },
-            { label: 'Batches', href: '#', active: false },
-            { label: 'Curriculum', href: '#', active: false },
+            { label: 'Overview', href: '/admin' },
+            { label: 'Users', href: '/admin/users' },
+            { label: 'Batches', href: '#' },
+            { label: 'Curriculum', href: '#' },
           ],
         };
       case 'MENTOR':
@@ -42,11 +44,12 @@ export function Header() {
           subtitle: 'Mentor Portal',
           homeUrl: '/mentor',
           badgeColor: 'bg-emerald-100 text-emerald-800',
+          activeColor: 'bg-emerald-50 text-emerald-700',
           nav: [
-            { label: 'Dashboard', href: '/mentor', active: true },
-            { label: 'My Mentees', href: '#', active: false },
-            { label: 'Reviews', href: '#', active: false },
-            { label: 'Courses', href: '#', active: false },
+            { label: 'Dashboard', href: '/mentor' },
+            { label: 'My Mentees', href: '#' },
+            { label: 'Reviews', href: '#' },
+            { label: 'Courses', href: '#' },
           ],
         };
       case 'MENTEE':
@@ -55,11 +58,12 @@ export function Header() {
           subtitle: 'Learning Portal',
           homeUrl: '/mentee',
           badgeColor: 'bg-blue-100 text-blue-800',
+          activeColor: 'bg-blue-50 text-blue-700',
           nav: [
-            { label: 'My Learning', href: '/mentee', active: true },
-            { label: 'Courses', href: '#', active: false },
-            { label: 'Assignments', href: '#', active: false },
-            { label: 'Progress', href: '#', active: false },
+            { label: 'My Learning', href: '/mentee' },
+            { label: 'Courses', href: '#' },
+            { label: 'Assignments', href: '#' },
+            { label: 'Progress', href: '#' },
           ],
         };
     }
@@ -86,24 +90,38 @@ export function Header() {
 
           {/* Navigation Links */}
           <nav className="hidden items-center gap-1 md:flex">
-            {portal.nav.map((item) =>
-              item.active ? (
+            {portal.nav.map((item) => {
+              if (item.href === '#') {
+                return (
+                  <span
+                    key={item.label}
+                    className="cursor-not-allowed rounded-md px-3 py-1.5 text-xs font-medium text-slate-400"
+                    title="Coming soon"
+                  >
+                    {item.label}
+                  </span>
+                );
+              }
+
+              const isActive =
+                item.href === portal.homeUrl
+                  ? pathname === item.href
+                  : pathname.startsWith(item.href);
+
+              return (
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="rounded-md bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 transition-colors"
+                  className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+                    isActive
+                      ? portal.activeColor
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  }`}
                 >
                   {item.label}
                 </Link>
-              ) : (
-                <span
-                  key={item.label}
-                  className="cursor-not-allowed rounded-md px-3 py-1.5 text-xs font-medium text-slate-400"
-                >
-                  {item.label}
-                </span>
-              ),
-            )}
+              );
+            })}
           </nav>
         </div>
 

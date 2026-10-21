@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import React, { useMemo, useState } from 'react';
 
 import { Input } from '@/components/ui/Input';
@@ -8,7 +8,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { changePasswordSchema } from '@/lib/validation';
 
 export function ChangePasswordForm() {
-  const { changePassword } = useAuth();
+  const router = useRouter();
+  const { user, changePassword, refreshUser } = useAuth();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -73,6 +74,27 @@ export function ChangePasswordForm() {
     }
   };
 
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
+  const handleContinueToDashboard = async () => {
+    setIsRedirecting(true);
+    try {
+      const freshUser = await refreshUser();
+      const role = freshUser?.role ?? user?.role;
+      if (role === 'SUPER_ADMIN') {
+        router.replace('/admin');
+      } else if (role === 'MENTOR') {
+        router.replace('/mentor');
+      } else if (role === 'MENTEE') {
+        router.replace('/mentee');
+      } else {
+        router.replace('/');
+      }
+    } catch {
+      router.replace('/');
+    }
+  };
+
   if (isSuccess) {
     return (
       <div className="space-y-6 text-center">
@@ -90,12 +112,16 @@ export function ChangePasswordForm() {
         </div>
 
         <div className="pt-2">
-          <Link
-            href="/"
-            className="flex h-12 w-full items-center justify-center rounded-[12px] bg-[#3B82F6] text-base font-semibold text-white transition-colors hover:bg-[#2563EB]"
+          <button
+            type="button"
+            disabled={isRedirecting}
+            onClick={() => {
+              void handleContinueToDashboard();
+            }}
+            className="flex h-12 w-full cursor-pointer items-center justify-center rounded-[12px] bg-[#3B82F6] text-base font-semibold text-white transition-colors hover:bg-[#2563EB] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Continue to Dashboard
-          </Link>
+            {isRedirecting ? 'Redirecting to Dashboard...' : 'Continue to Dashboard'}
+          </button>
         </div>
       </div>
     );

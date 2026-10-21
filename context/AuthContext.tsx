@@ -10,7 +10,7 @@ export interface AuthContextValue {
   isLoading: boolean;
   login: (credentials: { email: string; password: string }) => Promise<AuthUser>;
   logout: () => Promise<void>;
-  refreshUser: () => Promise<void>;
+  refreshUser: () => Promise<AuthUser | null>;
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
@@ -19,12 +19,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const refreshUser = useCallback(async () => {
+  const refreshUser = useCallback(async (): Promise<AuthUser | null> => {
     try {
       const currentUser = await authService.getMe();
       setUser(currentUser);
+      return currentUser;
     } catch {
       setUser(null);
+      return null;
     } finally {
       setIsLoading(false);
     }

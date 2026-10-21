@@ -26,7 +26,9 @@ export function useAuth(): UseAuthReturn {
   };
 
   const changePassword = async (currentPassword: string, newPassword: string): Promise<string> => {
-    return authService.changePassword(currentPassword, newPassword);
+    const result = await authService.changePassword(currentPassword, newPassword);
+    await context.refreshUser();
+    return result;
   };
 
   return {
