@@ -7,11 +7,11 @@ import { type AuditType } from '@/lib/validation';
 export interface AuditLogEntry {
   id: string;
   type: AuditType;
-  actorId: string;
+  actorId?: string | null;
   actorName: string;
   actorRole: string;
   entity: string;
-  entityId: string;
+  entityId?: string | null;
   action: string;
   summary: string;
   createdAt: string;
@@ -71,7 +71,14 @@ export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalPro
                 Target Entity
               </span>
               <span className="font-medium text-slate-800">{entry.entity}</span>
-              <span className="block font-mono text-[10px] text-slate-500">#{entry.entityId}</span>
+              <span className="block font-mono text-[10px] text-slate-500">
+                #
+                {entry.entityId
+                  ? entry.entityId.length > 12
+                    ? `${entry.entityId.slice(0, 8)}...`
+                    : entry.entityId
+                  : 'N/A'}
+              </span>
             </div>
             <div>
               <span className="block text-[10px] font-bold text-slate-400 uppercase">

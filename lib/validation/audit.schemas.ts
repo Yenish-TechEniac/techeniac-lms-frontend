@@ -3,9 +3,8 @@ import { z } from 'zod';
 export const auditTypeEnum = z.enum([
   'AUTH',
   'USER',
-  'MENTOR_MAPPING',
-  'BATCH',
   'COURSE',
+  'BATCH',
   'COURSE_ALLOCATION',
   'SUBMISSION',
   'GRADING',
