@@ -1,21 +1,22 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { BatchStatusModal } from '@/components/app/batches/BatchStatusModal';
 import {
   type BatchOption,
   TransferMenteeModal,
 } from '@/components/app/batches/TransferMenteeModal';
-import { type BatchStatus, type ChangeBatchStatusFormData } from '@/lib/validation';
+import { env } from '@/lib/config';
+import { type BatchStatus } from '@/lib/validation';
 
 export interface BatchMemberItem {
   id: string;
   name: string;
   email: string;
   memberRole: 'MENTOR' | 'MENTEE';
-  mappedToName?: string;
+  mappedToName?: string | undefined;
   joinedAt: string;
 }
 
@@ -33,7 +34,7 @@ export interface StatusHistoryEntry {
   toStatus: BatchStatus;
   changedBy: string;
   changedAt: string;
-  reason?: string;
+  reason?: string | undefined;
 }
 
 export interface BatchDetailData {
@@ -43,7 +44,7 @@ export interface BatchDetailData {
   status: BatchStatus;
   startDate: string;
   endDate: string;
-  description?: string;
+  description?: string | undefined;
   members: BatchMemberItem[];
   courses: AllocatedCourseItem[];
   history: StatusHistoryEntry[];
@@ -52,6 +53,8 @@ export interface BatchDetailData {
 export function BatchDashboardView({ initialBatch }: { initialBatch: BatchDetailData }) {
   const [batch, setBatch] = useState<BatchDetailData>(initialBatch);
   const [activeTab, setActiveTab] = useState<'members' | 'courses' | 'timeline'>('members');
+  const [availableBatches, setAvailableBatches] = useState<BatchOption[]>([]);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Modals state
   const [isStatusOpen, setIsStatusOpen] = useState(false);
@@ -62,38 +65,136 @@ export function BatchDashboardView({ initialBatch }: { initialBatch: BatchDetail
     currentBatchName: string;
   } | null>(null);
 
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadBatchDetail() {
+      try {
+        const res = await fetch(`${env.NEXT_PUBLIC_API_BASE_URL}/batches/${batch.id}`, {
+          credentials: 'include',
+          headers: { Accept: 'application/json' },
+        });
+
+        if (!res.ok) return;
+
+        const json = (await res.json()) as {
+          success: boolean;
+          data: {
+            batch: {
+              id: string;
+              name: string;
+              code: string;
+              status: BatchStatus;
+              startDate: string;
+              endDate: string;
+              description?: string;
+            };
+            mentors: Array<{
+              id: string;
+              user?: { id: string; name: string; email: string };
+              createdAt: string;
+            }>;
+            mentees: Array<{
+              id: string;
+              user?: { id: string; name: string; email: string };
+              mappedToUser?: { id: string; name: string };
+              createdAt: string;
+            }>;
+            statusHistory: Array<{
+              id: string;
+              fromStatus: BatchStatus;
+              toStatus: BatchStatus;
+              reason?: string;
+              createdAt: string;
+              changedByUser?: { name: string };
+            }>;
+          };
+        };
+
+        if (!ignore && json.success && json.data) {
+          const b = json.data.batch;
+          const membersList: BatchMemberItem[] = [
+            ...json.data.mentors.map((m) => ({
+              id: m.user?.id ?? m.id,
+              name: m.user?.name ?? 'Unknown Mentor',
+              email: m.user?.email ?? '',
+              memberRole: 'MENTOR' as const,
+              joinedAt: m.createdAt.slice(0, 10),
+            })),
+            ...json.data.mentees.map((m) => ({
+              id: m.user?.id ?? m.id,
+              name: m.user?.name ?? 'Unknown Mentee',
+              email: m.user?.email ?? '',
+              memberRole: 'MENTEE' as const,
+              mappedToName: m.mappedToUser?.name,
+              joinedAt: m.createdAt.slice(0, 10),
+            })),
+          ];
+
+          const historyList: StatusHistoryEntry[] = json.data.statusHistory.map((h) => ({
+            id: h.id,
+            fromStatus: h.fromStatus,
+            toStatus: h.toStatus,
+            changedBy: h.changedByUser?.name ?? 'Super Admin',
+            changedAt: h.createdAt.slice(0, 10),
+            reason: h.reason,
+          }));
+
+          setBatch((prev) => ({
+            ...prev,
+            id: b.id,
+            name: b.name,
+            code: b.code,
+            status: b.status,
+            startDate: b.startDate,
+            endDate: b.endDate,
+            description: b.description ?? prev.description,
+            members: membersList,
+            history: historyList,
+          }));
+        }
+      } catch {
+        // Retain fallback batch on error
+      }
+    }
+
+    async function loadAvailableBatches() {
+      try {
+        const res = await fetch(`${env.NEXT_PUBLIC_API_BASE_URL}/batches?limit=100`, {
+          credentials: 'include',
+          headers: { Accept: 'application/json' },
+        });
+        if (!res.ok) return;
+        const json = (await res.json()) as {
+          success: boolean;
+          data: Array<{ id: string; name: string; code: string; status: string }>;
+        };
+        if (!ignore && json.success && Array.isArray(json.data)) {
+          setAvailableBatches(json.data);
+        }
+      } catch {
+        // Ignore fallback
+      }
+    }
+
+    void loadBatchDetail();
+    void loadAvailableBatches();
+
+    return () => {
+      ignore = true;
+    };
+  }, [batch.id, refreshTrigger]);
+
   const mentees = batch.members.filter((m) => m.memberRole === 'MENTEE');
   const mentors = batch.members.filter((m) => m.memberRole === 'MENTOR');
 
-  const handleStatusSuccess = (_batchId: string, data: ChangeBatchStatusFormData) => {
-    const newEntry: StatusHistoryEntry = {
-      id: `hist-${Date.now()}`,
-      fromStatus: batch.status,
-      toStatus: data.newStatus,
-      changedBy: 'Super Admin',
-      changedAt: 'Just now',
-      reason: data.reason || 'Manual status update',
-    };
-
-    setBatch((prev) => ({
-      ...prev,
-      status: data.newStatus,
-      history: [newEntry, ...prev.history],
-    }));
+  const handleStatusSuccess = () => {
+    setRefreshTrigger((t) => t + 1);
   };
 
-  const handleTransferSuccess = (menteeId: string) => {
-    setBatch((prev) => ({
-      ...prev,
-      members: prev.members.filter((m) => m.id !== menteeId),
-    }));
+  const handleTransferSuccess = () => {
+    setRefreshTrigger((t) => t + 1);
   };
-
-  const dummyBatches: BatchOption[] = [
-    { id: 'batch-1', name: 'Frontend Engineering 2025', code: 'FE-25Q1', status: 'LIVE' },
-    { id: 'batch-2', name: 'Cloud & Systems Batch B', code: 'CS-24B4', status: 'LIVE' },
-    { id: 'batch-3', name: 'Data Platforms Q2', code: 'DP-25Q2', status: 'DRAFT' },
-  ];
 
   return (
     <div className="space-y-6">
@@ -361,7 +462,7 @@ export function BatchDashboardView({ initialBatch }: { initialBatch: BatchDetail
 
       <TransferMenteeModal
         mentee={menteeToTransfer}
-        availableBatches={dummyBatches}
+        availableBatches={availableBatches}
         isOpen={Boolean(menteeToTransfer)}
         onClose={() => setMenteeToTransfer(null)}
         onSuccess={handleTransferSuccess}

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import React, { Suspense } from 'react';
 
 import {
   BatchDashboardView,
@@ -10,11 +11,7 @@ export const metadata: Metadata = {
   description: 'Detailed overview of batch members, course progress, and status timeline.',
 };
 
-export default async function AdminBatchDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+async function BatchDetailContent({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   const mockBatch: BatchDetailData = {
@@ -85,5 +82,19 @@ export default async function AdminBatchDetailPage({
         <BatchDashboardView initialBatch={mockBatch} />
       </div>
     </div>
+  );
+}
+
+export default function AdminBatchDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[50vh] items-center justify-center text-sm font-medium text-slate-500">
+          Loading batch dashboard...
+        </div>
+      }
+    >
+      <BatchDetailContent params={params} />
+    </Suspense>
   );
 }

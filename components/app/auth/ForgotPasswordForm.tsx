@@ -4,6 +4,7 @@ import Link from 'next/link';
 import React, { useState } from 'react';
 
 import { Input } from '@/components/ui/Input';
+import { env } from '@/lib/config';
 import { forgotPasswordSchema } from '@/lib/validation';
 
 export function ForgotPasswordForm() {
@@ -12,7 +13,7 @@ export function ForgotPasswordForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDispatched, setIsDispatched] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
 
@@ -23,10 +24,31 @@ export function ForgotPasswordForm() {
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const res = await fetch(`${env.NEXT_PUBLIC_API_BASE_URL}/auth/forgot-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!res.ok) {
+        const json = (await res.json().catch(() => null)) as {
+          error?: { message?: string };
+          message?: string;
+        } | null;
+        setError(json?.error?.message || json?.message || 'Failed to dispatch reset email.');
+        return;
+      }
+
       setIsDispatched(true);
-    }, 600);
+    } catch {
+      setError('Unable to connect to authentication server. Please check your network.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isDispatched) {
@@ -73,7 +95,13 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <form className="space-y-5" onSubmit={handleSubmit} noValidate>
+    <form
+      className="space-y-5"
+      onSubmit={(e) => {
+        void handleSubmit(e);
+      }}
+      noValidate
+    >
       <div className="space-y-1.5">
         <label htmlFor="email" className="block text-sm font-semibold text-slate-900">
           Work Email

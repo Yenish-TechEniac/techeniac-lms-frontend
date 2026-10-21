@@ -1,9 +1,11 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 
 import { Input } from '@/components/ui/Input';
+import { env } from '@/lib/config';
 import { type LoginFormData, loginSchema } from '@/lib/validation';
 
 export interface LoginFormProps {
@@ -11,13 +13,14 @@ export interface LoginFormProps {
 }
 
 export function LoginForm({ onSubmitSuccess }: LoginFormProps) {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrors({});
 
@@ -37,15 +40,64 @@ export function LoginForm({ onSubmitSuccess }: LoginFormProps) {
     }
 
     setIsSubmitting(true);
-    // Simulate auth action or pass to callback
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const res = await fetch(`${env.NEXT_PUBLIC_API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(result.data),
+      });
+
+      const json = (await res.json().catch(() => null)) as
+        | {
+            success?: boolean;
+            data?: { user?: { role?: string; mustChangePassword?: boolean } };
+            error?: { message?: string };
+            message?: string;
+          }
+        | null
+        | undefined;
+
+      if (!res.ok) {
+        const errorMsg =
+          json?.error?.message ||
+          json?.message ||
+          'Failed to sign in. Please verify your credentials.';
+        setErrors({ general: errorMsg });
+        setIsSubmitting(false);
+        return;
+      }
+
       onSubmitSuccess?.(result.data);
-    }, 600);
+
+      const user = json?.data?.user;
+      if (user?.mustChangePassword) {
+        router.push('/change-password');
+      } else if (user?.role === 'SUPER_ADMIN') {
+        router.push('/admin/batches');
+      } else {
+        router.push('/');
+      }
+      router.refresh();
+    } catch {
+      setErrors({
+        general: 'Unable to connect to authentication server. Please check your network.',
+      });
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <form className="space-y-5" onSubmit={handleSubmit} noValidate>
+    <form
+      className="space-y-5"
+      onSubmit={(e) => {
+        void handleSubmit(e);
+      }}
+      noValidate
+    >
       {errors.general ? (
         <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
           {errors.general}

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 
+import { env } from '@/lib/config';
 import {
   ALLOWED_STATUS_TRANSITIONS,
   type BatchStatus,
@@ -34,7 +35,7 @@ export function BatchStatusModal({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
 
@@ -50,11 +51,33 @@ export function BatchStatusModal({
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const res = await fetch(`${env.NEXT_PUBLIC_API_BASE_URL}/batches/${batchId}/status`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(result.data),
+      });
+
+      if (!res.ok) {
+        const json = (await res.json().catch(() => null)) as {
+          error?: { message?: string };
+          message?: string;
+        } | null;
+        setError(json?.error?.message || json?.message || 'Failed to update batch status.');
+        return;
+      }
+
       onSuccess(batchId, result.data);
       onClose();
-    }, 500);
+    } catch {
+      setError('Unable to connect to server. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const getStatusImpactNotice = (target: BatchStatus) => {
@@ -94,7 +117,14 @@ export function BatchStatusModal({
         </div>
 
         {/* Body */}
-        <form id="status-change-form" onSubmit={handleSubmit} className="space-y-4 p-6" noValidate>
+        <form
+          id="status-change-form"
+          onSubmit={(e) => {
+            void handleSubmit(e);
+          }}
+          className="space-y-4 p-6"
+          noValidate
+        >
           {error ? (
             <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-600">
               {error}

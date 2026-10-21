@@ -4,6 +4,7 @@ import Link from 'next/link';
 import React, { useMemo, useState } from 'react';
 
 import { Input } from '@/components/ui/Input';
+import { env } from '@/lib/config';
 import { changePasswordSchema } from '@/lib/validation';
 
 export function ChangePasswordForm() {
@@ -14,6 +15,7 @@ export function ChangePasswordForm() {
     currentPassword?: string;
     newPassword?: string;
     confirmPassword?: string;
+    general?: string;
   }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -28,7 +30,7 @@ export function ChangePasswordForm() {
     };
   }, [newPassword]);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrors({});
 
@@ -59,10 +61,43 @@ export function ChangePasswordForm() {
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const res = await fetch(`${env.NEXT_PUBLIC_API_BASE_URL}/auth/change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          currentPassword: result.data.currentPassword,
+          newPassword: result.data.newPassword,
+          confirmPassword: result.data.confirmPassword,
+        }),
+      });
+
+      if (!res.ok) {
+        const json = (await res.json().catch(() => null)) as {
+          error?: { message?: string };
+          message?: string;
+        } | null;
+        setErrors({
+          general:
+            json?.error?.message ||
+            json?.message ||
+            'Failed to change password. Please verify your temporary password.',
+        });
+        return;
+      }
+
       setIsSuccess(true);
-    }, 600);
+    } catch {
+      setErrors({
+        general: 'Unable to connect to authentication server. Please check your network.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isSuccess) {
@@ -94,7 +129,19 @@ export function ChangePasswordForm() {
   }
 
   return (
-    <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+    <form
+      className="space-y-4"
+      onSubmit={(e) => {
+        void handleSubmit(e);
+      }}
+      noValidate
+    >
+      {errors.general ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+          {errors.general}
+        </div>
+      ) : null}
+
       <div className="rounded-[12px] border border-amber-200 bg-amber-50 p-3 text-xs leading-relaxed text-amber-800">
         <strong>First-time sign in:</strong> Please create a permanent password to secure your
         account.

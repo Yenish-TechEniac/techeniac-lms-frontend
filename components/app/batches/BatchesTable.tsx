@@ -1,10 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { CreateBatchModal } from '@/components/app/batches/CreateBatchModal';
-import { type BatchStatus, type CreateBatchFormData } from '@/lib/validation';
+import { env } from '@/lib/config';
+import { type BatchStatus } from '@/lib/validation';
 
 export interface BatchSummaryItem {
   id: string;
@@ -75,8 +76,79 @@ export function BatchesTable() {
   const [search, setSearch] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isLiveConnected, setIsLiveConnected] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function load() {
+      try {
+        const params = new URLSearchParams();
+        if (selectedStatus !== 'ALL') params.set('status', selectedStatus);
+        if (search.trim()) params.set('search', search.trim());
+        params.set('limit', '50');
+
+        const res = await fetch(`${env.NEXT_PUBLIC_API_BASE_URL}/batches?${params.toString()}`, {
+          credentials: 'include',
+          headers: { Accept: 'application/json' },
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const json = (await res.json()) as {
+          success: boolean;
+          data: Array<{
+            id: string;
+            name: string;
+            code: string;
+            status: BatchStatus;
+            startDate: string;
+            endDate: string;
+            menteesCount?: number;
+            mentorsCount?: number;
+            coursesCount?: number;
+            progressPercent?: number;
+          }>;
+        };
+
+        if (!ignore && json.success && Array.isArray(json.data)) {
+          const mapped: BatchSummaryItem[] = json.data.map((b) => ({
+            id: b.id,
+            name: b.name,
+            code: b.code,
+            status: b.status,
+            startDate: b.startDate,
+            endDate: b.endDate,
+            menteesCount: b.menteesCount ?? 0,
+            mentorsCount: b.mentorsCount ?? 0,
+            coursesCount: b.coursesCount ?? 0,
+            progressPercent: b.progressPercent ?? 0,
+          }));
+          setBatches(mapped);
+          setIsLiveConnected(true);
+        }
+      } catch {
+        if (!ignore) setIsLiveConnected(false);
+      } finally {
+        if (!ignore) setIsLoading(false);
+      }
+    }
+
+    queueMicrotask(() => {
+      if (!ignore) setIsLoading(true);
+    });
+
+    void load();
+
+    return () => {
+      ignore = true;
+    };
+  }, [search, selectedStatus, refreshKey]);
 
   const filteredBatches = useMemo(() => {
+    if (isLiveConnected) return batches;
     return batches.filter((b) => {
       const matchesSearch =
         b.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -87,22 +159,10 @@ export function BatchesTable() {
           : b.status === selectedStatus;
       return matchesSearch && matchesStatus;
     });
-  }, [batches, search, selectedStatus]);
+  }, [batches, search, selectedStatus, isLiveConnected]);
 
-  const handleCreateBatch = (data: CreateBatchFormData) => {
-    const newBatch: BatchSummaryItem = {
-      id: `batch-${Date.now()}`,
-      name: data.name,
-      code: data.code,
-      status: 'DRAFT',
-      startDate: data.startDate,
-      endDate: data.endDate,
-      menteesCount: 0,
-      mentorsCount: 1,
-      coursesCount: 0,
-      progressPercent: 0,
-    };
-    setBatches((prev) => [newBatch, ...prev]);
+  const handleCreateBatch = () => {
+    setRefreshKey((k) => k + 1);
   };
 
   const getStatusBadge = (status: BatchStatus) => {
@@ -132,7 +192,15 @@ export function BatchesTable() {
             <span>/</span>
             <span className="text-blue-600">Cohorts</span>
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">Batches</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">Batches</h1>
+            {isLiveConnected ? (
+              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-emerald-700">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                Live API
+              </span>
+            ) : null}
+          </div>
           <p className="mt-1 max-w-2xl text-sm text-slate-600">
             Configure learning batches, member assignments, and lifecycle status machines.
           </p>
@@ -211,7 +279,13 @@ export function BatchesTable() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredBatches.length === 0 ? (
+              {isLoading && filteredBatches.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-slate-400">
+                    Loading cohorts from live database...
+                  </td>
+                </tr>
+              ) : filteredBatches.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
                     No batches match the applied filter.

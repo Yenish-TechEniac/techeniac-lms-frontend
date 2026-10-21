@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 
 import { Input } from '@/components/ui/Input';
+import { env } from '@/lib/config';
 import { type CreateBatchFormData, createBatchSchema } from '@/lib/validation';
 
 export interface CreateBatchModalProps {
@@ -22,7 +23,7 @@ export function CreateBatchModal({ isOpen, onClose, onSuccess }: CreateBatchModa
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrors({});
 
@@ -47,11 +48,37 @@ export function CreateBatchModal({ isOpen, onClose, onSuccess }: CreateBatchModa
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const res = await fetch(`${env.NEXT_PUBLIC_API_BASE_URL}/batches`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(result.data),
+      });
+
+      if (!res.ok) {
+        const json = (await res.json().catch(() => null)) as {
+          error?: { message?: string };
+          message?: string;
+        } | null;
+        setErrors({
+          general: json?.error?.message || json?.message || 'Failed to create batch.',
+        });
+        return;
+      }
+
       onSuccess(result.data);
       onClose();
-    }, 500);
+    } catch {
+      setErrors({
+        general: 'Unable to connect to server. Please try again.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -75,7 +102,20 @@ export function CreateBatchModal({ isOpen, onClose, onSuccess }: CreateBatchModa
         </div>
 
         {/* Form Body */}
-        <form id="create-batch-form" onSubmit={handleSubmit} className="space-y-4 p-6" noValidate>
+        <form
+          id="create-batch-form"
+          onSubmit={(e) => {
+            void handleSubmit(e);
+          }}
+          className="space-y-4 p-6"
+          noValidate
+        >
+          {errors.general ? (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+              {errors.general}
+            </div>
+          ) : null}
+
           {/* Name */}
           <div className="space-y-1">
             <label htmlFor="batch-name" className="block text-sm font-semibold text-slate-900">

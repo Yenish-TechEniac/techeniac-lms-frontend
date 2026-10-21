@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 
+import { env } from '@/lib/config';
+
 export interface BatchOption {
   id: string;
   name: string;
@@ -30,20 +32,51 @@ export function TransferMenteeModal({
 
   const [targetBatchId, setTargetBatchId] = useState<string>(eligibleBatches[0]?.id || '');
   const [reason, setReason] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen || !mentee) return null;
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError(null);
     if (!targetBatchId) return;
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const res = await fetch(
+        `${env.NEXT_PUBLIC_API_BASE_URL}/batches/${mentee.currentBatchId}/transfer-mentee`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            menteeId: mentee.id,
+            targetBatchId,
+            reason: reason || undefined,
+          }),
+        },
+      );
+
+      if (!res.ok) {
+        const json = (await res.json().catch(() => null)) as {
+          error?: { message?: string };
+          message?: string;
+        } | null;
+        setError(json?.error?.message || json?.message || 'Failed to transfer mentee.');
+        return;
+      }
+
       onSuccess(mentee.id, targetBatchId, reason);
       onClose();
-    }, 500);
+    } catch {
+      setError('Unable to connect to server. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -68,7 +101,19 @@ export function TransferMenteeModal({
         </div>
 
         {/* Body */}
-        <form id="transfer-form" onSubmit={handleSubmit} className="space-y-4 p-6">
+        <form
+          id="transfer-form"
+          onSubmit={(e) => {
+            void handleSubmit(e);
+          }}
+          className="space-y-4 p-6"
+        >
+          {error ? (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-600">
+              {error}
+            </div>
+          ) : null}
+
           <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-xs">
             <div>
               <span className="block text-[10px] font-bold text-slate-400 uppercase">
