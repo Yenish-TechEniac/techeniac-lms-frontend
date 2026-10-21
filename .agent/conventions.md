@@ -31,7 +31,7 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) specific
 
 - **Protected Branches**: Direct commits to `main`, `staging`, and `dev` are strictly prohibited locally via Husky pre-commit hooks and remotely via GitHub branch protection rules. All changes must arrive via Pull Requests.
 - **Diff Size**: Pull requests should ideally remain under ~400 lines of changed code to facilitate thorough, high-quality peer review.
-- **Merge Strategy**: Squash merging is mandatory for feature branches merged into `dev` or higher tiers. This maintains a linear, clean history while giving developers freedom to create granular commits during development.
+- **Merge Strategy**: Merges occur via reviewed and CI-passed Pull Requests with Conventional Commits, preserving commit history and PR traceability across tiers.
 
 ## TypeScript Standards
 
