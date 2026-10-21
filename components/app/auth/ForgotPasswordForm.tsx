@@ -4,15 +4,17 @@ import Link from 'next/link';
 import React, { useState } from 'react';
 
 import { Input } from '@/components/ui/Input';
+import { useAuth } from '@/hooks/useAuth';
 import { forgotPasswordSchema } from '@/lib/validation';
 
 export function ForgotPasswordForm() {
+  const { forgotPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDispatched, setIsDispatched] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
 
@@ -23,10 +25,14 @@ export function ForgotPasswordForm() {
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      await forgotPassword(email);
       setIsDispatched(true);
-    }, 600);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send reset link');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isDispatched) {
@@ -73,7 +79,13 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <form className="space-y-5" onSubmit={handleSubmit} noValidate>
+    <form
+      className="space-y-5"
+      onSubmit={(e) => {
+        void handleSubmit(e);
+      }}
+      noValidate
+    >
       <div className="space-y-1.5">
         <label htmlFor="email" className="block text-sm font-semibold text-slate-900">
           Work Email

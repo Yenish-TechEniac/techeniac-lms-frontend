@@ -1,9 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 
 import { Input } from '@/components/ui/Input';
+import { useAuth } from '@/hooks/useAuth';
 import { type LoginFormData, loginSchema } from '@/lib/validation';
 
 export interface LoginFormProps {
@@ -11,13 +13,29 @@ export interface LoginFormProps {
 }
 
 export function LoginForm({ onSubmitSuccess }: LoginFormProps) {
+  const router = useRouter();
+  const { user, isAuthenticated, isLoading, login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && user) {
+      if (user.mustChangePassword) {
+        router.replace('/change-password');
+      } else if (user.role === 'SUPER_ADMIN') {
+        router.replace('/admin');
+      } else if (user.role === 'MENTOR') {
+        router.replace('/mentor');
+      } else {
+        router.replace('/mentee');
+      }
+    }
+  }, [isLoading, isAuthenticated, user, router]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrors({});
 
@@ -37,15 +55,35 @@ export function LoginForm({ onSubmitSuccess }: LoginFormProps) {
     }
 
     setIsSubmitting(true);
-    // Simulate auth action or pass to callback
-    setTimeout(() => {
+    try {
+      const loggedInUser = await login(result.data);
+      if (onSubmitSuccess) {
+        onSubmitSuccess(result.data);
+      } else if (loggedInUser.mustChangePassword) {
+        router.push('/change-password');
+      } else if (loggedInUser.role === 'SUPER_ADMIN') {
+        router.push('/admin');
+      } else if (loggedInUser.role === 'MENTOR') {
+        router.push('/mentor');
+      } else {
+        router.push('/mentee');
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Invalid email or password';
+      setErrors({ general: message });
+    } finally {
       setIsSubmitting(false);
-      onSubmitSuccess?.(result.data);
-    }, 600);
+    }
   };
 
   return (
-    <form className="space-y-5" onSubmit={handleSubmit} noValidate>
+    <form
+      className="space-y-5"
+      onSubmit={(e) => {
+        void handleSubmit(e);
+      }}
+      noValidate
+    >
       {errors.general ? (
         <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
           {errors.general}

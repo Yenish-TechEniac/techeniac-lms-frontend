@@ -1,16 +1,24 @@
 'use client';
 
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import React, { useMemo, useState } from 'react';
 
 import { Input } from '@/components/ui/Input';
+import { useAuth } from '@/hooks/useAuth';
 import { resetPasswordSchema } from '@/lib/validation';
 
 export function ResetPasswordForm() {
+  const searchParams = useSearchParams();
+  const { resetPassword } = useAuth();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState<{ password?: string; confirmPassword?: string }>({});
+  const [errors, setErrors] = useState<{
+    password?: string;
+    confirmPassword?: string;
+    general?: string;
+  }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -25,7 +33,7 @@ export function ResetPasswordForm() {
     };
   }, [password]);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrors({});
 
@@ -44,11 +52,24 @@ export function ResetPasswordForm() {
       return;
     }
 
+    const token = searchParams.get('token');
+    if (!token) {
+      setErrors({
+        general: 'Invalid or missing password reset token. Please request a new link.',
+      });
+      return;
+    }
+
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      await resetPassword(token, password);
       setIsSuccess(true);
-    }, 600);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to reset password';
+      setErrors({ general: message });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isSuccess) {
@@ -80,7 +101,19 @@ export function ResetPasswordForm() {
   }
 
   return (
-    <form className="space-y-5" onSubmit={handleSubmit} noValidate>
+    <form
+      className="space-y-5"
+      onSubmit={(e) => {
+        void handleSubmit(e);
+      }}
+      noValidate
+    >
+      {errors.general ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+          {errors.general}
+        </div>
+      ) : null}
+
       {/* New Password */}
       <div className="space-y-1.5">
         <label htmlFor="newPassword" className="block text-sm font-semibold text-slate-900">

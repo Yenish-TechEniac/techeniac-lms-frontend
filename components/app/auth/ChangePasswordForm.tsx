@@ -4,9 +4,11 @@ import Link from 'next/link';
 import React, { useMemo, useState } from 'react';
 
 import { Input } from '@/components/ui/Input';
+import { useAuth } from '@/hooks/useAuth';
 import { changePasswordSchema } from '@/lib/validation';
 
 export function ChangePasswordForm() {
+  const { changePassword } = useAuth();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -14,6 +16,7 @@ export function ChangePasswordForm() {
     currentPassword?: string;
     newPassword?: string;
     confirmPassword?: string;
+    general?: string;
   }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -28,7 +31,7 @@ export function ChangePasswordForm() {
     };
   }, [newPassword]);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrors({});
 
@@ -59,10 +62,15 @@ export function ChangePasswordForm() {
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      await changePassword(currentPassword, newPassword);
       setIsSuccess(true);
-    }, 600);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to update password';
+      setErrors({ general: message });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isSuccess) {
@@ -94,7 +102,19 @@ export function ChangePasswordForm() {
   }
 
   return (
-    <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+    <form
+      className="space-y-4"
+      onSubmit={(e) => {
+        void handleSubmit(e);
+      }}
+      noValidate
+    >
+      {errors.general ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+          {errors.general}
+        </div>
+      ) : null}
+
       <div className="rounded-[12px] border border-amber-200 bg-amber-50 p-3 text-xs leading-relaxed text-amber-800">
         <strong>First-time sign in:</strong> Please create a permanent password to secure your
         account.

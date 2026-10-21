@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import React, { Suspense } from 'react';
 
 import { AuthShell } from '@/components/app/auth/AuthShell';
 import { ResetPasswordForm } from '@/components/app/auth/ResetPasswordForm';
@@ -14,7 +15,11 @@ export default function ResetPasswordPage() {
       title="Create new password"
       subtitle="Ensure your new password meets the security requirements below."
     >
-      <ResetPasswordForm />
+      <Suspense
+        fallback={<div className="py-6 text-center text-sm text-slate-500">Loading...</div>}
+      >
+        <ResetPasswordForm />
+      </Suspense>
     </AuthShell>
   );
 }
