@@ -27,11 +27,11 @@ export function ForgotPasswordForm() {
     setIsSubmitting(true);
     try {
       await forgotPassword(email);
-      setIsDispatched(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send reset link');
+    } catch {
+      // Suppress server errors to prevent user account enumeration
     } finally {
       setIsSubmitting(false);
+      setIsDispatched(true);
     }
   };
 

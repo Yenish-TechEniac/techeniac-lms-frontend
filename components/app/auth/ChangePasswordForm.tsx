@@ -8,10 +8,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { changePasswordSchema } from '@/lib/validation';
 
 export function ChangePasswordForm() {
-  const { changePassword } = useAuth();
+  const { changePassword, refreshUser } = useAuth();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState<{
     currentPassword?: string;
     newPassword?: string;
@@ -64,6 +67,7 @@ export function ChangePasswordForm() {
     setIsSubmitting(true);
     try {
       await changePassword(currentPassword, newPassword);
+      await refreshUser();
       setIsSuccess(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to update password';
@@ -125,15 +129,51 @@ export function ChangePasswordForm() {
         <label htmlFor="currentPassword" className="block text-sm font-semibold text-slate-900">
           Temporary Password
         </label>
-        <Input
-          id="currentPassword"
-          type="password"
-          value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
-          placeholder="••••••••••••"
-          hasError={Boolean(errors.currentPassword)}
-          disabled={isSubmitting}
-        />
+        <div className="relative">
+          <Input
+            id="currentPassword"
+            type={showCurrentPassword ? 'text' : 'password'}
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            placeholder="••••••••••••"
+            hasError={Boolean(errors.currentPassword)}
+            disabled={isSubmitting}
+            className="pr-12"
+          />
+          <button
+            type="button"
+            onClick={() => setShowCurrentPassword((prev) => !prev)}
+            className="absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400 transition-colors hover:text-slate-600 focus:outline-none"
+            title={showCurrentPassword ? 'Hide password' : 'Show password'}
+            aria-label={showCurrentPassword ? 'Hide password' : 'Show password'}
+          >
+            {showCurrentPassword ? (
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.8"
+                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"
+                />
+              </svg>
+            ) : (
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.8"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.8"
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                />
+              </svg>
+            )}
+          </button>
+        </div>
         {errors.currentPassword ? (
           <p className="mt-0.5 text-xs font-medium text-red-500">{errors.currentPassword}</p>
         ) : null}
@@ -144,15 +184,51 @@ export function ChangePasswordForm() {
         <label htmlFor="newPassword" className="block text-sm font-semibold text-slate-900">
           New Permanent Password
         </label>
-        <Input
-          id="newPassword"
-          type="password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          placeholder="••••••••••••"
-          hasError={Boolean(errors.newPassword)}
-          disabled={isSubmitting}
-        />
+        <div className="relative">
+          <Input
+            id="newPassword"
+            type={showNewPassword ? 'text' : 'password'}
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="••••••••••••"
+            hasError={Boolean(errors.newPassword)}
+            disabled={isSubmitting}
+            className="pr-12"
+          />
+          <button
+            type="button"
+            onClick={() => setShowNewPassword((prev) => !prev)}
+            className="absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400 transition-colors hover:text-slate-600 focus:outline-none"
+            title={showNewPassword ? 'Hide password' : 'Show password'}
+            aria-label={showNewPassword ? 'Hide password' : 'Show password'}
+          >
+            {showNewPassword ? (
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.8"
+                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"
+                />
+              </svg>
+            ) : (
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.8"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.8"
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                />
+              </svg>
+            )}
+          </button>
+        </div>
         {errors.newPassword ? (
           <p className="mt-0.5 text-xs font-medium text-red-500">{errors.newPassword}</p>
         ) : null}
@@ -185,15 +261,51 @@ export function ChangePasswordForm() {
         <label htmlFor="confirmPassword" className="block text-sm font-semibold text-slate-900">
           Confirm New Password
         </label>
-        <Input
-          id="confirmPassword"
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="••••••••••••"
-          hasError={Boolean(errors.confirmPassword)}
-          disabled={isSubmitting}
-        />
+        <div className="relative">
+          <Input
+            id="confirmPassword"
+            type={showConfirmPassword ? 'text' : 'password'}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="••••••••••••"
+            hasError={Boolean(errors.confirmPassword)}
+            disabled={isSubmitting}
+            className="pr-12"
+          />
+          <button
+            type="button"
+            onClick={() => setShowConfirmPassword((prev) => !prev)}
+            className="absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400 transition-colors hover:text-slate-600 focus:outline-none"
+            title={showConfirmPassword ? 'Hide password' : 'Show password'}
+            aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+          >
+            {showConfirmPassword ? (
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.8"
+                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"
+                />
+              </svg>
+            ) : (
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.8"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.8"
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                />
+              </svg>
+            )}
+          </button>
+        </div>
         {errors.confirmPassword ? (
           <p className="mt-0.5 text-xs font-medium text-red-500">{errors.confirmPassword}</p>
         ) : null}
