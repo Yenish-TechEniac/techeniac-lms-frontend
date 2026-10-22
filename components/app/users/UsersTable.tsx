@@ -10,7 +10,8 @@ import { CreateUserDrawer } from '@/components/app/users/CreateUserDrawer';
 import { EditUserModal } from '@/components/app/users/EditUserModal';
 import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
-import { Typography } from '@/components/ui/Typography';
+import { Input } from '@/components/ui/Input';
+import { H1, P, Span, Typography } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { useUsers } from '@/hooks/useUsers';
 import {
@@ -58,10 +59,10 @@ function ConfirmStatusModal({
       isOpen={true}
       onClose={onClose}
       title={
-        <div className="flex items-center gap-2">
-          <span className="text-xl">{isDeactivating ? '⚠️' : '🔄'}</span>
-          <span>{isDeactivating ? 'Deactivate Account' : 'Activate Account'}</span>
-        </div>
+        <Span className="inline-flex items-center gap-2">
+          <Span className="text-xl">{isDeactivating ? '⚠️' : '🔄'}</Span>
+          <Span>{isDeactivating ? 'Deactivate Account' : 'Activate Account'}</Span>
+        </Span>
       }
       size="sm"
       footer={
@@ -96,6 +97,56 @@ function ConfirmStatusModal({
         )}
       </Typography>
     </Modal>
+  );
+}
+
+interface UserSearchInputProps {
+  value: string;
+  onSearchChange: (val: string) => void;
+}
+
+function UserSearchInput({ value, onSearchChange }: Readonly<UserSearchInputProps>) {
+  const [localValue, setLocalValue] = useState(value);
+  const [prevValue, setPrevValue] = useState(value);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  if (prevValue !== value) {
+    setPrevValue(value);
+    setLocalValue(value);
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const nextVal = e.target.value;
+    setLocalValue(nextVal);
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    timerRef.current = setTimeout(() => {
+      onSearchChange(nextVal);
+    }, 300);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
+
+  return (
+    <div className="relative">
+      <Span className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-sm text-slate-400">
+        🔍
+      </Span>
+      <Input
+        type="text"
+        value={localValue}
+        onChange={handleChange}
+        placeholder="Search by name or email..."
+        className="h-10 pl-9 text-sm"
+      />
+    </div>
   );
 }
 
@@ -186,9 +237,6 @@ export function UsersTable() {
     }));
   }, [apiUsers, activeAdminsCount]);
 
-  // Search debounce ref
-  const searchDebounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-
   const handleFilterUpdate = (newRole: string, newStatus: string, newSearch: string) => {
     void fetchUsers({
       role: newRole !== 'ALL' ? newRole : undefined,
@@ -199,21 +247,10 @@ export function UsersTable() {
 
   const handleSearchChange = (val: string) => {
     setSearch(val);
-    if (searchDebounceTimerRef.current) {
-      clearTimeout(searchDebounceTimerRef.current);
-    }
-    searchDebounceTimerRef.current = setTimeout(() => {
-      handleFilterUpdate(selectedRole, selectedStatus, val);
-    }, 300);
+    handleFilterUpdate(selectedRole, selectedStatus, val);
   };
 
-  useEffect(() => {
-    return () => {
-      if (searchDebounceTimerRef.current) {
-        clearTimeout(searchDebounceTimerRef.current);
-      }
-    };
-  }, []);
+  const isInitialLoading = isLoading && apiUsers.length === 0;
 
   // Filtered dataset
   const filteredUsers = users;
@@ -330,7 +367,7 @@ export function UsersTable() {
       <div className="flex min-h-[50vh] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-600 border-t-transparent" />
-          <p className="text-sm font-medium text-slate-500">Verifying administrator access...</p>
+          <P className="text-sm font-medium text-slate-500">Verifying administrator access...</P>
         </div>
       </div>
     );
@@ -345,19 +382,13 @@ export function UsersTable() {
             <Link href="/admin" className="transition-colors hover:text-purple-700">
               Administration
             </Link>
-            <span>/</span>
-            <span className="text-purple-700">User Directory</span>
+            <Span>/</Span>
+            <Span className="text-purple-700">User Directory</Span>
           </div>
-          <Typography
-            as="h1"
-            variant="h1"
-            className="text-3xl font-extrabold tracking-tight text-slate-900"
-          >
-            Users
-          </Typography>
-          <Typography as="p" variant="muted" className="mt-1 max-w-2xl text-sm text-slate-600">
+          <H1 className="text-3xl font-extrabold tracking-tight text-slate-900">Users</H1>
+          <P variant="muted" className="mt-1 max-w-2xl text-sm text-slate-600">
             Manage system access, initial onboarding invites, and audited role changes.
-          </Typography>
+          </P>
         </div>
 
         <div className="flex items-center gap-3">
@@ -367,82 +398,81 @@ export function UsersTable() {
             size="sm"
             onClick={() => setIsBulkImportOpen(true)}
           >
-            <span>📥</span>
-            <span>Bulk Import CSV</span>
+            <Span>📥</Span>
+            <Span>Bulk Import CSV</Span>
           </Button>
           <Button type="button" variant="primary" size="sm" onClick={() => setIsCreateOpen(true)}>
-            <span>+</span>
-            <span>Create User</span>
+            <Span>+</Span>
+            <Span>Create User</Span>
           </Button>
         </div>
       </div>
 
       {/* Summary Telemetry Badges */}
       <div className="flex w-fit items-center gap-2 rounded-xl bg-slate-100 p-1 text-xs font-semibold">
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
           onClick={() => {
             setSelectedStatus('ALL');
             handleFilterUpdate(selectedRole, 'ALL', search);
           }}
-          className={`flex items-center gap-2 rounded-lg px-3 py-1.5 transition-all ${
+          className={`h-8 gap-2 rounded-lg px-3 text-xs ${
             selectedStatus === 'ALL'
               ? 'bg-white text-slate-900 shadow-sm'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <span>Total Users</span>
-          <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono font-bold text-blue-600">
+          <Span>Total Users</Span>
+          <Span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono font-bold text-blue-600">
             {counts.total || totalCount}
-          </span>
-        </button>
-        <button
+          </Span>
+        </Button>
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
           onClick={() => {
             setSelectedStatus('ACTIVE');
             handleFilterUpdate(selectedRole, 'ACTIVE', search);
           }}
-          className={`flex items-center gap-2 rounded-lg px-3 py-1.5 transition-all ${
+          className={`h-8 gap-2 rounded-lg px-3 text-xs ${
             selectedStatus === 'ACTIVE'
               ? 'bg-white text-slate-900 shadow-sm'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <span className="h-2 w-2 rounded-full bg-emerald-500" />
-          <span>Active</span>
-          <span className="font-mono text-slate-500">{counts.active}</span>
-        </button>
-        <button
+          <Span className="h-2 w-2 rounded-full bg-emerald-500" />
+          <Span>Active</Span>
+          <Span className="font-mono text-slate-500">{counts.active}</Span>
+        </Button>
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
           onClick={() => {
             setSelectedStatus('INACTIVE');
             handleFilterUpdate(selectedRole, 'INACTIVE', search);
           }}
-          className={`flex items-center gap-2 rounded-lg px-3 py-1.5 transition-all ${
+          className={`h-8 gap-2 rounded-lg px-3 text-xs ${
             selectedStatus === 'INACTIVE'
               ? 'bg-white text-slate-900 shadow-sm'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <span className="h-2 w-2 rounded-full bg-slate-400" />
-          <span>Inactive</span>
-          <span className="font-mono text-slate-500">{counts.inactive}</span>
-        </button>
+          <Span className="h-2 w-2 rounded-full bg-slate-400" />
+          <Span>Inactive</Span>
+          <Span className="font-mono text-slate-500">{counts.inactive}</Span>
+        </Button>
       </div>
 
       {/* Filter Bar */}
       <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
         <div className="grid grid-cols-1 items-center gap-3 md:grid-cols-12">
           {/* Search Box */}
-          <div className="relative md:col-span-5">
-            <span className="absolute top-2.5 left-3.5 text-sm text-slate-400">🔍</span>
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder="Search by name or email..."
-              className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pr-3 pl-9 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none"
-            />
+          <div className="md:col-span-5">
+            <UserSearchInput value={search} onSearchChange={handleSearchChange} />
           </div>
 
           {/* Role Filter */}
@@ -477,12 +507,11 @@ export function UsersTable() {
 
           {/* Reset Filters */}
           <div className="text-right md:col-span-2">
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => {
-                if (searchDebounceTimerRef.current) {
-                  clearTimeout(searchDebounceTimerRef.current);
-                }
                 setSearch('');
                 setSelectedRole('ALL');
                 setSelectedStatus('ALL');
@@ -491,7 +520,7 @@ export function UsersTable() {
               className="p-2 text-xs font-semibold text-blue-600 hover:text-blue-700"
             >
               Reset Filters
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -507,23 +536,25 @@ export function UsersTable() {
                 <th className="px-4 py-3.5">Role</th>
                 <th className="px-4 py-3.5">
                   Batch{' '}
-                  <span className="text-[10px] font-normal text-slate-400 normal-case">(Soon)</span>
+                  <Span className="text-[10px] font-normal text-slate-400 normal-case">(Soon)</Span>
                 </th>
                 <th className="px-4 py-3.5">
                   Mentor{' '}
-                  <span className="text-[10px] font-normal text-slate-400 normal-case">(Soon)</span>
+                  <Span className="text-[10px] font-normal text-slate-400 normal-case">(Soon)</Span>
                 </th>
                 <th className="px-4 py-3.5">Status</th>
                 <th className="px-6 py-3.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
-              {isLoading ? (
+            <tbody
+              className={`divide-y divide-slate-100 ${isLoading && !isInitialLoading ? 'opacity-60 transition-opacity' : ''}`}
+            >
+              {isInitialLoading ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
                     <div className="flex items-center justify-center gap-2">
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-purple-600 border-t-transparent" />
-                      <span>Loading user directory...</span>
+                      <Span>Loading user directory...</Span>
                     </div>
                   </td>
                 </tr>
@@ -535,11 +566,15 @@ export function UsersTable() {
                         ⚠️
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-slate-900">Failed to load users</p>
-                        <p className="mt-1 text-xs text-slate-500">{usersError}</p>
+                        <P className="text-sm font-semibold text-slate-900">Failed to load users</P>
+                        <P variant="muted" className="mt-1 text-xs text-slate-500">
+                          {usersError}
+                        </P>
                       </div>
-                      <button
+                      <Button
                         type="button"
+                        variant="primary"
+                        size="sm"
                         onClick={() => {
                           void fetchUsers({
                             role: selectedRole !== 'ALL' ? selectedRole : undefined,
@@ -547,17 +582,16 @@ export function UsersTable() {
                             search: search.trim() || undefined,
                           });
                         }}
-                        className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
                       >
                         Retry Fetch
-                      </button>
+                      </Button>
                     </div>
                   </td>
                 </tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
-                    No users match your filters.
+                    <Span>No users match your filters.</Span>
                   </td>
                 </tr>
               ) : (
@@ -590,14 +624,14 @@ export function UsersTable() {
                             {initials}
                           </div>
                           <div>
-                            <span className="block font-semibold text-slate-900">
+                            <Span className="block font-semibold text-slate-900">
                               {u.name || '—'}
-                            </span>
+                            </Span>
                             {u.mustChangePassword ? (
                               <div className="mt-1 flex items-center gap-2">
-                                <span className="text-[11px] font-semibold text-amber-800">
+                                <Span className="text-[11px] font-semibold text-amber-800">
                                   Invite pending
-                                </span>
+                                </Span>
                                 <Button
                                   type="button"
                                   variant="ghost"
@@ -623,7 +657,7 @@ export function UsersTable() {
 
                       {/* Role Badge */}
                       <td className="px-4 py-4">
-                        <span
+                        <Span
                           className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-xs font-medium ${
                             u.role === 'SUPER_ADMIN'
                               ? 'bg-purple-100 text-purple-800'
@@ -633,7 +667,7 @@ export function UsersTable() {
                           }`}
                         >
                           {u.role}
-                        </span>
+                        </Span>
                       </td>
 
                       {/* Batch */}
@@ -646,20 +680,20 @@ export function UsersTable() {
 
                       {/* Status */}
                       <td className="px-4 py-4">
-                        <span
+                        <Span
                           className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${
                             u.status === 'ACTIVE'
                               ? 'bg-emerald-50 text-emerald-700'
                               : 'bg-slate-100 text-slate-500'
                           }`}
                         >
-                          <span
+                          <Span
                             className={`h-1.5 w-1.5 rounded-full ${
                               u.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-400'
                             }`}
                           />
                           {u.status}
-                        </span>
+                        </Span>
                       </td>
 
                       {/* Actions */}
@@ -754,8 +788,8 @@ export function UsersTable() {
               : 'bg-slate-900 text-white'
           }`}
         >
-          <span>{toast.type === 'error' ? '⚠️' : '✅'}</span>
-          <span>{toast.message}</span>
+          <Span>{toast.type === 'error' ? '⚠️' : '✅'}</Span>
+          <Span>{toast.message}</Span>
         </div>
       ) : null}
     </div>

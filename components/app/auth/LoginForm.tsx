@@ -7,6 +7,8 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { redirectUserByRole, useRoleRedirect } from '@/hooks/useRoleRedirect';
 import { ApiError } from '@/lib/errors';
@@ -80,9 +82,7 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
 
       {/* Email Field */}
       <div className="space-y-1.5">
-        <label htmlFor="email" className="block text-sm font-semibold text-slate-900">
-          Work Email
-        </label>
+        <Label htmlFor="email">Work Email</Label>
         <Input
           id="email"
           type="email"
@@ -99,9 +99,7 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
       {/* Password Field */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <label htmlFor="password" className="block text-sm font-semibold text-slate-900">
-            Password
-          </label>
+          <Label htmlFor="password">Password</Label>
           <Link
             href="/forgot-password"
             className="text-xs font-semibold text-blue-600 transition-colors hover:text-blue-700"
@@ -145,10 +143,10 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
       </div>
 
       <div className="mt-8 border-t border-slate-100 pt-4 text-center">
-        <p className="text-xs text-slate-500">
+        <P variant="muted" className="text-xs text-slate-500">
           Need access or role change?{' '}
-          <span className="font-medium text-slate-700">Contact System Admin</span>
-        </p>
+          <Span className="font-medium text-slate-700">Contact System Admin</Span>
+        </P>
       </div>
     </form>
   );

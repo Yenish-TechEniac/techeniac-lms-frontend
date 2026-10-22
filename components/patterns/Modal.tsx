@@ -2,6 +2,7 @@
 
 import React, { useRef } from 'react';
 
+import { Button } from '@/components/ui/Button';
 import { Typography } from '@/components/ui/Typography';
 import { useDialogAccessibility } from '@/hooks/useDialogAccessibility';
 import { cn } from '@/lib/cn';
@@ -86,14 +87,16 @@ export function Modal({
               </Typography>
             ) : null}
           </div>
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={onClose}
             aria-label="Close dialog"
-            className="rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+            className="h-8 w-8 rounded-lg p-0 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
           >
             ✕
-          </button>
+          </Button>
         </div>
 
         {/* Modal Body */}

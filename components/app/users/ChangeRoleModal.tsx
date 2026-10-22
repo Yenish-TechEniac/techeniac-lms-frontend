@@ -5,7 +5,7 @@ import React, { useMemo, useState } from 'react';
 import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
 import { Label } from '@/components/ui/Label';
-import { Typography } from '@/components/ui/Typography';
+import { Code, P, Span } from '@/components/ui/Typography';
 import { useRoleImpact } from '@/hooks/useRoleImpact';
 import { type ChangeRoleFormData, changeRoleSchema, type UserRole } from '@/lib/validation';
 
@@ -104,7 +104,7 @@ function ChangeRoleModalContent({
       description={
         <>
           Modify operational role and permissions for{' '}
-          <span className="font-semibold text-slate-800">{user.name}</span>
+          <Span className="font-semibold text-slate-800">{user.name}</Span>
         </>
       }
       size="md"
@@ -141,28 +141,24 @@ function ChangeRoleModalContent({
             role="alert"
             className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs text-red-700"
           >
-            <span className="font-bold">Error:</span>
-            <span>{error}</span>
+            <Span className="font-bold">Error:</Span>
+            <Span>{error}</Span>
           </div>
         ) : null}
 
         {/* User Details Overview */}
         <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-xs">
           <div>
-            <Typography as="p" className="font-semibold text-slate-900">
-              {user.name}
-            </Typography>
-            <Typography as="p" className="font-mono text-slate-500">
-              {user.email}
-            </Typography>
+            <P className="font-semibold text-slate-900">{user.name}</P>
+            <P className="font-mono text-slate-500">{user.email}</P>
           </div>
           <div className="text-right">
-            <span className="block text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+            <Span className="block text-[10px] font-bold tracking-wider text-slate-400 uppercase">
               Current Role
-            </span>
-            <span className="mt-0.5 inline-block rounded-full bg-slate-200 px-2 py-0.5 font-mono text-[11px] font-semibold text-slate-800">
+            </Span>
+            <Span className="mt-0.5 inline-block rounded-full bg-slate-200 px-2 py-0.5 font-mono text-[11px] font-semibold text-slate-800">
               {currentRole}
-            </span>
+            </Span>
           </div>
         </div>
 
@@ -195,27 +191,27 @@ function ChangeRoleModalContent({
         {currentRole === 'MENTOR' && (
           <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-xs leading-relaxed text-amber-950 shadow-xs">
             <div className="flex items-center gap-2 font-bold text-amber-900">
-              <span className="text-base">⚠️</span>
-              <span>Role Transition Restricted (LMS PRD Policy)</span>
+              <Span className="text-base">⚠️</Span>
+              <Span>Role Transition Restricted (LMS PRD Policy)</Span>
             </div>
-            <p className="mt-1.5 text-slate-700">
+            <P className="mt-1.5 text-slate-700">
               Mentor accounts <strong>cannot be converted to Mentee or Super Admin</strong> roles.
               Mentorship assignments, student evaluations, and authored curriculum remain
               permanently bound to this mentor profile.
-            </p>
+            </P>
           </div>
         )}
 
         {currentRole === 'SUPER_ADMIN' && (
           <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-xs leading-relaxed text-amber-950 shadow-xs">
             <div className="flex items-center gap-2 font-bold text-amber-900">
-              <span className="text-base">⚠️</span>
-              <span>Role Transition Restricted (LMS PRD Policy)</span>
+              <Span className="text-base">⚠️</Span>
+              <Span>Role Transition Restricted (LMS PRD Policy)</Span>
             </div>
-            <p className="mt-1.5 text-slate-700">
+            <P className="mt-1.5 text-slate-700">
               Super Admin accounts <strong>cannot be changed into Mentor or Mentee</strong> roles.
               System governance and security administrator identities cannot be converted.
-            </p>
+            </P>
           </div>
         )}
 
@@ -225,25 +221,25 @@ function ChangeRoleModalContent({
             className="space-y-2 rounded-xl border border-amber-200 bg-amber-50/70 p-3.5 text-xs leading-relaxed text-amber-900"
           >
             <div className="flex items-center justify-between">
-              <p className="flex items-center gap-1.5 font-bold text-amber-800">
-                <span>⚠️</span> Role Change Impact Preview:
-              </p>
+              <P className="flex items-center gap-1.5 font-bold text-amber-800">
+                <Span>⚠️</Span> Role Change Impact Preview:
+              </P>
               {isLoadingImpact ? (
-                <span className="animate-pulse text-[10px] font-semibold text-amber-700">
+                <Span className="animate-pulse text-[10px] font-semibold text-amber-700">
                   Assessing live impact...
-                </span>
+                </Span>
               ) : null}
             </div>
 
             {roleImpact?.impactSummary ? (
               <div className="rounded-lg bg-amber-100/70 p-2.5 text-slate-800">
-                <p className="font-semibold text-amber-950">System Assessment:</p>
-                <p className="mt-0.5 text-slate-700">{roleImpact.impactSummary}</p>
+                <P className="font-semibold text-amber-950">System Assessment:</P>
+                <P className="mt-0.5 text-slate-700">{roleImpact.impactSummary}</P>
                 {roleImpact.willRevokeSessions ? (
-                  <p className="mt-1 font-medium text-amber-900">
+                  <P className="mt-1 font-medium text-amber-900">
                     ⚡ Immediate session invalidation: active access tokens and refresh tokens will
                     be revoked upon commit.
-                  </p>
+                  </P>
                 ) : null}
               </div>
             ) : null}
@@ -253,11 +249,11 @@ function ChangeRoleModalContent({
                 <>
                   <li>
                     Active batch mentee membership ends with status reason{' '}
-                    <code className="rounded bg-amber-100 px-1">ROLE_CHANGE</code>.
+                    <Code className="rounded bg-amber-100 px-1">ROLE_CHANGE</Code>.
                   </li>
                   <li>
                     Open course allocations transition to{' '}
-                    <code className="rounded bg-amber-100 px-1">CLOSED_ROLE_CHANGE</code>{' '}
+                    <Code className="rounded bg-amber-100 px-1">CLOSED_ROLE_CHANGE</Code>{' '}
                     (read-only).
                   </li>
                   <li>
@@ -265,7 +261,7 @@ function ChangeRoleModalContent({
                   </li>
                   <li>
                     User sessions will be immediately invalidated (
-                    <code className="rounded bg-amber-100 px-1">tokenVersion</code> incremented).
+                    <Code className="rounded bg-amber-100 px-1">tokenVersion</Code> incremented).
                   </li>
                 </>
               )}
@@ -273,7 +269,7 @@ function ChangeRoleModalContent({
                 <>
                   <li>
                     Active batch mentee membership ends with status reason{' '}
-                    <code className="rounded bg-amber-100 px-1">ROLE_CHANGE</code>.
+                    <Code className="rounded bg-amber-100 px-1">ROLE_CHANGE</Code>.
                   </li>
                   <li>
                     Grants full system administration, user management, and cross-batch oversight
@@ -294,7 +290,7 @@ function ChangeRoleModalContent({
             <Label htmlFor="role-reason" required>
               Audit Reason
             </Label>
-            <span
+            <Span
               className={`font-mono text-[11px] ${
                 reason.length < 10 && !isRestrictedRole
                   ? 'font-semibold text-amber-800'
@@ -302,7 +298,7 @@ function ChangeRoleModalContent({
               }`}
             >
               {reason.length} / 500 (min 10)
-            </span>
+            </Span>
           </div>
           <textarea
             id="role-reason"

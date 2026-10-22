@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { Typography } from '@/components/ui/Typography';
+import { H2, P, Span } from '@/components/ui/Typography';
 import { useDialogAccessibility } from '@/hooks/useDialogAccessibility';
 import { type CreateUserFormData, createUserSchema, type UserRole } from '@/lib/validation';
 
@@ -90,26 +90,23 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
         <div className="overflow-y-auto p-6">
           <div className="flex items-center justify-between border-b border-slate-100 pb-5">
             <div>
-              <Typography
-                id="create-user-drawer-title"
-                as="h2"
-                variant="h2"
-                className="text-xl font-bold text-slate-900"
-              >
+              <H2 id="create-user-drawer-title" className="text-xl font-bold text-slate-900">
                 Create New User
-              </Typography>
-              <Typography as="p" variant="muted" className="mt-0.5 text-xs text-slate-500">
+              </H2>
+              <P className="mt-0.5 text-xs text-slate-500">
                 Add an individual to the platform. An invitation email will be queued.
-              </Typography>
+              </P>
             </div>
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={handleResetAndClose}
               aria-label="Close drawer"
-              className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+              className="h-8 w-8 p-0 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
             >
               ✕
-            </button>
+            </Button>
           </div>
 
           {errors.general ? (
@@ -183,7 +180,7 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
 
             {/* PRD Rule Notice */}
             <div className="rounded-xl border border-blue-200 bg-blue-50 p-3.5 text-xs leading-relaxed text-blue-900">
-              <span className="mb-0.5 block font-semibold">PRD Compliance (FR-2.1):</span>
+              <Span className="mb-0.5 block font-semibold">PRD Compliance (FR-2.1):</Span>
               Only name, email, and initial role are collected. A temporary password will be
               generated and dispatched via the queued invite email.
             </div>

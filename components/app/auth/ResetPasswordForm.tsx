@@ -7,6 +7,8 @@ import React, { useState } from 'react';
 import { Button, getButtonClassName } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { H3, P } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { usePasswordCriteria } from '@/hooks/usePasswordCriteria';
 import { ApiError } from '@/lib/errors';
@@ -81,11 +83,11 @@ export function ResetPasswordForm() {
         </div>
 
         <div>
-          <h3 className="mb-1 text-xl font-bold text-slate-900">Invalid or expired link</h3>
-          <p className="text-sm leading-relaxed text-slate-600">
+          <H3 className="mb-1 text-xl font-bold text-slate-900">Invalid or expired link</H3>
+          <P className="text-sm leading-relaxed text-slate-600">
             This password reset link is invalid or has expired. Please request a new link to reset
             your password.
-          </p>
+          </P>
         </div>
 
         <div className="space-y-3 pt-2">
@@ -120,10 +122,10 @@ export function ResetPasswordForm() {
         </div>
 
         <div>
-          <h3 className="mb-1 text-xl font-bold text-slate-900">Password updated</h3>
-          <p className="text-sm leading-relaxed text-slate-600">
+          <H3 className="mb-1 text-xl font-bold text-slate-900">Password updated</H3>
+          <P className="text-sm leading-relaxed text-slate-600">
             Your new password has been set. You can now sign in with your updated credentials.
-          </p>
+          </P>
         </div>
 
         <div className="pt-2">
@@ -151,9 +153,7 @@ export function ResetPasswordForm() {
 
       {/* New Password */}
       <div className="space-y-1.5">
-        <label htmlFor="newPassword" className="block text-sm font-semibold text-slate-900">
-          New Password
-        </label>
+        <Label htmlFor="newPassword">New Password</Label>
         <div className="relative">
           <Input
             id="newPassword"
@@ -179,9 +179,7 @@ export function ResetPasswordForm() {
 
       {/* Confirm Password */}
       <div className="space-y-1.5">
-        <label htmlFor="confirmPassword" className="block text-sm font-semibold text-slate-900">
-          Confirm Password
-        </label>
+        <Label htmlFor="confirmPassword">Confirm Password</Label>
         <div className="relative">
           <Input
             id="confirmPassword"

@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
-import { Typography } from '@/components/ui/Typography';
+import { Label } from '@/components/ui/Label';
+import { Code, P, Span } from '@/components/ui/Typography';
 import { type CsvUserRow, csvUserRowSchema } from '@/lib/validation';
 
 export type CsvUserRowWithLine = CsvUserRow & { rowNumber?: number };
@@ -218,7 +219,7 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
       description={
         <>
           Import cohorts of users with columns:{' '}
-          <code className="rounded bg-slate-100 px-1 py-0.5 font-mono">name,email,role</code>
+          <Code className="rounded bg-slate-100 px-1 py-0.5 font-mono">name,email,role</Code>
         </>
       }
       size="xl"
@@ -254,11 +255,11 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
           className="space-y-3 rounded-xl border border-blue-100 bg-blue-50/60 p-5"
         >
           <div className="flex items-center justify-between text-xs font-semibold text-blue-900">
-            <span>Importing Users into LMS...</span>
-            <span>
+            <Span>Importing Users into LMS...</Span>
+            <Span>
               {importProgress.current} / {importProgress.total} (
               {Math.round((importProgress.current / (importProgress.total || 1)) * 100)}%)
-            </span>
+            </Span>
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-blue-200/60">
             <div
@@ -268,9 +269,9 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
               }}
             />
           </div>
-          <p className="text-[11px] text-blue-700">
+          <P className="text-[11px] text-blue-700">
             Please keep this window open while accounts and invitation emails are dispatched.
-          </p>
+          </P>
         </div>
       ) : null}
 
@@ -279,23 +280,23 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
         <div role="status" aria-live="polite" className="space-y-4">
           {importResult.failures.length === 0 ? (
             <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-semibold text-emerald-800">
-              <span className="text-base">✅</span>
-              <span>
+              <Span className="text-base">✅</Span>
+              <Span>
                 Successfully imported all {importResult.successCount} users! Closing window...
-              </span>
+              </Span>
             </div>
           ) : (
             <div className="space-y-3">
               <div className="rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs text-amber-900">
-                <p className="font-semibold text-amber-900">
+                <P className="font-semibold text-amber-900">
                   Import completed with partial errors:
-                </p>
-                <p className="mt-0.5 text-slate-700">
+                </P>
+                <P className="mt-0.5 text-slate-700">
                   {importResult.successCount} users created successfully.{' '}
-                  <span className="font-semibold text-red-600">
+                  <Span className="font-semibold text-red-600">
                     {importResult.failures.length} user(s) failed.
-                  </span>
-                </p>
+                  </Span>
+                </P>
               </div>
 
               <div className="max-h-52 overflow-hidden overflow-y-auto rounded-xl border border-red-200">
@@ -334,18 +335,14 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
         <>
           <div className="flex flex-col items-center justify-between gap-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 sm:flex-row">
             <div>
-              <Typography as="p" className="text-sm font-semibold text-slate-800">
-                Upload CSV File
-              </Typography>
-              <Typography as="p" variant="muted" className="text-xs text-slate-500">
-                Supported format: UTF-8 CSV with header row
-              </Typography>
+              <P className="text-sm font-semibold text-slate-800">Upload CSV File</P>
+              <P className="text-xs text-slate-500">Supported format: UTF-8 CSV with header row</P>
             </div>
             <div className="flex items-center gap-3">
               <Button type="button" variant="outline" size="sm" onClick={handleDownloadSample}>
                 Download Sample CSV
               </Button>
-              <label className="cursor-pointer rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-700">
+              <Label className="cursor-pointer rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-700">
                 Choose File
                 <input
                   type="file"
@@ -354,31 +351,29 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
                   className="hidden"
                   disabled={isProcessing}
                 />
-              </label>
+              </Label>
             </div>
           </div>
 
           {file ? (
             <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-3 text-xs">
               <div className="flex items-center gap-2">
-                <span className="text-base">📄</span>
+                <Span className="text-base">📄</Span>
                 <div>
-                  <Typography as="p" className="font-semibold text-slate-900">
-                    {file.name}
-                  </Typography>
-                  <Typography as="p" variant="muted" className="text-[11px] text-slate-500">
+                  <P className="font-semibold text-slate-900">{file.name}</P>
+                  <P className="text-[11px] text-slate-500">
                     {(file.size / 1024).toFixed(1)} KB • {parsedRows.length} data rows found
-                  </Typography>
+                  </P>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+                <Span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
                   {validCount} valid
-                </span>
+                </Span>
                 {invalidCount > 0 ? (
-                  <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-600">
+                  <Span className="rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-600">
                     {invalidCount} invalid
-                  </span>
+                  </Span>
                 ) : null}
               </div>
             </div>
@@ -388,10 +383,10 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
           {parsedRows.length > 0 ? (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
-                <span>CSV Verification Preview (first 10 rows)</span>
-                <span>
+                <Span>CSV Verification Preview (first 10 rows)</Span>
+                <Span>
                   {validCount} of {parsedRows.length} ready to import
-                </span>
+                </Span>
               </div>
               <div className="max-h-56 overflow-hidden overflow-y-auto rounded-xl border border-slate-200">
                 <table className="w-full border-collapse text-left text-xs">
@@ -411,20 +406,20 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
                         <td className="p-2.5 font-medium text-slate-900">{row.data.name || '—'}</td>
                         <td className="p-2.5 font-mono text-slate-600">{row.data.email || '—'}</td>
                         <td className="p-2.5">
-                          <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-800">
+                          <Span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-800">
                             {row.data.role || '—'}
-                          </span>
+                          </Span>
                         </td>
                         <td className="p-2.5">
                           {row.isValid ? (
-                            <span className="font-semibold text-emerald-600">Ready</span>
+                            <Span className="font-semibold text-emerald-600">Ready</Span>
                           ) : (
-                            <span
+                            <Span
                               className="text-[11px] text-red-500"
                               title={row.errors.join(', ')}
                             >
                               {row.errors[0]}
-                            </span>
+                            </Span>
                           )}
                         </td>
                       </tr>
@@ -434,7 +429,7 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
               </div>
             </div>
           ) : isProcessing ? (
-            <p className="py-4 text-center text-xs text-slate-500">Parsing CSV contents...</p>
+            <P className="py-4 text-center text-xs text-slate-500">Parsing CSV contents...</P>
           ) : null}
         </>
       ) : null}

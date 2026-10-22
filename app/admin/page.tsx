@@ -6,6 +6,7 @@ import React from 'react';
 import { ADMIN_PORTAL_NAV } from '@/components/app/navigation/portal-nav.config';
 import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
 import { Header } from '@/components/layout/Header';
+import { Code, H1, H2, H3, P, Span } from '@/components/ui/Typography';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 
 export default function AdminPage() {
@@ -31,32 +32,34 @@ export default function AdminPage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700">
-                <span className="h-1.5 w-1.5 rounded-full bg-purple-500" />
-                <span>Super Admin Access</span>
+                <Span className="h-1.5 w-1.5 rounded-full bg-purple-500" />
+                <Span>Super Admin Access</Span>
               </div>
-              <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+              <H1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
                 Super Admin Control Center
-              </h1>
-              <p className="mt-1 text-sm text-slate-500">
+              </H1>
+              <P variant="muted" className="mt-1 text-sm text-slate-500">
                 Manage organization identities, batch deployments, curriculum standards, and audit
                 logs.
-              </p>
+              </P>
             </div>
 
             <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-xs">
-              <span className="block text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+              <Span className="block text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
                 Active Administrator
-              </span>
-              <span className="mt-0.5 block font-bold text-slate-800">{user.name}</span>
-              <span className="mt-1 block text-slate-500">{user.email}</span>
+              </Span>
+              <Span className="mt-0.5 block font-bold text-slate-800">{user.name}</Span>
+              <Span className="mt-1 block text-slate-500">{user.email}</Span>
             </div>
           </div>
         </div>
 
         {/* Administration Pillars */}
         <div className="mb-6">
-          <h2 className="text-base font-bold text-slate-900">System Governance</h2>
-          <p className="text-xs text-slate-500">Core administrative domains across the LMS</p>
+          <H2 className="text-base font-bold text-slate-900">System Governance</H2>
+          <P variant="muted" className="text-xs text-slate-500">
+            Core administrative domains across the LMS
+          </P>
         </div>
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -67,26 +70,26 @@ export default function AdminPage() {
           >
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold tracking-wider text-purple-700 uppercase">
+                <Span className="text-[10px] font-bold tracking-wider text-purple-700 uppercase">
                   Module 1
-                </span>
-                <span className="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-semibold text-purple-800">
+                </Span>
+                <Span className="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-semibold text-purple-800">
                   Operational
-                </span>
+                </Span>
               </div>
-              <h3 className="mt-2 text-base font-bold text-slate-900 transition-colors group-hover:text-purple-700">
+              <H3 className="mt-2 text-base font-bold text-slate-900 transition-colors group-hover:text-purple-700">
                 User Management
-              </h3>
-              <p className="mt-1 text-xs leading-relaxed text-slate-600">
+              </H3>
+              <P className="mt-1 text-xs leading-relaxed text-slate-600">
                 Super Admin, Mentor, and Mentee accounts. Password resets, role history, and token
                 versions.
-              </p>
+              </P>
             </div>
             <div className="mt-4 flex items-center justify-between border-t border-purple-100 pt-3">
-              <span className="text-[11px] font-semibold text-purple-700 group-hover:underline">
+              <Span className="text-[11px] font-semibold text-purple-700 group-hover:underline">
                 Manage Users &rarr;
-              </span>
-              <span className="text-[10px] font-medium text-purple-600">Contract Synchronized</span>
+              </Span>
+              <Span className="text-[10px] font-medium text-purple-600">Contract Synchronized</Span>
             </div>
           </Link>
 
@@ -94,20 +97,20 @@ export default function AdminPage() {
           <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                <Span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
                   Module 2
-                </span>
-                <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
+                </Span>
+                <Span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
                   Upcoming
-                </span>
+                </Span>
               </div>
-              <h3 className="mt-2 text-base font-bold text-slate-900">Batches & Cohorts</h3>
-              <p className="mt-1 text-xs leading-relaxed text-slate-600">
+              <H3 className="mt-2 text-base font-bold text-slate-900">Batches & Cohorts</H3>
+              <P className="mt-1 text-xs leading-relaxed text-slate-600">
                 Batch creation (DRAFT, LIVE, COMPLETED), mentor-mentee mapping, and batch transfers.
-              </p>
+              </P>
             </div>
             <div className="mt-4 border-t border-slate-100 pt-3">
-              <span className="text-[11px] text-slate-400">Scheduled next</span>
+              <Span className="text-[11px] text-slate-400">Scheduled next</Span>
             </div>
           </div>
 
@@ -115,20 +118,20 @@ export default function AdminPage() {
           <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                <Span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
                   Module 3
-                </span>
-                <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
+                </Span>
+                <Span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
                   Upcoming
-                </span>
+                </Span>
               </div>
-              <h3 className="mt-2 text-base font-bold text-slate-900">Curriculum & Courses</h3>
-              <p className="mt-1 text-xs leading-relaxed text-slate-600">
+              <H3 className="mt-2 text-base font-bold text-slate-900">Curriculum & Courses</H3>
+              <P className="mt-1 text-xs leading-relaxed text-slate-600">
                 Course authoring, topics, subtopics, assignments, and course allocations.
-              </p>
+              </P>
             </div>
             <div className="mt-4 border-t border-slate-100 pt-3">
-              <span className="text-[11px] text-slate-400">Scheduled next</span>
+              <Span className="text-[11px] text-slate-400">Scheduled next</Span>
             </div>
           </div>
 
@@ -136,21 +139,21 @@ export default function AdminPage() {
           <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                <Span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
                   Module 4
-                </span>
-                <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
+                </Span>
+                <Span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
                   Upcoming
-                </span>
+                </Span>
               </div>
-              <h3 className="mt-2 text-base font-bold text-slate-900">Submissions & Audits</h3>
-              <p className="mt-1 text-xs leading-relaxed text-slate-600">
+              <H3 className="mt-2 text-base font-bold text-slate-900">Submissions & Audits</H3>
+              <P className="mt-1 text-xs leading-relaxed text-slate-600">
                 Mentee assignment submissions, mentor review rubrics, resubmissions, and audit
                 history.
-              </p>
+              </P>
             </div>
             <div className="mt-4 border-t border-slate-100 pt-3">
-              <span className="text-[11px] text-slate-400">Scheduled next</span>
+              <Span className="text-[11px] text-slate-400">Scheduled next</Span>
             </div>
           </div>
         </div>
@@ -159,17 +162,17 @@ export default function AdminPage() {
         <div className="mt-8 rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h3 className="text-sm font-bold text-slate-900">API Connection Status</h3>
-              <p className="text-xs text-slate-500">
+              <H3 className="text-sm font-bold text-slate-900">API Connection Status</H3>
+              <P variant="muted" className="text-xs text-slate-500">
                 Connected to Node.js 24 / Express backend service at{' '}
-                <code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-[11px] text-slate-700">
+                <Code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-[11px] text-slate-700">
                   /api/v1
-                </code>
-              </p>
+                </Code>
+              </P>
             </div>
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              <span className="text-xs font-semibold text-emerald-700">Online & Synchronized</span>
+              <Span className="h-2 w-2 rounded-full bg-emerald-500" />
+              <Span className="text-xs font-semibold text-emerald-700">Online & Synchronized</Span>
             </div>
           </div>
         </div>

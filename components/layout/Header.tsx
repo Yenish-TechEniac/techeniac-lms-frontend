@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 
+import { Button } from '@/components/ui/Button';
+import { Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 
 export interface HeaderNavItem {
@@ -57,10 +59,10 @@ export function Header({
               TL
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-bold tracking-tight text-slate-900">Techeniac LMS</span>
-              <span className="text-[10px] font-medium tracking-wider text-slate-500 uppercase">
+              <Span className="text-sm font-bold tracking-tight text-slate-900">Techeniac LMS</Span>
+              <Span className="text-[10px] font-medium tracking-wider text-slate-500 uppercase">
                 {subtitle}
-              </span>
+              </Span>
             </div>
           </Link>
 
@@ -77,12 +79,12 @@ export function Header({
                     {item.label}
                   </Link>
                 ) : (
-                  <span
+                  <Span
                     key={item.label}
                     className="cursor-not-allowed rounded-md px-3 py-1.5 text-xs font-medium text-slate-400"
                   >
                     {item.label}
-                  </span>
+                  </Span>
                 ),
               )}
             </nav>
@@ -96,42 +98,46 @@ export function Header({
               role="alert"
               className="absolute top-12 right-0 z-50 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700 shadow-lg"
             >
-              <span>{logoutError}</span>
-              <button
+              <Span>{logoutError}</Span>
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => setLogoutError(null)}
-                className="font-bold text-red-500 hover:text-red-800"
+                className="h-6 w-6 p-0 font-bold text-red-500 hover:text-red-800"
                 aria-label="Dismiss error"
               >
                 ×
-              </button>
+              </Button>
             </div>
           ) : null}
           {user ? (
             <div className="hidden flex-col text-right sm:flex">
-              <span className="text-xs font-semibold text-slate-800">{user.name}</span>
-              <span className="text-[10px] text-slate-500">{user.email}</span>
+              <Span className="text-xs font-semibold text-slate-800">{user.name}</Span>
+              <Span className="text-[10px] text-slate-500">{user.email}</Span>
             </div>
           ) : null}
 
           {user ? (
-            <span
+            <Span
               className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${badgeColor}`}
             >
               {user.role}
-            </span>
+            </Span>
           ) : null}
 
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={() => {
               void handleLogout();
             }}
             disabled={isLoggingOut}
-            className="rounded-md border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 disabled:opacity-50"
+            isLoading={isLoggingOut}
           >
             {isLoggingOut ? 'Signing out...' : 'Sign out'}
-          </button>
+          </Button>
         </div>
       </div>
     </header>

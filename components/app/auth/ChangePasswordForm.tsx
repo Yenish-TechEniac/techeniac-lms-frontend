@@ -6,6 +6,8 @@ import React, { useState } from 'react';
 import { Button, getButtonClassName } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { H3, P } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { usePasswordCriteria } from '@/hooks/usePasswordCriteria';
 import { ApiError } from '@/lib/errors';
@@ -74,10 +76,10 @@ export function ChangePasswordForm() {
         </div>
 
         <div>
-          <h3 className="mb-1 text-xl font-bold text-slate-900">Password updated successfully</h3>
-          <p className="text-sm leading-relaxed text-slate-600">
+          <H3 className="mb-1 text-xl font-bold text-slate-900">Password updated successfully</H3>
+          <P className="text-sm leading-relaxed text-slate-600">
             Your initial temporary password has been replaced. You can now access your dashboard.
-          </p>
+          </P>
         </div>
 
         <div className="pt-2">
@@ -110,9 +112,7 @@ export function ChangePasswordForm() {
 
       {/* Current Password */}
       <div className="space-y-1.5">
-        <label htmlFor="currentPassword" className="block text-sm font-semibold text-slate-900">
-          Temporary Password
-        </label>
+        <Label htmlFor="currentPassword">Temporary Password</Label>
         <div className="relative">
           <Input
             id="currentPassword"
@@ -134,9 +134,7 @@ export function ChangePasswordForm() {
 
       {/* New Password */}
       <div className="space-y-1.5">
-        <label htmlFor="newPassword" className="block text-sm font-semibold text-slate-900">
-          New Permanent Password
-        </label>
+        <Label htmlFor="newPassword">New Permanent Password</Label>
         <div className="relative">
           <Input
             id="newPassword"
@@ -161,9 +159,7 @@ export function ChangePasswordForm() {
 
       {/* Confirm Password */}
       <div className="space-y-1.5">
-        <label htmlFor="confirmPassword" className="block text-sm font-semibold text-slate-900">
-          Confirm New Password
-        </label>
+        <Label htmlFor="confirmPassword">Confirm New Password</Label>
         <div className="relative">
           <Input
             id="confirmPassword"

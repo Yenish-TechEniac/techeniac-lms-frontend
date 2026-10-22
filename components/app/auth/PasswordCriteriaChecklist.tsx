@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { P } from '@/components/ui/Typography';
 import { PASSWORD_RULES, type PasswordCriteria } from '@/lib/validation';
 
 export type PasswordCriteriaKey = 'length' | 'upper' | 'lower' | 'number' | 'special';
@@ -24,7 +25,7 @@ export interface PasswordCriteriaChecklistProps {
 export function PasswordCriteriaChecklist({ criteria }: Readonly<PasswordCriteriaChecklistProps>) {
   return (
     <div className="space-y-1.5 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs">
-      <p className="font-semibold text-slate-700">Password Requirements</p>
+      <P className="font-semibold text-slate-700">Password Requirements</P>
       <div className="grid grid-cols-1 gap-0.5 text-slate-600">
         {CRITERIA_ITEMS.map((item) => {
           const isMet = Boolean(criteria[item.key]);
