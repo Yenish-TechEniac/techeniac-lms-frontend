@@ -9,6 +9,7 @@ import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/hooks/useAuth';
 import { redirectUserByRole, useRoleRedirect } from '@/hooks/useRoleRedirect';
+import { ApiError } from '@/lib/errors';
 import { type LoginFormData, loginSchema } from '@/lib/validation';
 
 import { PasswordVisibilityToggle } from './PasswordVisibilityToggle';
@@ -56,7 +57,8 @@ export function LoginForm({ onSubmitSuccess }: LoginFormProps) {
         redirectUserByRole(router, loggedInUser, 'push');
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Invalid email or password';
+      const message =
+        err instanceof ApiError ? err.message : 'Invalid email or password. Please try again.';
       setErrors({ general: message });
     } finally {
       setIsSubmitting(false);

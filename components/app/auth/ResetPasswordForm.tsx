@@ -9,6 +9,7 @@ import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/hooks/useAuth';
 import { PASSWORD_RULES, usePasswordCriteria } from '@/hooks/usePasswordCriteria';
+import { ApiError } from '@/lib/errors';
 import { resetPasswordSchema } from '@/lib/validation';
 
 import { PasswordVisibilityToggle } from './PasswordVisibilityToggle';
@@ -62,7 +63,8 @@ export function ResetPasswordForm() {
       await resetPassword(token, password);
       setIsSuccess(true);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to reset password';
+      const message =
+        err instanceof ApiError ? err.message : 'Failed to reset password. Please try again.';
       setErrors({ general: message });
     } finally {
       setIsSubmitting(false);

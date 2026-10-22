@@ -8,6 +8,7 @@ import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/hooks/useAuth';
 import { PASSWORD_RULES, usePasswordCriteria } from '@/hooks/usePasswordCriteria';
+import { ApiError } from '@/lib/errors';
 import { changePasswordSchema } from '@/lib/validation';
 
 import { PasswordVisibilityToggle } from './PasswordVisibilityToggle';
@@ -68,7 +69,8 @@ export function ChangePasswordForm() {
       await refreshUser();
       setIsSuccess(true);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to update password';
+      const message =
+        err instanceof ApiError ? err.message : 'Failed to update password. Please try again.';
       setErrors({ general: message });
     } finally {
       setIsSubmitting(false);

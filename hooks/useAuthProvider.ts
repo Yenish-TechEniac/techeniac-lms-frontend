@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { AuthContextValue } from '@/context/AuthContext';
-import { ApiError } from '@/services/api.client';
+import { ApiError } from '@/lib/errors';
 import { authService, type AuthUser } from '@/services/auth.service';
 
 export function useAuthProvider(): AuthContextValue {

@@ -1,4 +1,4 @@
-import { apiClient } from './api.client';
+import { apiClient, ApiError } from './api.client';
 
 export type UserRole = 'SUPER_ADMIN' | 'MENTOR' | 'MENTEE';
 
@@ -10,16 +10,10 @@ export interface AuthUser {
   mustChangePassword: boolean;
 }
 
-export interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
-}
-
 export interface LoginResponse {
   success: boolean;
   data: {
     user: AuthUser;
-    tokens: AuthTokens;
   };
 }
 
@@ -41,17 +35,26 @@ export const authService = {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
+    if (!response?.success || !response?.data?.user) {
+      throw new ApiError(500, 'Invalid login response from server', 'INVALID_RESPONSE');
+    }
     return response.data;
   },
 
   async logout(): Promise<void> {
-    await apiClient<MessageResponse>('/auth/logout', {
+    const response = await apiClient<MessageResponse>('/auth/logout', {
       method: 'POST',
     });
+    if (!response?.success) {
+      throw new ApiError(500, 'Failed to complete logout on server', 'LOGOUT_FAILED');
+    }
   },
 
   async getMe(): Promise<AuthUser> {
     const response = await apiClient<GetMeResponse>('/auth/me');
+    if (!response?.success || !response?.data?.user) {
+      throw new ApiError(500, 'Invalid session response from server', 'INVALID_RESPONSE');
+    }
     return response.data.user;
   },
 
@@ -60,6 +63,9 @@ export const authService = {
       method: 'POST',
       body: JSON.stringify({ email }),
     });
+    if (!response?.success || !response?.message) {
+      throw new ApiError(500, 'Invalid response from server', 'INVALID_RESPONSE');
+    }
     return response.message;
   },
 
@@ -68,6 +74,9 @@ export const authService = {
       method: 'POST',
       body: JSON.stringify({ token, newPassword }),
     });
+    if (!response?.success || !response?.message) {
+      throw new ApiError(500, 'Invalid response from server', 'INVALID_RESPONSE');
+    }
     return response.message;
   },
 
@@ -76,6 +85,9 @@ export const authService = {
       method: 'POST',
       body: JSON.stringify({ currentPassword, newPassword }),
     });
+    if (!response?.success || !response?.message) {
+      throw new ApiError(500, 'Invalid response from server', 'INVALID_RESPONSE');
+    }
     return response.message;
   },
 };
