@@ -27,7 +27,8 @@ export interface UserItem {
   status: UserStatus;
   batch?: string;
   mentorName?: string;
-  hasLoggedIn: boolean;
+  hasLoggedIn?: boolean;
+  mustChangePassword?: boolean;
   activeMenteesCount?: number;
   isLastSuperAdmin?: boolean;
 }
@@ -215,6 +216,7 @@ export function UsersTable() {
       role: u.role,
       status: u.isActive ? 'ACTIVE' : 'INACTIVE',
       hasLoggedIn: u.lastLoginAt !== null,
+      mustChangePassword: u.mustChangePassword,
       isLastSuperAdmin: u.role === 'SUPER_ADMIN' && activeAdminsCount <= 1,
     }));
   }, [apiUsers, activeAdminsCount]);
@@ -623,7 +625,7 @@ export function UsersTable() {
                             <span className="block font-semibold text-slate-900">
                               {u.name || '—'}
                             </span>
-                            {!u.hasLoggedIn ? (
+                            {u.mustChangePassword ? (
                               <div className="mt-1 flex items-center gap-2">
                                 <span className="text-[11px] font-semibold text-amber-800">
                                   Invite pending
