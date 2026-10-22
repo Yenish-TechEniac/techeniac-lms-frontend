@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
@@ -26,14 +26,14 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
   const [errors, setErrors] = useState<{ name?: string; email?: string; general?: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleResetAndClose = () => {
+  const handleResetAndClose = useCallback(() => {
     if (isSubmitting) return;
     setName('');
     setEmail('');
     setRole('MENTEE');
     setErrors({});
     onClose();
-  };
+  }, [isSubmitting, onClose]);
 
   useDialogAccessibility({
     isOpen,
