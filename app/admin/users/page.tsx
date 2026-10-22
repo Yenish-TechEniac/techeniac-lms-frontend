@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 
+import { ADMIN_USERS_NAV } from '@/components/app/navigation/portal-nav.config';
 import { UsersTable } from '@/components/app/users/UsersTable';
+import { Header } from '@/components/layout/Header';
 
 export const metadata: Metadata = {
   title: 'Users Management | Techeniac LMS',
@@ -9,10 +11,11 @@ export const metadata: Metadata = {
 
 export default function AdminUsersPage() {
   return (
-    <div className="min-h-screen bg-slate-50/50 p-6 md:p-10">
-      <div className="mx-auto max-w-7xl">
+    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
+      <Header {...ADMIN_USERS_NAV} />
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
         <UsersTable />
-      </div>
+      </main>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React from 'react';
 
 import { ADMIN_PORTAL_NAV } from '@/components/app/navigation/portal-nav.config';
@@ -60,7 +61,10 @@ export default function AdminPage() {
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {/* Module 1: IAM */}
-          <div className="flex flex-col justify-between rounded-xl border border-purple-200 bg-purple-50/50 p-5 shadow-xs">
+          <Link
+            href="/admin/users"
+            className="group flex flex-col justify-between rounded-xl border border-purple-200 bg-purple-50/50 p-5 shadow-xs transition-all hover:border-purple-300 hover:bg-purple-50 hover:shadow-sm"
+          >
             <div>
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold tracking-wider text-purple-700 uppercase">
@@ -70,18 +74,21 @@ export default function AdminPage() {
                   Operational
                 </span>
               </div>
-              <h3 className="mt-2 text-base font-bold text-slate-900">User Management</h3>
+              <h3 className="mt-2 text-base font-bold text-slate-900 transition-colors group-hover:text-purple-700">
+                User Management
+              </h3>
               <p className="mt-1 text-xs leading-relaxed text-slate-600">
                 Super Admin, Mentor, and Mentee accounts. Password resets, role history, and token
                 versions.
               </p>
             </div>
-            <div className="mt-4 border-t border-purple-100 pt-3">
-              <span className="text-[11px] font-semibold text-purple-700">
-                Contract Synchronized
+            <div className="mt-4 flex items-center justify-between border-t border-purple-100 pt-3">
+              <span className="text-[11px] font-semibold text-purple-700 group-hover:underline">
+                Manage Users &rarr;
               </span>
+              <span className="text-[10px] font-medium text-purple-600">Contract Synchronized</span>
             </div>
-          </div>
+          </Link>
 
           {/* Module 2: Batches */}
           <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
