@@ -6,7 +6,7 @@ export interface UseDialogAccessibilityOptions {
   isOpen: boolean;
   onClose: () => void;
   dialogRef: React.RefObject<HTMLElement | null>;
-  initialFocusRef?: React.RefObject<HTMLElement | null>;
+  initialFocusRef?: React.RefObject<HTMLElement | null> | undefined;
 }
 
 export function useDialogAccessibility({

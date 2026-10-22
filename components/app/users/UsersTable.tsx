@@ -8,8 +8,10 @@ import { BulkImportModal, type CsvUserRowWithLine } from '@/components/app/users
 import { ChangeRoleModal } from '@/components/app/users/ChangeRoleModal';
 import { CreateUserDrawer } from '@/components/app/users/CreateUserDrawer';
 import { EditUserModal } from '@/components/app/users/EditUserModal';
+import { Modal } from '@/components/patterns/Modal';
+import { Button } from '@/components/ui/Button';
+import { Typography } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
-import { useDialogAccessibility } from '@/hooks/useDialogAccessibility';
 import { useUsers } from '@/hooks/useUsers';
 import {
   type ChangeRoleFormData,
@@ -47,89 +49,53 @@ function ConfirmStatusModal({
   onConfirm,
   isSubmitting,
 }: ConfirmStatusModalProps) {
-  const dialogRef = useRef<HTMLDivElement>(null);
-
-  useDialogAccessibility({
-    isOpen,
-    onClose,
-    dialogRef,
-  });
-
   if (!isOpen || !user) return null;
 
   const isDeactivating = user.status === 'ACTIVE';
 
   return (
-    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm duration-150">
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="confirm-status-modal-title"
-        className="flex w-full max-w-md flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-2xl"
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">{isDeactivating ? '⚠️' : '🔄'}</span>
-            <h3 id="confirm-status-modal-title" className="text-lg font-bold text-slate-900">
-              {isDeactivating ? 'Deactivate Account' : 'Activate Account'}
-            </h3>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={isSubmitting}
-            aria-label="Close dialog"
-            className="rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 disabled:opacity-40"
-          >
-            ✕
-          </button>
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title={
+        <div className="flex items-center gap-2">
+          <span className="text-xl">{isDeactivating ? '⚠️' : '🔄'}</span>
+          <span>{isDeactivating ? 'Deactivate Account' : 'Activate Account'}</span>
         </div>
-
-        <p className="mt-3 text-sm text-slate-600">
-          {isDeactivating ? (
-            <>
-              Are you sure you want to deactivate{' '}
-              <strong className="text-slate-900">{user.name}</strong> ({user.email})? They will
-              immediately lose platform access until reactivated.
-            </>
-          ) : (
-            <>
-              Are you sure you want to reactivate{' '}
-              <strong className="text-slate-900">{user.name}</strong> ({user.email})? They will
-              regain platform access.
-            </>
-          )}
-        </p>
-
-        <div className="mt-6 flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={isSubmitting}
-            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-          >
+      }
+      size="sm"
+      footer={
+        <>
+          <Button variant="outline" size="sm" onClick={onClose} disabled={isSubmitting}>
             Cancel
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant={isDeactivating ? 'danger' : 'primary'}
+            size="sm"
             onClick={() => void onConfirm()}
-            disabled={isSubmitting}
-            className={`rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-sm disabled:opacity-50 ${
-              isDeactivating ? 'bg-red-600 hover:bg-red-700' : 'bg-emerald-600 hover:bg-emerald-700'
-            }`}
+            isLoading={isSubmitting}
           >
-            {isSubmitting
-              ? isDeactivating
-                ? 'Deactivating...'
-                : 'Activating...'
-              : isDeactivating
-                ? 'Yes, Deactivate'
-                : 'Yes, Activate'}
-          </button>
-        </div>
-      </div>
-    </div>
+            {isDeactivating ? 'Yes, Deactivate' : 'Yes, Activate'}
+          </Button>
+        </>
+      }
+    >
+      <Typography as="p" className="text-sm text-slate-600">
+        {isDeactivating ? (
+          <>
+            Are you sure you want to deactivate{' '}
+            <strong className="text-slate-900">{user.name}</strong> ({user.email})? They will
+            immediately lose platform access until reactivated.
+          </>
+        ) : (
+          <>
+            Are you sure you want to reactivate{' '}
+            <strong className="text-slate-900">{user.name}</strong> ({user.email})? They will regain
+            platform access.
+          </>
+        )}
+      </Typography>
+    </Modal>
   );
 }
 
@@ -382,29 +348,32 @@ export function UsersTable() {
             <span>/</span>
             <span className="text-purple-700">User Directory</span>
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">Users</h1>
-          <p className="mt-1 max-w-2xl text-sm text-slate-600">
+          <Typography
+            as="h1"
+            variant="h1"
+            className="text-3xl font-extrabold tracking-tight text-slate-900"
+          >
+            Users
+          </Typography>
+          <Typography as="p" variant="muted" className="mt-1 max-w-2xl text-sm text-slate-600">
             Manage system access, initial onboarding invites, and audited role changes.
-          </p>
+          </Typography>
         </div>
 
         <div className="flex items-center gap-3">
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={() => setIsBulkImportOpen(true)}
-            className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
           >
             <span>📥</span>
             <span>Bulk Import CSV</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsCreateOpen(true)}
-            className="flex h-10 items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
-          >
+          </Button>
+          <Button type="button" variant="primary" size="sm" onClick={() => setIsCreateOpen(true)}>
             <span>+</span>
             <span>Create User</span>
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -629,16 +598,18 @@ export function UsersTable() {
                                 <span className="text-[11px] font-semibold text-amber-800">
                                   Invite pending
                                 </span>
-                                <button
+                                <Button
                                   type="button"
+                                  variant="ghost"
+                                  size="sm"
                                   disabled={inFlightAction[u.id] === 'resend'}
                                   onClick={() => {
                                     void handleResendInvite(u.id, u.name);
                                   }}
-                                  className="inline-flex min-h-11 items-center justify-center rounded-lg px-2.5 py-1 text-xs font-semibold text-purple-700 transition-colors hover:bg-purple-50 hover:text-purple-900 disabled:opacity-50"
+                                  className="min-h-11 px-2.5 py-1 text-xs font-semibold text-purple-700 hover:bg-purple-50 hover:text-purple-900 disabled:opacity-50"
                                 >
                                   {inFlightAction[u.id] === 'resend' ? 'Sending...' : 'Resend'}
-                                </button>
+                                </Button>
                               </div>
                             ) : null}
                           </div>
@@ -694,37 +665,39 @@ export function UsersTable() {
                       {/* Actions */}
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="sm"
                             onClick={() => setUserToEdit(u)}
-                            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                            className="min-h-11 min-w-11 text-xs text-slate-700 hover:bg-slate-100"
                           >
                             Edit
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="sm"
                             onClick={() => setUserToChangeRole(u)}
-                            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-blue-600 transition-colors hover:bg-blue-50"
+                            className="min-h-11 min-w-11 text-xs text-blue-600 hover:bg-blue-50"
                           >
                             Change Role
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             type="button"
+                            variant={u.status === 'ACTIVE' ? 'danger' : 'outline'}
+                            size="sm"
                             disabled={isDeactivateDisabled || isRowPending}
                             title={deactivateTooltip}
                             onClick={() => handleRequestToggleStatus(u)}
-                            className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-                              u.status === 'ACTIVE'
-                                ? 'text-red-600 hover:bg-red-50'
-                                : 'text-emerald-600 hover:bg-emerald-50'
-                            }`}
+                            className="min-h-11 min-w-11 text-xs"
                           >
                             {inFlightAction[u.id] === 'status'
                               ? 'Updating...'
                               : u.status === 'ACTIVE'
                                 ? 'Deactivate'
                                 : 'Activate'}
-                          </button>
+                          </Button>
                         </div>
                       </td>
                     </tr>

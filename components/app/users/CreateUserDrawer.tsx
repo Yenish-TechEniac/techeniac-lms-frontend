@@ -2,7 +2,11 @@
 
 import React, { useRef, useState } from 'react';
 
+import { Button } from '@/components/ui/Button';
+import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { Typography } from '@/components/ui/Typography';
 import { useDialogAccessibility } from '@/hooks/useDialogAccessibility';
 import { type CreateUserFormData, createUserSchema, type UserRole } from '@/lib/validation';
 
@@ -81,17 +85,22 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
         role="dialog"
         aria-modal="true"
         aria-labelledby="create-user-drawer-title"
-        className="animate-in slide-in-from-right flex h-full w-full max-w-md flex-col justify-between overflow-y-auto bg-white shadow-2xl duration-200"
+        className="flex h-full w-full max-w-md flex-col justify-between border-l border-slate-200 bg-white shadow-2xl"
       >
-        <div className="p-6">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div className="overflow-y-auto p-6">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-5">
             <div>
-              <h2 id="create-user-drawer-title" className="text-xl font-bold text-slate-900">
+              <Typography
+                id="create-user-drawer-title"
+                as="h2"
+                variant="h2"
+                className="text-xl font-bold text-slate-900"
+              >
                 Create New User
-              </h2>
-              <p className="mt-0.5 text-xs text-slate-500">
+              </Typography>
+              <Typography as="p" variant="muted" className="mt-0.5 text-xs text-slate-500">
                 Add an individual to the platform. An invitation email will be queued.
-              </p>
+              </Typography>
             </div>
             <button
               type="button"
@@ -122,9 +131,9 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
           >
             {/* Full Name */}
             <div className="space-y-1.5">
-              <label htmlFor="create-name" className="block text-sm font-semibold text-slate-900">
-                Full Name <span className="text-red-500">*</span>
-              </label>
+              <Label htmlFor="create-name" required>
+                Full Name
+              </Label>
               <Input
                 ref={nameInputRef}
                 id="create-name"
@@ -134,18 +143,14 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
                 hasError={Boolean(errors.name)}
                 disabled={isSubmitting}
               />
-              {errors.name ? (
-                <p role="alert" className="text-xs text-red-500">
-                  {errors.name}
-                </p>
-              ) : null}
+              <FieldError error={errors.name} />
             </div>
 
             {/* Email Address */}
             <div className="space-y-1.5">
-              <label htmlFor="create-email" className="block text-sm font-semibold text-slate-900">
-                Email Address <span className="text-red-500">*</span>
-              </label>
+              <Label htmlFor="create-email" required>
+                Email Address
+              </Label>
               <Input
                 id="create-email"
                 type="email"
@@ -155,18 +160,14 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
                 hasError={Boolean(errors.email)}
                 disabled={isSubmitting}
               />
-              {errors.email ? (
-                <p role="alert" className="text-xs text-red-500">
-                  {errors.email}
-                </p>
-              ) : null}
+              <FieldError error={errors.email} />
             </div>
 
             {/* Initial Role */}
             <div className="space-y-1.5">
-              <label htmlFor="create-role" className="block text-sm font-semibold text-slate-900">
-                Initial Role <span className="text-red-500">*</span>
-              </label>
+              <Label htmlFor="create-role" required>
+                Initial Role Assignment
+              </Label>
               <select
                 id="create-role"
                 value={role}
@@ -190,22 +191,18 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
         </div>
 
         <div className="flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50 p-6">
-          <button
-            type="button"
-            onClick={handleResetAndClose}
-            disabled={isSubmitting}
-            className="rounded-[10px] border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100"
-          >
+          <Button variant="outline" size="sm" onClick={handleResetAndClose} disabled={isSubmitting}>
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
             form="create-user-form"
-            disabled={isSubmitting}
-            className="rounded-[10px] bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:opacity-60"
+            variant="primary"
+            size="sm"
+            isLoading={isSubmitting}
           >
-            {isSubmitting ? 'Creating...' : 'Create & Send Invite'}
-          </button>
+            Create & Send Invite
+          </Button>
         </div>
       </div>
     </div>
