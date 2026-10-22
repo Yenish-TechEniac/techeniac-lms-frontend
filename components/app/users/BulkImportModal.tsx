@@ -5,8 +5,10 @@ import React, { useRef, useState } from 'react';
 import { useDialogAccessibility } from '@/hooks/useDialogAccessibility';
 import { type CsvUserRow, csvUserRowSchema } from '@/lib/validation';
 
+export type CsvUserRowWithLine = CsvUserRow & { rowNumber?: number };
+
 export interface BulkImportFailure {
-  row: CsvUserRow;
+  row: CsvUserRowWithLine;
   error: string;
 }
 
@@ -19,7 +21,7 @@ export interface BulkImportModalProps {
   isOpen: boolean;
   onClose: () => void;
   onImport: (
-    validRows: CsvUserRow[],
+    validRows: CsvUserRowWithLine[],
     onProgress?: (progress: { current: number; total: number }) => void,
   ) => Promise<BulkImportResult>;
 }
@@ -172,9 +174,9 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
   const invalidCount = parsedRows.length - validCount;
 
   const handleImport = async () => {
-    const validData: CsvUserRow[] = parsedRows
+    const validData: CsvUserRowWithLine[] = parsedRows
       .filter((r) => r.isValid)
-      .map((r) => r.data as CsvUserRow);
+      .map((r) => ({ ...(r.data as CsvUserRow), rowNumber: r.rowNumber }));
 
     if (validData.length === 0) return;
 
@@ -265,7 +267,7 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
 
           {/* Results State (Failures or Success) */}
           {importResult ? (
-            <div className="space-y-4">
+            <div role="status" aria-live="polite" className="space-y-4">
               {importResult.failures.length === 0 ? (
                 <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-semibold text-emerald-800">
                   <span className="text-base">✅</span>
@@ -291,6 +293,7 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
                     <table className="w-full border-collapse text-left text-xs">
                       <thead className="sticky top-0 bg-red-100/70 text-red-900">
                         <tr>
+                          <th className="p-2.5">Line</th>
                           <th className="p-2.5">Name</th>
                           <th className="p-2.5">Email</th>
                           <th className="p-2.5">Role</th>
@@ -300,6 +303,9 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
                       <tbody className="divide-y divide-red-100 bg-white">
                         {importResult.failures.map((f, idx) => (
                           <tr key={`${f.row.email}-${idx}`} className="bg-red-50/30">
+                            <td className="p-2.5 font-mono text-slate-500">
+                              {f.row.rowNumber ? `Line ${f.row.rowNumber}` : `—`}
+                            </td>
                             <td className="p-2.5 font-medium text-slate-900">{f.row.name}</td>
                             <td className="p-2.5 font-mono text-slate-600">{f.row.email}</td>
                             <td className="p-2.5 font-mono text-slate-700">{f.row.role}</td>

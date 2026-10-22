@@ -22,9 +22,18 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
   const [errors, setErrors] = useState<{ name?: string; email?: string; general?: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const handleResetAndClose = () => {
+    if (isSubmitting) return;
+    setName('');
+    setEmail('');
+    setRole('MENTEE');
+    setErrors({});
+    onClose();
+  };
+
   useDialogAccessibility({
     isOpen,
-    onClose,
+    onClose: handleResetAndClose,
     dialogRef,
     initialFocusRef: nameInputRef,
   });
@@ -86,7 +95,7 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
             </div>
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleResetAndClose}
               aria-label="Close drawer"
               className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
             >
@@ -183,7 +192,7 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
         <div className="flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50 p-6">
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleResetAndClose}
             disabled={isSubmitting}
             className="rounded-[10px] border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100"
           >

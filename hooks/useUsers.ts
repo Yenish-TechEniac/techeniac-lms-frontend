@@ -10,8 +10,10 @@ import {
   usersService,
 } from '@/services/users.service';
 
+export type BulkImportRowData = CreateUserFormData & { rowNumber?: number };
+
 export interface BulkImportFailure {
-  row: CreateUserFormData;
+  row: BulkImportRowData;
   error: string;
 }
 
@@ -29,7 +31,7 @@ export interface UseUsersReturn {
   fetchUsers: (filters?: UserQueryFilters) => Promise<void>;
   createUser: (data: CreateUserFormData) => Promise<ApiUser>;
   createUsersBulk: (
-    rows: CreateUserFormData[],
+    rows: BulkImportRowData[],
     onProgress?: (progress: { current: number; total: number }) => void,
   ) => Promise<BulkImportResult>;
   updateUser: (id: string, data: Partial<EditUserFormData>) => Promise<ApiUser>;
@@ -137,7 +139,7 @@ export function useUsers(initialFilters: UserQueryFilters = DEFAULT_FILTERS): Us
   };
 
   const createUsersBulk = async (
-    rows: CreateUserFormData[],
+    rows: BulkImportRowData[],
     onProgress?: (progress: { current: number; total: number }) => void,
   ): Promise<BulkImportResult> => {
     let successCount = 0;
@@ -148,7 +150,7 @@ export function useUsers(initialFilters: UserQueryFilters = DEFAULT_FILTERS): Us
       if (!r) continue;
       onProgress?.({ current: i + 1, total: rows.length });
       try {
-        await usersService.createUser(r);
+        await usersService.createUser({ name: r.name, email: r.email, role: r.role });
         successCount++;
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Failed to create user';
