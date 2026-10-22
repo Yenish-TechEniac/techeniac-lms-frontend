@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 
-import { emailSchema } from '@/lib/validation';
+import { useDialogAccessibility } from '@/hooks/useDialogAccessibility';
+import { editUserSchema } from '@/lib/validation';
 
 export interface UserToEdit {
   id: string;
@@ -14,7 +15,7 @@ export interface EditUserModalProps {
   user: UserToEdit | null;
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (userId: string, data: { name: string; email: string }) => void;
+  onSuccess: (userId: string, data: { name: string; email: string }) => Promise<void>;
 }
 
 function EditUserModalContent({
@@ -24,34 +25,39 @@ function EditUserModalContent({
 }: {
   user: UserToEdit;
   onClose: () => void;
-  onSuccess: (userId: string, data: { name: string; email: string }) => void;
+  onSuccess: (userId: string, data: { name: string; email: string }) => Promise<void>;
 }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogAccessibility({
+    isOpen: true,
+    onClose,
+    dialogRef,
+  });
+
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
 
-    const trimmedName = name.trim();
-    if (trimmedName.length < 2) {
-      setError('Full name must be at least 2 characters.');
-      return;
-    }
+    const parsed = editUserSchema.pick({ name: true, email: true }).safeParse({
+      name,
+      email,
+    });
 
-    const emailResult = emailSchema.safeParse(email);
-    if (!emailResult.success) {
-      setError('Please provide a valid email address.');
+    if (!parsed.success) {
+      setError(parsed.error.issues[0]?.message ?? 'Invalid input details.');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      onSuccess(user.id, { name: trimmedName, email: emailResult.data });
+      await onSuccess(user.id, parsed.data);
       onClose();
-    } catch (err) {
+    } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to update user');
     } finally {
       setIsSubmitting(false);
@@ -68,12 +74,24 @@ function EditUserModalContent({
       />
 
       {/* Modal Dialog */}
-      <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-user-modal-title"
+        className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl"
+      >
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold tracking-tight text-slate-900">Edit User Details</h2>
+          <h2
+            id="edit-user-modal-title"
+            className="text-xl font-bold tracking-tight text-slate-900"
+          >
+            Edit User Details
+          </h2>
           <button
             type="button"
             onClick={onClose}
+            aria-label="Close dialog"
             className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600"
           >
             ✕
@@ -85,12 +103,20 @@ function EditUserModalContent({
         </p>
 
         {error ? (
-          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+          <div
+            role="alert"
+            className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700"
+          >
             {error}
           </div>
         ) : null}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form
+          onSubmit={(e) => {
+            void handleSubmit(e);
+          }}
+          className="space-y-4"
+        >
           <div>
             <label htmlFor="edit-name" className="block text-xs font-semibold text-slate-700">
               Full Name

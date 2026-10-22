@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 
+import { useDialogAccessibility } from '@/hooks/useDialogAccessibility';
 import { type ChangeRoleFormData, changeRoleSchema, type UserRole } from '@/lib/validation';
 
 export interface UserToChangeRole {
@@ -18,7 +19,7 @@ export interface ChangeRoleModalProps {
   user: UserToChangeRole | null;
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (userId: string, data: ChangeRoleFormData) => void;
+  onSuccess: (userId: string, data: ChangeRoleFormData) => Promise<void>;
 }
 
 function getDefaultTargetRole(role: UserRole): UserRole {
@@ -34,8 +35,15 @@ function ChangeRoleModalContent({
 }: {
   user: UserToChangeRole;
   onClose: () => void;
-  onSuccess: (userId: string, data: ChangeRoleFormData) => void;
+  onSuccess: (userId: string, data: ChangeRoleFormData) => Promise<void>;
 }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogAccessibility({
+    isOpen: true,
+    onClose,
+    dialogRef,
+  });
+
   const currentRole: UserRole = user.currentRole ?? user.role;
   const isRestrictedRole = currentRole === 'MENTOR' || currentRole === 'SUPER_ADMIN';
   const [newRole, setNewRole] = useState<UserRole>(getDefaultTargetRole(currentRole));
@@ -56,7 +64,7 @@ function ChangeRoleModalContent({
     return false;
   }, [currentRole, newRole]);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
 
@@ -74,20 +82,31 @@ function ChangeRoleModalContent({
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      onSuccess(user.id, result.data);
+    try {
+      await onSuccess(user.id, result.data);
       onClose();
-    }, 500);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to update user role');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm duration-150">
-      <div className="flex w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="change-role-modal-title"
+        className="flex w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl"
+      >
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-slate-100 p-6">
           <div>
-            <h3 className="text-lg font-bold text-slate-900">Change User Role</h3>
+            <h3 id="change-role-modal-title" className="text-lg font-bold text-slate-900">
+              Change User Role
+            </h3>
             <p className="mt-0.5 text-xs text-slate-500">
               Modify operational role and permissions for{' '}
               <span className="font-semibold text-slate-800">{user.name}</span>
@@ -96,6 +115,7 @@ function ChangeRoleModalContent({
           <button
             type="button"
             onClick={onClose}
+            aria-label="Close dialog"
             className="rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
           >
             ✕
@@ -103,9 +123,19 @@ function ChangeRoleModalContent({
         </div>
 
         {/* Modal Body */}
-        <form id="change-role-form" onSubmit={handleSubmit} className="space-y-5 p-6" noValidate>
+        <form
+          id="change-role-form"
+          onSubmit={(e) => {
+            void handleSubmit(e);
+          }}
+          className="space-y-5 p-6"
+          noValidate
+        >
           {error ? (
-            <div className="flex items-start gap-2 rounded-[12px] border border-red-200 bg-red-50 p-3.5 text-xs text-red-700">
+            <div
+              role="alert"
+              className="flex items-start gap-2 rounded-[12px] border border-red-200 bg-red-50 p-3.5 text-xs text-red-700"
+            >
               <span className="font-bold">Error:</span>
               <span>{error}</span>
             </div>
@@ -185,7 +215,10 @@ function ChangeRoleModalContent({
           )}
 
           {currentRole === 'MENTEE' && (
-            <div className="space-y-1.5 rounded-[12px] border border-amber-200 bg-amber-50/70 p-3.5 text-xs leading-relaxed text-amber-900">
+            <div
+              aria-live="polite"
+              className="space-y-1.5 rounded-[12px] border border-amber-200 bg-amber-50/70 p-3.5 text-xs leading-relaxed text-amber-900"
+            >
               <p className="flex items-center gap-1.5 font-bold text-amber-800">
                 <span>⚠️</span> Role Change Impact Preview:
               </p>

@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 
+import { useDialogAccessibility } from '@/hooks/useDialogAccessibility';
 import { type CsvUserRow, csvUserRowSchema } from '@/lib/validation';
 
 export interface BulkImportFailure {
@@ -65,6 +66,7 @@ export function parseCsvLine(line: string): string[] {
 }
 
 export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [parsedRows, setParsedRows] = useState<ParsedRowResult[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -73,6 +75,23 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
     null,
   );
   const [importResult, setImportResult] = useState<BulkImportResult | null>(null);
+
+  const handleClose = () => {
+    if (isImporting) return;
+    setFile(null);
+    setParsedRows([]);
+    setIsProcessing(false);
+    setIsImporting(false);
+    setImportProgress(null);
+    setImportResult(null);
+    onClose();
+  };
+
+  useDialogAccessibility({
+    isOpen,
+    onClose: handleClose,
+    dialogRef,
+  });
 
   if (!isOpen) return null;
 
@@ -88,17 +107,6 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-  };
-
-  const handleClose = () => {
-    if (isImporting) return;
-    setFile(null);
-    setParsedRows([]);
-    setIsProcessing(false);
-    setIsImporting(false);
-    setImportProgress(null);
-    setImportResult(null);
-    onClose();
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -196,11 +204,19 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
 
   return (
     <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm duration-150">
-      <div className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="bulk-import-modal-title"
+        className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl"
+      >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 p-6">
           <div>
-            <h3 className="text-lg font-bold text-slate-900">Bulk Import Users (CSV)</h3>
+            <h3 id="bulk-import-modal-title" className="text-lg font-bold text-slate-900">
+              Bulk Import Users (CSV)
+            </h3>
             <p className="mt-0.5 text-xs text-slate-500">
               Import cohorts of users with columns:{' '}
               <code className="rounded bg-slate-100 px-1 py-0.5 font-mono">name,email,role</code>
@@ -210,6 +226,7 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
             type="button"
             onClick={handleClose}
             disabled={isImporting}
+            aria-label="Close dialog"
             className="rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 disabled:opacity-40"
           >
             ✕
@@ -220,7 +237,11 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
         <div className="space-y-5 overflow-y-auto p-6">
           {/* Progress State */}
           {isImporting && importProgress ? (
-            <div className="space-y-3 rounded-xl border border-blue-100 bg-blue-50/60 p-5">
+            <div
+              role="status"
+              aria-live="polite"
+              className="space-y-3 rounded-xl border border-blue-100 bg-blue-50/60 p-5"
+            >
               <div className="flex items-center justify-between text-xs font-semibold text-blue-900">
                 <span>Importing Users into LMS...</span>
                 <span>

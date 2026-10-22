@@ -123,6 +123,7 @@ export function UsersTable() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to create user';
       showToast(msg);
+      throw err;
     }
   };
 
@@ -133,6 +134,7 @@ export function UsersTable() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to update role';
       showToast(msg);
+      throw err;
     }
   };
 
@@ -143,6 +145,7 @@ export function UsersTable() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to update user';
       showToast(msg);
+      throw err;
     }
   };
 
@@ -519,27 +522,21 @@ export function UsersTable() {
       <CreateUserDrawer
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
-        onSuccess={(data) => {
-          void handleCreateUser(data);
-        }}
+        onSuccess={handleCreateUser}
       />
 
       <EditUserModal
         user={userToEdit}
         isOpen={Boolean(userToEdit)}
         onClose={() => setUserToEdit(null)}
-        onSuccess={(id, data) => {
-          void handleEditUserSuccess(id, data);
-        }}
+        onSuccess={handleEditUserSuccess}
       />
 
       <ChangeRoleModal
         user={userToChangeRole}
         isOpen={Boolean(userToChangeRole)}
         onClose={() => setUserToChangeRole(null)}
-        onSuccess={(id, data) => {
-          void handleRoleChangeSuccess(id, data);
-        }}
+        onSuccess={handleRoleChangeSuccess}
       />
 
       <BulkImportModal
