@@ -1,6 +1,8 @@
+import type { UserRole } from '@/lib/validation';
+
 import { apiClient, ApiError } from './api.client';
 
-export type UserRole = 'SUPER_ADMIN' | 'MENTOR' | 'MENTEE';
+export type { UserRole };
 
 export interface AuthUser {
   id: string;

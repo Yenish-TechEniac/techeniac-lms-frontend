@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { ChangeRoleFormData, CreateUserFormData, EditUserFormData } from '@/lib/validation';
 import {
@@ -51,35 +51,44 @@ export function useUsers(initialFilters: UserQueryFilters = DEFAULT_FILTERS): Us
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchUsers = useCallback(
-    async (filters?: UserQueryFilters) => {
-      try {
-        const data = await usersService.listUsers(filters ?? initialFilters);
-        setUsers(data.users);
-        setTotal(data.total);
-        if (data.counts) {
-          setCounts(data.counts);
-        } else {
-          setCounts((prev) =>
-            prev.total > 0
-              ? prev
-              : {
-                  total: data.total,
-                  active: data.users.filter((u) => u.isActive).length,
-                  inactive: data.users.filter((u) => !u.isActive).length,
-                },
-          );
-        }
-        setError(null);
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Failed to fetch users';
-        setError(message);
-      } finally {
+  // Active filters and request sequencing guards
+  const activeFiltersRef = useRef<UserQueryFilters>(initialFilters);
+  const requestSeqRef = useRef<number>(0);
+
+  const fetchUsers = useCallback(async (filters?: UserQueryFilters) => {
+    const currentSeq = ++requestSeqRef.current;
+    setIsLoading(true);
+    try {
+      const targetFilters = filters ?? activeFiltersRef.current;
+      activeFiltersRef.current = targetFilters;
+      const data = await usersService.listUsers(targetFilters);
+      if (currentSeq !== requestSeqRef.current) return;
+      setUsers(data.users);
+      setTotal(data.total);
+      if (data.counts) {
+        setCounts(data.counts);
+      } else {
+        setCounts((prev) =>
+          prev.total > 0
+            ? prev
+            : {
+                total: data.total,
+                active: data.users.filter((u) => u.isActive).length,
+                inactive: data.users.filter((u) => !u.isActive).length,
+              },
+        );
+      }
+      setError(null);
+    } catch (err: unknown) {
+      if (currentSeq !== requestSeqRef.current) return;
+      const message = err instanceof Error ? err.message : 'Failed to fetch users';
+      setError(message);
+    } finally {
+      if (currentSeq === requestSeqRef.current) {
         setIsLoading(false);
       }
-    },
-    [initialFilters],
-  );
+    }
+  }, []);
 
   const filterKey = `${initialFilters.page ?? ''}-${initialFilters.limit ?? ''}-${initialFilters.role ?? ''}-${initialFilters.status ?? ''}-${initialFilters.search ?? ''}`;
 
@@ -123,7 +132,7 @@ export function useUsers(initialFilters: UserQueryFilters = DEFAULT_FILTERS): Us
 
   const createUser = async (data: CreateUserFormData): Promise<ApiUser> => {
     const newUser = await usersService.createUser(data);
-    await fetchUsers();
+    await fetchUsers(activeFiltersRef.current);
     return newUser;
   };
 
@@ -147,25 +156,25 @@ export function useUsers(initialFilters: UserQueryFilters = DEFAULT_FILTERS): Us
       }
     }
 
-    await fetchUsers();
+    await fetchUsers(activeFiltersRef.current);
     return { successCount, failures };
   };
 
   const updateUser = async (id: string, data: Partial<EditUserFormData>): Promise<ApiUser> => {
     const updated = await usersService.updateUser(id, data);
-    await fetchUsers();
+    await fetchUsers(activeFiltersRef.current);
     return updated;
   };
 
   const changeRole = async (id: string, data: ChangeRoleFormData): Promise<ApiUser> => {
     const updated = await usersService.changeRole(id, data);
-    await fetchUsers();
+    await fetchUsers(activeFiltersRef.current);
     return updated;
   };
 
   const toggleStatus = async (id: string, activate: boolean): Promise<ApiUser> => {
     const updated = await usersService.toggleStatus(id, activate);
-    await fetchUsers();
+    await fetchUsers(activeFiltersRef.current);
     return updated;
   };
 

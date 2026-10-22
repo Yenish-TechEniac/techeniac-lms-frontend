@@ -219,6 +219,9 @@ export function UsersTable() {
     }));
   }, [apiUsers, activeAdminsCount]);
 
+  // Search debounce ref
+  const searchDebounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   const handleFilterUpdate = (newRole: string, newStatus: string, newSearch: string) => {
     void fetchUsers({
       role: newRole !== 'ALL' ? newRole : undefined,
@@ -226,6 +229,24 @@ export function UsersTable() {
       search: newSearch.trim() || undefined,
     });
   };
+
+  const handleSearchChange = (val: string) => {
+    setSearch(val);
+    if (searchDebounceTimerRef.current) {
+      clearTimeout(searchDebounceTimerRef.current);
+    }
+    searchDebounceTimerRef.current = setTimeout(() => {
+      handleFilterUpdate(selectedRole, selectedStatus, val);
+    }, 300);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (searchDebounceTimerRef.current) {
+        clearTimeout(searchDebounceTimerRef.current);
+      }
+    };
+  }, []);
 
   // Filtered dataset
   const filteredUsers = users;
@@ -448,11 +469,7 @@ export function UsersTable() {
             <input
               type="text"
               value={search}
-              onChange={(e) => {
-                const val = e.target.value;
-                setSearch(val);
-                handleFilterUpdate(selectedRole, selectedStatus, val);
-              }}
+              onChange={(e) => handleSearchChange(e.target.value)}
               placeholder="Search by name or email..."
               className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pr-3 pl-9 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none"
             />
@@ -493,6 +510,9 @@ export function UsersTable() {
             <button
               type="button"
               onClick={() => {
+                if (searchDebounceTimerRef.current) {
+                  clearTimeout(searchDebounceTimerRef.current);
+                }
                 setSearch('');
                 setSelectedRole('ALL');
                 setSelectedStatus('ALL');

@@ -3,6 +3,7 @@
 import React, { useMemo, useRef, useState } from 'react';
 
 import { useDialogAccessibility } from '@/hooks/useDialogAccessibility';
+import { useRoleImpact } from '@/hooks/useRoleImpact';
 import { type ChangeRoleFormData, changeRoleSchema, type UserRole } from '@/lib/validation';
 
 export interface UserToChangeRole {
@@ -50,6 +51,13 @@ function ChangeRoleModalContent({
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isEnabledImpact = !isRestrictedRole && currentRole !== newRole;
+  const { roleImpact, isLoadingImpact } = useRoleImpact({
+    userId: user.id,
+    newRole,
+    enabled: isEnabledImpact,
+  });
 
   const isBlocked = useMemo(() => {
     if (currentRole === 'MENTOR') {
@@ -217,11 +225,32 @@ function ChangeRoleModalContent({
           {currentRole === 'MENTEE' && (
             <div
               aria-live="polite"
-              className="space-y-1.5 rounded-[12px] border border-amber-200 bg-amber-50/70 p-3.5 text-xs leading-relaxed text-amber-900"
+              className="space-y-2 rounded-[12px] border border-amber-200 bg-amber-50/70 p-3.5 text-xs leading-relaxed text-amber-900"
             >
-              <p className="flex items-center gap-1.5 font-bold text-amber-800">
-                <span>⚠️</span> Role Change Impact Preview:
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="flex items-center gap-1.5 font-bold text-amber-800">
+                  <span>⚠️</span> Role Change Impact Preview:
+                </p>
+                {isLoadingImpact ? (
+                  <span className="animate-pulse text-[10px] font-semibold text-amber-700">
+                    Assessing live impact...
+                  </span>
+                ) : null}
+              </div>
+
+              {roleImpact?.impactSummary ? (
+                <div className="rounded-lg bg-amber-100/70 p-2.5 text-slate-800">
+                  <p className="font-semibold text-amber-950">System Assessment:</p>
+                  <p className="mt-0.5 text-slate-700">{roleImpact.impactSummary}</p>
+                  {roleImpact.willRevokeSessions ? (
+                    <p className="mt-1 font-medium text-amber-900">
+                      ⚡ Immediate session invalidation: active access tokens and refresh tokens
+                      will be revoked upon commit.
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+
               <ul className="list-disc space-y-1 pl-4 text-slate-700">
                 {newRole === 'MENTOR' && (
                   <>

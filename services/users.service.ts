@@ -1,11 +1,16 @@
-import type { ChangeRoleFormData, CreateUserFormData, EditUserFormData } from '@/lib/validation';
+import type {
+  ChangeRoleFormData,
+  CreateUserFormData,
+  EditUserFormData,
+  UserRole,
+} from '@/lib/validation';
 import { apiClient } from '@/services/api.client';
 
 export interface ApiUser {
   id: string;
   name: string;
   email: string;
-  role: 'SUPER_ADMIN' | 'MENTOR' | 'MENTEE';
+  role: UserRole;
   isActive: boolean;
   tokenVersion: number;
   mustChangePassword: boolean;
