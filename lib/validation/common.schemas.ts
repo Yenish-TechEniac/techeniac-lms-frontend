@@ -74,3 +74,14 @@ export const createTrimmedStringSchema = (fieldName: string, min = 1, max = 255)
     .trim()
     .min(min, `${fieldName} must be at least ${min} characters`)
     .max(max, `${fieldName} must not exceed ${max} characters`);
+
+export function extractZodErrors(issues: readonly z.ZodIssue[]): Record<string, string> {
+  const fieldErrors: Record<string, string> = {};
+  for (const issue of issues) {
+    const field = issue.path[0];
+    if (typeof field === 'string' && !fieldErrors[field]) {
+      fieldErrors[field] = issue.message;
+    }
+  }
+  return fieldErrors;
+}

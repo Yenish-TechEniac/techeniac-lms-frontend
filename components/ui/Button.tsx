@@ -11,6 +11,10 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   isLoading?: boolean | undefined;
 }
 
+function isButtonSize(value: string): value is ButtonSize {
+  return value === 'sm' || value === 'md' || value === 'lg';
+}
+
 export function getButtonClassName(variant?: ButtonVariant, className?: string): string;
 export function getButtonClassName(
   variant: ButtonVariant,
@@ -19,7 +23,7 @@ export function getButtonClassName(
 ): string;
 export function getButtonClassName(
   variant: ButtonVariant = 'primary',
-  sizeOrClassName: unknown = 'md',
+  sizeOrClassName = 'md',
   className?: string,
 ): string {
   const base =
@@ -42,13 +46,14 @@ export function getButtonClassName(
     lg: 'h-12 px-6 text-base rounded-xl',
   };
 
-  const isSize = sizeOrClassName === 'sm' || sizeOrClassName === 'md' || sizeOrClassName === 'lg';
+  const isSize = isButtonSize(sizeOrClassName);
   const size: ButtonSize = isSize ? sizeOrClassName : 'md';
-  const extraClass = isSize
-    ? className
-    : typeof sizeOrClassName === 'string'
-      ? sizeOrClassName
-      : undefined;
+  let extraClass: string | undefined;
+  if (isSize) {
+    extraClass = className;
+  } else {
+    extraClass = sizeOrClassName;
+  }
 
   return cn(base, variants[variant], sizes[size], extraClass);
 }

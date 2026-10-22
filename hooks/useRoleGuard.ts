@@ -10,10 +10,11 @@ export { getRolePortalPath, redirectUserByRole } from '@/hooks/useRoleRedirect';
 export type { UseRoleRedirectReturn as UseRoleGuardReturn, UserRole };
 
 export function useRoleGuard(requiredRole?: UserRole | UserRole[]): UseRoleRedirectReturn {
-  const allowedRoles = requiredRole
-    ? Array.isArray(requiredRole)
-      ? requiredRole
-      : [requiredRole]
-    : undefined;
+  let allowedRoles: UserRole[] | undefined;
+  if (Array.isArray(requiredRole)) {
+    allowedRoles = requiredRole;
+  } else if (requiredRole) {
+    allowedRoles = [requiredRole];
+  }
   return useRoleRedirect(allowedRoles ? { allowedRoles } : {});
 }

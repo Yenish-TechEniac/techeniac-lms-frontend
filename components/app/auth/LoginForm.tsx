@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/hooks/useAuth';
 import { redirectUserByRole, useRoleRedirect } from '@/hooks/useRoleRedirect';
 import { ApiError } from '@/lib/errors';
-import { type LoginFormData, loginSchema } from '@/lib/validation';
+import { extractZodErrors, type LoginFormData, loginSchema } from '@/lib/validation';
 
 import { PasswordVisibilityToggle } from './PasswordVisibilityToggle';
 
@@ -25,7 +25,7 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
@@ -35,16 +35,7 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
 
     const result = loginSchema.safeParse({ email, password });
     if (!result.success) {
-      const fieldErrors: { email?: string; password?: string } = {};
-      for (const issue of result.error.issues) {
-        const field = issue.path[0];
-        if (field === 'email' && !fieldErrors.email) {
-          fieldErrors.email = issue.message;
-        } else if (field === 'password' && !fieldErrors.password) {
-          fieldErrors.password = issue.message;
-        }
-      }
-      setErrors(fieldErrors);
+      setErrors(extractZodErrors(result.error.issues));
       return;
     }
 

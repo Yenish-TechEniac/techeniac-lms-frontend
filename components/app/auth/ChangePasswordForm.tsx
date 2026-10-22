@@ -7,39 +7,12 @@ import { Button, getButtonClassName } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/hooks/useAuth';
-import { PASSWORD_RULES, usePasswordCriteria } from '@/hooks/usePasswordCriteria';
+import { usePasswordCriteria } from '@/hooks/usePasswordCriteria';
 import { ApiError } from '@/lib/errors';
-import { changePasswordSchema } from '@/lib/validation';
+import { changePasswordSchema, extractZodErrors } from '@/lib/validation';
 
+import { PasswordCriteriaChecklist } from './PasswordCriteriaChecklist';
 import { PasswordVisibilityToggle } from './PasswordVisibilityToggle';
-
-interface ChangePasswordFormErrors {
-  currentPassword?: string;
-  newPassword?: string;
-  confirmPassword?: string;
-  general?: string;
-}
-
-const CRITERIA_ITEMS = [
-  { key: 'length', label: `At least ${PASSWORD_RULES.minLength} characters` },
-  { key: 'upper', label: 'At least one uppercase letter (A-Z)' },
-  { key: 'lower', label: 'At least one lowercase letter (a-z)' },
-  { key: 'number', label: 'At least one number (0-9)' },
-  { key: 'special', label: 'At least one special character' },
-] as const;
-
-function extractFieldErrors(
-  issues: Array<{ path: Array<string | number>; message: string }>,
-): ChangePasswordFormErrors {
-  const fieldErrors: ChangePasswordFormErrors = {};
-  for (const issue of issues) {
-    const field = issue.path[0] as keyof ChangePasswordFormErrors;
-    if (field && !fieldErrors[field]) {
-      fieldErrors[field] = issue.message;
-    }
-  }
-  return fieldErrors;
-}
 
 export function ChangePasswordForm() {
   const { changePassword, refreshUser } = useAuth();
@@ -49,7 +22,7 @@ export function ChangePasswordForm() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [errors, setErrors] = useState<ChangePasswordFormErrors>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -67,7 +40,7 @@ export function ChangePasswordForm() {
     });
 
     if (!result.success) {
-      setErrors(extractFieldErrors(result.error.issues));
+      setErrors(extractZodErrors(result.error.issues));
       return;
     }
 
@@ -184,19 +157,7 @@ export function ChangePasswordForm() {
       </div>
 
       {/* Criteria Checklist */}
-      <div className="space-y-1.5 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs">
-        <p className="font-semibold text-slate-700">Password Requirements</p>
-        <div className="grid grid-cols-1 gap-0.5 text-slate-600">
-          {CRITERIA_ITEMS.map(({ key, label }) => {
-            const isMet = criteria[key];
-            return (
-              <div key={key} className={isMet ? 'font-medium text-emerald-600' : ''}>
-                {isMet ? '✓' : '•'} {label}
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      <PasswordCriteriaChecklist criteria={criteria} />
 
       {/* Confirm Password */}
       <div className="space-y-1.5">

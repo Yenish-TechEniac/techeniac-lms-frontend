@@ -3,42 +3,19 @@
 import React from 'react';
 
 import { MENTEE_PORTAL_NAV } from '@/components/app/navigation/portal-nav.config';
+import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
 import { Header } from '@/components/layout/Header';
-import { useAuth } from '@/hooks/useAuth';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 
 export default function MenteePage() {
   const { user, isAuthorized, sessionError } = useRoleRedirect({ allowedRoles: ['MENTEE'] });
-  const { refreshUser } = useAuth();
 
   if (!isAuthorized || !user) {
-    if (sessionError) {
-      return (
-        <div className="flex min-h-screen flex-1 flex-col items-center justify-center bg-slate-50 p-6 text-center">
-          <div className="max-w-md rounded-2xl border border-red-200 bg-white p-6 shadow-xs">
-            <h2 className="text-lg font-bold text-slate-900">Session Verification Issue</h2>
-            <p className="mt-2 text-sm text-slate-600">{sessionError}</p>
-            <button
-              type="button"
-              onClick={() => {
-                void refreshUser();
-              }}
-              className="mt-4 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
-            >
-              Retry Connection
-            </button>
-          </div>
-        </div>
-      );
-    }
-
     return (
-      <div className="flex min-h-screen flex-1 items-center justify-center bg-slate-50 p-6">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-          <p className="text-sm font-medium text-slate-500">Loading student workspace...</p>
-        </div>
-      </div>
+      <PortalSessionState
+        sessionError={sessionError}
+        loadingMessage="Loading student workspace..."
+      />
     );
   }
 
@@ -53,7 +30,7 @@ export default function MenteePage() {
             <div>
               <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
                 <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-                Student Portal Active
+                <span>Student Portal Active</span>
               </div>
               <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
                 Welcome, {user.name}

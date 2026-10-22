@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   description: 'Update your temporary password on your first sign-in.',
 };
 
-export default function ChangePasswordLayout({ children }: { children: React.ReactNode }) {
+export default function ChangePasswordLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return <>{children}</>;
 }

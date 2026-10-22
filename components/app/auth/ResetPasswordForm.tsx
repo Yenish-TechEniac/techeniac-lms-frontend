@@ -8,38 +8,12 @@ import { Button, getButtonClassName } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/hooks/useAuth';
-import { PASSWORD_RULES, usePasswordCriteria } from '@/hooks/usePasswordCriteria';
+import { usePasswordCriteria } from '@/hooks/usePasswordCriteria';
 import { ApiError } from '@/lib/errors';
-import { resetPasswordSchema } from '@/lib/validation';
+import { extractZodErrors, resetPasswordSchema } from '@/lib/validation';
 
+import { PasswordCriteriaChecklist } from './PasswordCriteriaChecklist';
 import { PasswordVisibilityToggle } from './PasswordVisibilityToggle';
-
-interface ResetPasswordFormErrors {
-  password?: string;
-  confirmPassword?: string;
-  general?: string;
-}
-
-const CRITERIA_ITEMS = [
-  { key: 'length', label: `At least ${PASSWORD_RULES.minLength} characters` },
-  { key: 'upper', label: 'At least one uppercase letter (A-Z)' },
-  { key: 'lower', label: 'At least one lowercase letter (a-z)' },
-  { key: 'number', label: 'At least one number (0-9)' },
-  { key: 'special', label: 'At least one special character' },
-] as const;
-
-function extractResetErrors(
-  issues: Array<{ path: Array<string | number>; message: string }>,
-): ResetPasswordFormErrors {
-  const fieldErrors: ResetPasswordFormErrors = {};
-  for (const issue of issues) {
-    const field = issue.path[0] as keyof ResetPasswordFormErrors;
-    if (field && !fieldErrors[field]) {
-      fieldErrors[field] = issue.message;
-    }
-  }
-  return fieldErrors;
-}
 
 export function ResetPasswordForm() {
   const searchParams = useSearchParams();
@@ -49,7 +23,7 @@ export function ResetPasswordForm() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [errors, setErrors] = useState<ResetPasswordFormErrors>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -62,7 +36,7 @@ export function ResetPasswordForm() {
 
     const result = resetPasswordSchema.safeParse({ password, confirmPassword });
     if (!result.success) {
-      setErrors(extractResetErrors(result.error.issues));
+      setErrors(extractZodErrors(result.error.issues));
       return;
     }
 
@@ -86,7 +60,7 @@ export function ResetPasswordForm() {
     }
   };
 
-  if (!token || !token.trim()) {
+  if (!token?.trim()) {
     return (
       <div className="space-y-6 text-center">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-amber-200 bg-amber-50 text-amber-600">
@@ -201,23 +175,7 @@ export function ResetPasswordForm() {
       </div>
 
       {/* Real-time Checklist */}
-      <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3.5">
-        <p className="text-xs font-semibold text-slate-700">Password Requirements</p>
-        <div className="grid grid-cols-1 gap-1 text-xs">
-          {CRITERIA_ITEMS.map(({ key, label }) => {
-            const isMet = criteria[key];
-            return (
-              <div
-                key={key}
-                className={`flex items-center gap-2 ${isMet ? 'font-medium text-emerald-600' : 'text-slate-500'}`}
-              >
-                <span>{isMet ? '✓' : '•'}</span>
-                <span>{label}</span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      <PasswordCriteriaChecklist criteria={criteria} />
 
       {/* Confirm Password */}
       <div className="space-y-1.5">

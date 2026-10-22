@@ -7,12 +7,12 @@ import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/hooks/useAuth';
-import { forgotPasswordSchema } from '@/lib/validation';
+import { extractZodErrors, forgotPasswordSchema } from '@/lib/validation';
 
 export function ForgotPasswordForm() {
   const { forgotPassword } = useAuth();
   const [email, setEmail] = useState('');
-  const [errors, setErrors] = useState<{ email?: string; general?: string }>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDispatched, setIsDispatched] = useState(false);
   const [isResending, setIsResending] = useState(false);
@@ -26,7 +26,7 @@ export function ForgotPasswordForm() {
 
     const result = forgotPasswordSchema.safeParse({ email });
     if (!result.success) {
-      setErrors({ email: result.error.issues[0]?.message ?? 'Invalid email address' });
+      setErrors(extractZodErrors(result.error.issues));
       return;
     }
 

@@ -12,6 +12,10 @@ export interface ApiErrorResponse {
   message?: string;
 }
 
+function isApiErrorResponse(data: unknown): data is ApiErrorResponse {
+  return typeof data === 'object' && data !== null && !Array.isArray(data);
+}
+
 export interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean | undefined>;
   timeoutMs?: number;
@@ -88,7 +92,7 @@ function buildRequestUrl(
 }
 
 function parseErrorPayload(response: Response, data: unknown): ApiError {
-  const errData = data as ApiErrorResponse | null;
+  const errData = isApiErrorResponse(data) ? data : null;
   const retryAfter = parseRetryAfter(response.headers.get('Retry-After'));
 
   // Never leak internal backend details or unhandled exceptions on 5xx responses
