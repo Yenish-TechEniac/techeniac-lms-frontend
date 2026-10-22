@@ -12,21 +12,21 @@ import { forgotPasswordSchema } from '@/lib/validation';
 export function ForgotPasswordForm() {
   const { forgotPassword } = useAuth();
   const [email, setEmail] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<{ email?: string; general?: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDispatched, setIsDispatched] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [resendStatus, setResendStatus] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (isSubmitting) return;
-    setError(null);
+    setErrors({});
     setResendStatus(null);
 
     const result = forgotPasswordSchema.safeParse({ email });
     if (!result.success) {
-      setError(result.error.issues[0]?.message ?? 'Invalid email address');
+      setErrors({ email: result.error.issues[0]?.message ?? 'Invalid email address' });
       return;
     }
 
@@ -59,7 +59,13 @@ export function ForgotPasswordForm() {
     return (
       <div className="space-y-6 text-center">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-blue-600">
-          <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg
+            className="h-8 w-8"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -142,10 +148,10 @@ export function ForgotPasswordForm() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@company.com"
           autoComplete="email"
-          hasError={Boolean(error)}
+          hasError={Boolean(errors.email)}
           disabled={isSubmitting}
         />
-        <FieldError id="email-error" error={error} />
+        <FieldError id="email-error" error={errors.email} />
       </div>
 
       <Button

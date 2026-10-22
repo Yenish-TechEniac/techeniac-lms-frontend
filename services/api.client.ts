@@ -15,9 +15,51 @@ export interface ApiErrorResponse {
 export interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean | undefined>;
   timeoutMs?: number;
+  _isRetry?: boolean;
 }
 
 const DEFAULT_TIMEOUT_MS = 15000;
+let refreshPromise: Promise<boolean> | null = null;
+
+function parseRetryAfter(header: string | null): number | undefined {
+  if (!header) return undefined;
+  const seconds = Number.parseInt(header, 10);
+  if (!Number.isNaN(seconds)) {
+    return seconds;
+  }
+  const dateMs = Date.parse(header);
+  if (!Number.isNaN(dateMs)) {
+    return Math.max(0, Math.ceil((dateMs - Date.now()) / 1000));
+  }
+  return undefined;
+}
+
+function isAuthBypassEndpoint(endpoint: string): boolean {
+  const clean = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+  return (
+    clean.startsWith('auth/login') ||
+    clean.startsWith('auth/refresh') ||
+    clean.startsWith('auth/logout') ||
+    clean.startsWith('auth/forgot-password') ||
+    clean.startsWith('auth/reset-password')
+  );
+}
+
+async function requestTokenRefresh(): Promise<boolean> {
+  try {
+    const res = await fetch(`${env.NEXT_PUBLIC_API_BASE_URL}/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
 
 function buildRequestUrl(
   endpoint: string,
@@ -47,8 +89,7 @@ function buildRequestUrl(
 
 function parseErrorPayload(response: Response, data: unknown): ApiError {
   const errData = data as ApiErrorResponse | null;
-  const retryAfterHeader = response.headers.get('Retry-After');
-  const retryAfter = retryAfterHeader ? Number.parseInt(retryAfterHeader, 10) : undefined;
+  const retryAfter = parseRetryAfter(response.headers.get('Retry-After'));
 
   // Never leak internal backend details or unhandled exceptions on 5xx responses
   if (response.status >= 500) {
@@ -61,6 +102,7 @@ function parseErrorPayload(response: Response, data: unknown): ApiError {
     );
   }
 
+  // Fallback chain uses || intentionally so empty strings fall through to the default message
   let message =
     errData?.error?.message || errData?.message || response.statusText || 'An error occurred';
 
@@ -73,6 +115,35 @@ function parseErrorPayload(response: Response, data: unknown): ApiError {
   const details = errData?.error?.details;
 
   return new ApiError(response.status, message, code, details, retryAfter);
+}
+
+function handleFetchError(
+  fetchError: unknown,
+  controller: AbortController,
+  userSignal?: AbortSignal | null,
+): never {
+  if (controller.signal.aborted && !userSignal?.aborted) {
+    throw new ApiError(408, 'Request timed out, please try again.', 'REQUEST_TIMEOUT');
+  }
+  if (fetchError instanceof ApiError) {
+    throw fetchError;
+  }
+  throw new ApiError(
+    0,
+    'Unable to connect to server. Please check your internet connection.',
+    'NETWORK_ERROR',
+  );
+}
+
+async function safeParseJson(response: Response): Promise<unknown> {
+  if (response.status === 204) {
+    return {};
+  }
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
 }
 
 export async function apiClient<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
@@ -117,30 +188,24 @@ export async function apiClient<T>(endpoint: string, options: RequestOptions = {
   try {
     response = await fetch(url, config);
   } catch (fetchError) {
-    if (controller.signal.aborted && !userSignal?.aborted) {
-      throw new ApiError(408, 'Request timed out, please try again.', 'REQUEST_TIMEOUT');
-    }
-    if (fetchError instanceof ApiError) {
-      throw fetchError;
-    }
-    throw new ApiError(
-      0,
-      'Unable to connect to server. Please check your internet connection.',
-      'NETWORK_ERROR',
-    );
+    handleFetchError(fetchError, controller, userSignal);
   } finally {
     clearTimeout(timeoutId);
   }
 
-  if (response.status === 204) {
-    return {} as T;
-  }
+  const data = await safeParseJson(response);
 
-  let data: unknown;
-  try {
-    data = await response.json();
-  } catch {
-    data = null;
+  if (response.status === 401 && !options._isRetry && !isAuthBypassEndpoint(endpoint)) {
+    refreshPromise ??= requestTokenRefresh().finally(() => {
+      refreshPromise = null;
+    });
+    const refreshed = await refreshPromise;
+    if (refreshed) {
+      return apiClient<T>(endpoint, {
+        ...options,
+        _isRetry: true,
+      });
+    }
   }
 
   if (!response.ok) {

@@ -58,6 +58,16 @@ export const authService = {
     return response.data.user;
   },
 
+  async refreshToken(): Promise<AuthUser> {
+    const response = await apiClient<GetMeResponse>('/auth/refresh', {
+      method: 'POST',
+    });
+    if (!response?.success || !response?.data?.user) {
+      throw new ApiError(500, 'Invalid refresh response from server', 'INVALID_RESPONSE');
+    }
+    return response.data.user;
+  },
+
   async forgotPassword(email: string): Promise<string> {
     const response = await apiClient<MessageResponse>('/auth/forgot-password', {
       method: 'POST',

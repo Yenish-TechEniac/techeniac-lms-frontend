@@ -14,6 +14,33 @@ import { resetPasswordSchema } from '@/lib/validation';
 
 import { PasswordVisibilityToggle } from './PasswordVisibilityToggle';
 
+interface ResetPasswordFormErrors {
+  password?: string;
+  confirmPassword?: string;
+  general?: string;
+}
+
+const CRITERIA_ITEMS = [
+  { key: 'length', label: `At least ${PASSWORD_RULES.minLength} characters` },
+  { key: 'upper', label: 'At least one uppercase letter (A-Z)' },
+  { key: 'lower', label: 'At least one lowercase letter (a-z)' },
+  { key: 'number', label: 'At least one number (0-9)' },
+  { key: 'special', label: 'At least one special character' },
+] as const;
+
+function extractResetErrors(
+  issues: Array<{ path: Array<string | number>; message: string }>,
+): ResetPasswordFormErrors {
+  const fieldErrors: ResetPasswordFormErrors = {};
+  for (const issue of issues) {
+    const field = issue.path[0] as keyof ResetPasswordFormErrors;
+    if (field && !fieldErrors[field]) {
+      fieldErrors[field] = issue.message;
+    }
+  }
+  return fieldErrors;
+}
+
 export function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
@@ -21,33 +48,21 @@ export function ResetPasswordForm() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState<{
-    password?: string;
-    confirmPassword?: string;
-    general?: string;
-  }>({});
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState<ResetPasswordFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
   const criteria = usePasswordCriteria(password);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (isSubmitting) return;
     setErrors({});
 
     const result = resetPasswordSchema.safeParse({ password, confirmPassword });
     if (!result.success) {
-      const fieldErrors: { password?: string; confirmPassword?: string } = {};
-      for (const issue of result.error.issues) {
-        const field = issue.path[0];
-        if (field === 'password' && !fieldErrors.password) {
-          fieldErrors.password = issue.message;
-        } else if (field === 'confirmPassword' && !fieldErrors.confirmPassword) {
-          fieldErrors.confirmPassword = issue.message;
-        }
-      }
-      setErrors(fieldErrors);
+      setErrors(extractResetErrors(result.error.issues));
       return;
     }
 
@@ -75,7 +90,13 @@ export function ResetPasswordForm() {
     return (
       <div className="space-y-6 text-center">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-amber-200 bg-amber-50 text-amber-600">
-          <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg
+            className="h-8 w-8"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -113,7 +134,13 @@ export function ResetPasswordForm() {
     return (
       <div className="space-y-6 text-center">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-600">
-          <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg
+            className="h-8 w-8"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
           </svg>
         </div>
@@ -177,36 +204,18 @@ export function ResetPasswordForm() {
       <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3.5">
         <p className="text-xs font-semibold text-slate-700">Password Requirements</p>
         <div className="grid grid-cols-1 gap-1 text-xs">
-          <div
-            className={`flex items-center gap-2 ${criteria.length ? 'font-medium text-emerald-600' : 'text-slate-500'}`}
-          >
-            <span>{criteria.length ? '✓' : '•'}</span>
-            <span>At least {PASSWORD_RULES.minLength} characters</span>
-          </div>
-          <div
-            className={`flex items-center gap-2 ${criteria.upper ? 'font-medium text-emerald-600' : 'text-slate-500'}`}
-          >
-            <span>{criteria.upper ? '✓' : '•'}</span>
-            <span>At least one uppercase letter (A-Z)</span>
-          </div>
-          <div
-            className={`flex items-center gap-2 ${criteria.lower ? 'font-medium text-emerald-600' : 'text-slate-500'}`}
-          >
-            <span>{criteria.lower ? '✓' : '•'}</span>
-            <span>At least one lowercase letter (a-z)</span>
-          </div>
-          <div
-            className={`flex items-center gap-2 ${criteria.number ? 'font-medium text-emerald-600' : 'text-slate-500'}`}
-          >
-            <span>{criteria.number ? '✓' : '•'}</span>
-            <span>At least one number (0-9)</span>
-          </div>
-          <div
-            className={`flex items-center gap-2 ${criteria.special ? 'font-medium text-emerald-600' : 'text-slate-500'}`}
-          >
-            <span>{criteria.special ? '✓' : '•'}</span>
-            <span>At least one special character</span>
-          </div>
+          {CRITERIA_ITEMS.map(({ key, label }) => {
+            const isMet = criteria[key];
+            return (
+              <div
+                key={key}
+                className={`flex items-center gap-2 ${isMet ? 'font-medium text-emerald-600' : 'text-slate-500'}`}
+              >
+                <span>{isMet ? '✓' : '•'}</span>
+                <span>{label}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -215,16 +224,23 @@ export function ResetPasswordForm() {
         <label htmlFor="confirmPassword" className="block text-sm font-semibold text-slate-900">
           Confirm Password
         </label>
-        <Input
-          id="confirmPassword"
-          type={showPassword ? 'text' : 'password'}
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="••••••••••••"
-          autoComplete="new-password"
-          hasError={Boolean(errors.confirmPassword)}
-          disabled={isSubmitting}
-        />
+        <div className="relative">
+          <Input
+            id="confirmPassword"
+            type={showConfirmPassword ? 'text' : 'password'}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="••••••••••••"
+            autoComplete="new-password"
+            hasError={Boolean(errors.confirmPassword)}
+            disabled={isSubmitting}
+            className="pr-12"
+          />
+          <PasswordVisibilityToggle
+            visible={showConfirmPassword}
+            onToggle={() => setShowConfirmPassword((prev) => !prev)}
+          />
+        </div>
         <FieldError id="confirmPassword-error" error={errors.confirmPassword} />
       </div>
 

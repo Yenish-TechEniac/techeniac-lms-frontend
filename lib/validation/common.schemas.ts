@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
 export const PASSWORD_RULES = {
-  minLength: 8,
-  maxLength: 128,
+  minLength: 10,
+  maxLength: 64,
   upperRegex: /[A-Z]/,
   lowerRegex: /[a-z]/,
-  numberRegex: /[0-9]/,
+  numberRegex: /\d/,
   specialRegex: /[^A-Za-z0-9\s]/,
 } as const;
 
@@ -15,6 +15,11 @@ export interface PasswordCriteria {
   lower: boolean;
   number: boolean;
   special: boolean;
+  hasMinLength: boolean;
+  hasUppercase: boolean;
+  hasLowercase: boolean;
+  hasNumber: boolean;
+  hasSpecialChar: boolean;
   isValid: boolean;
 }
 
@@ -31,6 +36,11 @@ export function checkPasswordCriteria(password: string): PasswordCriteria {
     lower,
     number,
     special,
+    hasMinLength: length,
+    hasUppercase: upper,
+    hasLowercase: lower,
+    hasNumber: number,
+    hasSpecialChar: special,
     isValid: length && upper && lower && number && special,
   };
 }

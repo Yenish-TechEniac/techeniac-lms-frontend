@@ -13,6 +13,34 @@ import { changePasswordSchema } from '@/lib/validation';
 
 import { PasswordVisibilityToggle } from './PasswordVisibilityToggle';
 
+interface ChangePasswordFormErrors {
+  currentPassword?: string;
+  newPassword?: string;
+  confirmPassword?: string;
+  general?: string;
+}
+
+const CRITERIA_ITEMS = [
+  { key: 'length', label: `At least ${PASSWORD_RULES.minLength} characters` },
+  { key: 'upper', label: 'At least one uppercase letter (A-Z)' },
+  { key: 'lower', label: 'At least one lowercase letter (a-z)' },
+  { key: 'number', label: 'At least one number (0-9)' },
+  { key: 'special', label: 'At least one special character' },
+] as const;
+
+function extractFieldErrors(
+  issues: Array<{ path: Array<string | number>; message: string }>,
+): ChangePasswordFormErrors {
+  const fieldErrors: ChangePasswordFormErrors = {};
+  for (const issue of issues) {
+    const field = issue.path[0] as keyof ChangePasswordFormErrors;
+    if (field && !fieldErrors[field]) {
+      fieldErrors[field] = issue.message;
+    }
+  }
+  return fieldErrors;
+}
+
 export function ChangePasswordForm() {
   const { changePassword, refreshUser } = useAuth();
   const [currentPassword, setCurrentPassword] = useState('');
@@ -21,18 +49,13 @@ export function ChangePasswordForm() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [errors, setErrors] = useState<{
-    currentPassword?: string;
-    newPassword?: string;
-    confirmPassword?: string;
-    general?: string;
-  }>({});
+  const [errors, setErrors] = useState<ChangePasswordFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
   const criteria = usePasswordCriteria(newPassword);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (isSubmitting) return;
     setErrors({});
@@ -44,22 +67,7 @@ export function ChangePasswordForm() {
     });
 
     if (!result.success) {
-      const fieldErrors: {
-        currentPassword?: string;
-        newPassword?: string;
-        confirmPassword?: string;
-      } = {};
-      for (const issue of result.error.issues) {
-        const field = issue.path[0];
-        if (field === 'currentPassword' && !fieldErrors.currentPassword) {
-          fieldErrors.currentPassword = issue.message;
-        } else if (field === 'newPassword' && !fieldErrors.newPassword) {
-          fieldErrors.newPassword = issue.message;
-        } else if (field === 'confirmPassword' && !fieldErrors.confirmPassword) {
-          fieldErrors.confirmPassword = issue.message;
-        }
-      }
-      setErrors(fieldErrors);
+      setErrors(extractFieldErrors(result.error.issues));
       return;
     }
 
@@ -81,7 +89,13 @@ export function ChangePasswordForm() {
     return (
       <div className="space-y-6 text-center">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-600">
-          <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg
+            className="h-8 w-8"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
           </svg>
         </div>
@@ -104,7 +118,7 @@ export function ChangePasswordForm() {
 
   return (
     <form
-      className="space-y-4"
+      className="space-y-5"
       onSubmit={(e) => {
         void handleSubmit(e);
       }}
@@ -122,7 +136,7 @@ export function ChangePasswordForm() {
       </div>
 
       {/* Current Password */}
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <label htmlFor="currentPassword" className="block text-sm font-semibold text-slate-900">
           Temporary Password
         </label>
@@ -146,7 +160,7 @@ export function ChangePasswordForm() {
       </div>
 
       {/* New Password */}
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <label htmlFor="newPassword" className="block text-sm font-semibold text-slate-900">
           New Permanent Password
         </label>
@@ -170,29 +184,22 @@ export function ChangePasswordForm() {
       </div>
 
       {/* Criteria Checklist */}
-      <div className="space-y-1 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs">
+      <div className="space-y-1.5 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs">
         <p className="font-semibold text-slate-700">Password Requirements</p>
         <div className="grid grid-cols-1 gap-0.5 text-slate-600">
-          <div className={criteria.length ? 'font-medium text-emerald-600' : ''}>
-            {criteria.length ? '✓' : '•'} At least {PASSWORD_RULES.minLength} characters
-          </div>
-          <div className={criteria.upper ? 'font-medium text-emerald-600' : ''}>
-            {criteria.upper ? '✓' : '•'} At least one uppercase letter (A-Z)
-          </div>
-          <div className={criteria.lower ? 'font-medium text-emerald-600' : ''}>
-            {criteria.lower ? '✓' : '•'} At least one lowercase letter (a-z)
-          </div>
-          <div className={criteria.number ? 'font-medium text-emerald-600' : ''}>
-            {criteria.number ? '✓' : '•'} At least one number (0-9)
-          </div>
-          <div className={criteria.special ? 'font-medium text-emerald-600' : ''}>
-            {criteria.special ? '✓' : '•'} At least one special character
-          </div>
+          {CRITERIA_ITEMS.map(({ key, label }) => {
+            const isMet = criteria[key];
+            return (
+              <div key={key} className={isMet ? 'font-medium text-emerald-600' : ''}>
+                {isMet ? '✓' : '•'} {label}
+              </div>
+            );
+          })}
         </div>
       </div>
 
       {/* Confirm Password */}
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <label htmlFor="confirmPassword" className="block text-sm font-semibold text-slate-900">
           Confirm New Password
         </label>

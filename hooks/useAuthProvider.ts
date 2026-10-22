@@ -34,36 +34,15 @@ export function useAuthProvider(): AuthContextValue {
 
   useEffect(() => {
     let isMounted = true;
-
-    authService
-      .getMe()
-      .then((currentUser) => {
-        if (isMounted) {
-          setUser(currentUser);
-          setSessionError(null);
-          setIsLoading(false);
-        }
-      })
-      .catch((err) => {
-        if (isMounted) {
-          if (err instanceof ApiError && err.status === 401) {
-            setUser(null);
-            setSessionError(null);
-          } else {
-            const msg =
-              err instanceof Error
-                ? err.message
-                : 'Could not verify your session. Please check your connection and retry.';
-            setSessionError(msg);
-          }
-          setIsLoading(false);
-        }
-      });
-
+    void Promise.resolve().then(async () => {
+      if (isMounted) {
+        await refreshUser();
+      }
+    });
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [refreshUser]);
 
   const login = useCallback(async (credentials: { email: string; password: string }) => {
     setIsLoading(true);

@@ -6,10 +6,10 @@ export interface PasswordVisibilityToggleProps extends Omit<
   React.ButtonHTMLAttributes<HTMLButtonElement>,
   'type' | 'children'
 > {
-  visible?: boolean | undefined;
-  isVisible?: boolean | undefined;
-  onToggle: () => void;
-  className?: string | undefined;
+  readonly visible?: boolean | undefined;
+  readonly isVisible?: boolean | undefined;
+  readonly onToggle: () => void;
+  readonly className?: string | undefined;
 }
 
 export function PasswordVisibilityToggle({
@@ -18,7 +18,7 @@ export function PasswordVisibilityToggle({
   onToggle,
   className,
   ...props
-}: PasswordVisibilityToggleProps) {
+}: Readonly<PasswordVisibilityToggleProps>) {
   const isRevealed = Boolean(visible ?? isVisible);
   const label = isRevealed ? 'Hide password' : 'Show password';
 

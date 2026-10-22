@@ -15,12 +15,12 @@ import { type LoginFormData, loginSchema } from '@/lib/validation';
 import { PasswordVisibilityToggle } from './PasswordVisibilityToggle';
 
 export interface LoginFormProps {
-  onSubmitSuccess?: (data: LoginFormData) => void;
+  readonly onSubmitSuccess?: (data: LoginFormData) => void;
 }
 
-export function LoginForm({ onSubmitSuccess }: LoginFormProps) {
+export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, isLoading, isAuthenticated } = useAuth();
   useRoleRedirect({ redirectAuthenticatedToPortal: true, requireAuth: false });
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,7 +28,7 @@ export function LoginForm({ onSubmitSuccess }: LoginFormProps) {
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (isSubmitting) return;
     setErrors({});
@@ -64,6 +64,14 @@ export function LoginForm({ onSubmitSuccess }: LoginFormProps) {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoading || isAuthenticated) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
     <form

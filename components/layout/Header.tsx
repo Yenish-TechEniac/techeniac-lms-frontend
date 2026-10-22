@@ -24,7 +24,7 @@ export function Header({
   homeUrl = '/',
   badgeColor = 'bg-blue-100 text-blue-800',
   nav = [],
-}: HeaderProps) {
+}: Readonly<HeaderProps>) {
   const router = useRouter();
   const { user, logout } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);

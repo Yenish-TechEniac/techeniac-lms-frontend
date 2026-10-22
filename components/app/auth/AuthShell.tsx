@@ -1,12 +1,12 @@
 import React from 'react';
 
 export interface AuthShellProps {
-  children: React.ReactNode;
-  title: string;
-  subtitle: string;
+  readonly children: React.ReactNode;
+  readonly title: string;
+  readonly subtitle: string;
 }
 
-export function AuthShell({ children, title, subtitle }: AuthShellProps) {
+export function AuthShell({ children, title, subtitle }: Readonly<AuthShellProps>) {
   return (
     <div className="flex min-h-screen w-full flex-col bg-white selection:bg-blue-100 selection:text-blue-700 md:flex-row">
       {/* Left 50%: Calm Sky Soft Branding Panel (Collapses to compact header on mobile) */}
