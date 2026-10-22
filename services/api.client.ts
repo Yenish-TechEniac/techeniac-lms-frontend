@@ -1,0 +1,220 @@
+import { env } from '@/lib/config';
+import { ApiError } from '@/lib/errors';
+
+export { ApiError } from '@/lib/errors';
+
+export interface ApiErrorResponse {
+  error?: {
+    code?: string;
+    message?: string;
+    details?: unknown;
+  };
+  message?: string;
+}
+
+function isApiErrorResponse(data: unknown): data is ApiErrorResponse {
+  return typeof data === 'object' && data !== null && !Array.isArray(data);
+}
+
+export interface RequestOptions extends RequestInit {
+  params?: Record<string, string | number | boolean | undefined>;
+  timeoutMs?: number;
+  _isRetry?: boolean;
+}
+
+const DEFAULT_TIMEOUT_MS = 15000;
+let refreshPromise: Promise<boolean> | null = null;
+
+function parseRetryAfter(header: string | null): number | undefined {
+  if (!header) return undefined;
+  const seconds = Number.parseInt(header, 10);
+  if (!Number.isNaN(seconds)) {
+    return seconds;
+  }
+  const dateMs = Date.parse(header);
+  if (!Number.isNaN(dateMs)) {
+    return Math.max(0, Math.ceil((dateMs - Date.now()) / 1000));
+  }
+  return undefined;
+}
+
+function isAuthBypassEndpoint(endpoint: string): boolean {
+  const clean = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+  return (
+    clean.startsWith('auth/login') ||
+    clean.startsWith('auth/refresh') ||
+    clean.startsWith('auth/logout') ||
+    clean.startsWith('auth/forgot-password') ||
+    clean.startsWith('auth/reset-password')
+  );
+}
+
+async function requestTokenRefresh(): Promise<boolean> {
+  try {
+    const res = await fetch(`${env.NEXT_PUBLIC_API_BASE_URL}/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+function buildRequestUrl(
+  endpoint: string,
+  params?: Record<string, string | number | boolean | undefined>,
+): string {
+  const normalizedPath = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  let url = `${env.NEXT_PUBLIC_API_BASE_URL}${normalizedPath}`;
+
+  if (!params) {
+    return url;
+  }
+
+  const searchParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined) {
+      searchParams.append(key, String(value));
+    }
+  }
+
+  const queryString = searchParams.toString();
+  if (queryString) {
+    url += (url.includes('?') ? '&' : '?') + queryString;
+  }
+
+  return url;
+}
+
+function parseErrorPayload(response: Response, data: unknown): ApiError {
+  const errData = isApiErrorResponse(data) ? data : null;
+  const retryAfter = parseRetryAfter(response.headers.get('Retry-After'));
+
+  // Never leak internal backend details or unhandled exceptions on 5xx responses
+  if (response.status >= 500) {
+    return new ApiError(
+      response.status,
+      'A server error occurred. Please try again later.',
+      'SERVER_ERROR',
+      undefined,
+      retryAfter,
+    );
+  }
+
+  // Fallback chain uses || intentionally so empty strings fall through to the default message
+  let message =
+    errData?.error?.message || errData?.message || response.statusText || 'An error occurred';
+
+  if (response.status === 429 && retryAfter && !errData?.error?.message) {
+    const minutes = Math.ceil(retryAfter / 60);
+    message = `Too many requests. Please try again in ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}.`;
+  }
+
+  const code = errData?.error?.code || (response.status === 429 ? 'RATE_LIMITED' : 'HTTP_ERROR');
+  const details = errData?.error?.details;
+
+  return new ApiError(response.status, message, code, details, retryAfter);
+}
+
+function handleFetchError(
+  fetchError: unknown,
+  controller: AbortController,
+  userSignal?: AbortSignal | null,
+): never {
+  if (controller.signal.aborted && !userSignal?.aborted) {
+    throw new ApiError(408, 'Request timed out, please try again.', 'REQUEST_TIMEOUT');
+  }
+  if (fetchError instanceof ApiError) {
+    throw fetchError;
+  }
+  throw new ApiError(
+    0,
+    'Unable to connect to server. Please check your internet connection.',
+    'NETWORK_ERROR',
+  );
+}
+
+async function safeParseJson(response: Response): Promise<unknown> {
+  if (response.status === 204) {
+    return {};
+  }
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function apiClient<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
+  const {
+    params,
+    headers,
+    timeoutMs = DEFAULT_TIMEOUT_MS,
+    signal: userSignal,
+    ...customConfig
+  } = options;
+
+  const url = buildRequestUrl(endpoint, params);
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, timeoutMs);
+
+  if (userSignal) {
+    userSignal.addEventListener('abort', () => {
+      controller.abort();
+    });
+  }
+
+  const defaultHeaders: HeadersInit = {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  };
+
+  const config: RequestInit = {
+    method: 'GET',
+    credentials: 'include',
+    headers: {
+      ...defaultHeaders,
+      ...headers,
+    },
+    signal: controller.signal,
+    ...customConfig,
+  };
+
+  let response: Response;
+  try {
+    response = await fetch(url, config);
+  } catch (fetchError) {
+    handleFetchError(fetchError, controller, userSignal);
+  } finally {
+    clearTimeout(timeoutId);
+  }
+
+  const data = await safeParseJson(response);
+
+  if (response.status === 401 && !options._isRetry && !isAuthBypassEndpoint(endpoint)) {
+    refreshPromise ??= requestTokenRefresh().finally(() => {
+      refreshPromise = null;
+    });
+    const refreshed = await refreshPromise;
+    if (refreshed) {
+      return apiClient<T>(endpoint, {
+        ...options,
+        _isRetry: true,
+      });
+    }
+  }
+
+  if (!response.ok) {
+    throw parseErrorPayload(response, data);
+  }
+
+  return data as T;
+}

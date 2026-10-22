@@ -1,22 +1,18 @@
-import { Button } from '@/components/ui/Button';
-import { Typography } from '@/components/ui/Typography';
+'use client';
 
-export default function Home() {
+import React from 'react';
+
+import { useRoleRedirect } from '@/hooks/useRoleRedirect';
+
+export default function RootPage() {
+  useRoleRedirect({ redirectAuthenticatedToPortal: true });
+
   return (
-    <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
-      <main className="flex max-w-xl flex-col items-center gap-4">
-        <Typography as="h1" variant="h1">
-          Techeniac LMS
-        </Typography>
-        <Typography variant="lead">
-          Modern learning management platform for students, instructors, and administrators.
-        </Typography>
-        <div className="mt-4 flex gap-4">
-          <Button disabled aria-disabled="true">
-            Get Started (Coming soon)
-          </Button>
-        </div>
-      </main>
+    <div className="flex min-h-screen flex-1 items-center justify-center bg-slate-50 p-6">
+      <div className="flex flex-col items-center gap-3">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+        <p className="text-sm font-medium text-slate-500">Redirecting to your workspace...</p>
+      </div>
     </div>
   );
 }
