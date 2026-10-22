@@ -2,7 +2,7 @@ import React from 'react';
 
 import { cn } from '@/lib/cn';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -31,13 +31,15 @@ export function getButtonClassName(
 
   const variants: Record<ButtonVariant, string> = {
     primary:
-      'bg-blue-500 text-white shadow-sm shadow-blue-500/25 hover:bg-blue-600 active:bg-blue-700 focus-visible:ring-blue-500',
+      'bg-blue-600 text-white shadow-sm shadow-blue-600/25 hover:bg-blue-700 active:bg-blue-800 focus-visible:ring-blue-500',
     secondary:
       'bg-slate-100 text-slate-800 hover:bg-slate-200 active:bg-slate-300 focus-visible:ring-slate-400',
     outline:
       'border border-slate-200 bg-transparent text-slate-700 hover:bg-slate-50 active:bg-slate-100 focus-visible:ring-slate-400',
     ghost:
       'bg-transparent text-slate-700 hover:bg-slate-100 active:bg-slate-200 focus-visible:ring-slate-400',
+    danger:
+      'bg-red-600 text-white shadow-sm shadow-red-600/25 hover:bg-red-700 active:bg-red-800 focus-visible:ring-red-500',
   };
 
   const sizes: Record<ButtonSize, string> = {

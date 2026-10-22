@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { H1, H2, P, Span } from '@/components/ui/Typography';
+
 export interface AuthShellProps {
   readonly children: React.ReactNode;
   readonly title: string;
@@ -21,10 +23,10 @@ export function AuthShell({ children, title, subtitle }: Readonly<AuthShellProps
             T
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xl font-bold tracking-tight text-slate-900">Techeniac LMS</span>
-            <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-100 px-2 py-0.5 font-mono text-xs font-medium text-blue-700">
+            <Span className="text-xl font-bold tracking-tight text-slate-900">Techeniac LMS</Span>
+            <Span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-100 px-2 py-0.5 font-mono text-xs font-medium text-blue-700">
               ENTERPRISE
-            </span>
+            </Span>
           </div>
         </div>
 
@@ -64,29 +66,29 @@ export function AuthShell({ children, title, subtitle }: Readonly<AuthShellProps
             </svg>
           </div>
 
-          <h1 className="mb-3 text-3xl leading-tight font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+          <H1 className="mb-3 text-3xl leading-tight font-extrabold tracking-tight text-slate-900 sm:text-4xl">
             Techeniac LMS
-          </h1>
-          <p className="text-lg leading-relaxed font-normal text-slate-600">
+          </H1>
+          <P className="text-lg leading-relaxed font-normal text-slate-600">
             Learn, build, and grow with your mentors and peers.
-          </p>
+          </P>
 
           <div className="mt-8 flex flex-wrap items-center gap-5 border-t border-blue-200/60 pt-6 text-sm text-slate-600">
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-emerald-500" />
-              <span>Multi-Role Access Control</span>
+              <Span>Multi-Role Access Control</Span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-blue-500" />
-              <span>Permanent Learning History</span>
+              <Span>Permanent Learning History</Span>
             </div>
           </div>
         </div>
 
         {/* Bottom Footer Meta (Desktop only) */}
         <div className="relative z-10 hidden items-center justify-between pt-4 font-mono text-xs text-slate-400 md:flex">
-          <span>OPERATIONAL CONSOLE</span>
-          <span>ENTERPRISE SPEC v2.0</span>
+          <Span>OPERATIONAL CONSOLE</Span>
+          <Span>ENTERPRISE SPEC v2.0</Span>
         </div>
       </div>
 
@@ -94,10 +96,10 @@ export function AuthShell({ children, title, subtitle }: Readonly<AuthShellProps
       <div className="flex w-full flex-1 items-center justify-center bg-white p-6 sm:p-10 md:min-h-screen md:w-1/2 lg:p-16">
         <div className="flex w-full max-w-[440px] flex-col justify-center">
           <div className="mb-8">
-            <h2 className="mb-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+            <H2 className="mb-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
               {title}
-            </h2>
-            <p className="text-sm leading-normal text-slate-600 sm:text-base">{subtitle}</p>
+            </H2>
+            <P className="text-sm leading-normal text-slate-600 sm:text-base">{subtitle}</P>
           </div>
 
           {children}

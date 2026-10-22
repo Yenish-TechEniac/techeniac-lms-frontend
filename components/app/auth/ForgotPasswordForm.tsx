@@ -6,6 +6,8 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { H3, P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { extractZodErrors, forgotPasswordSchema } from '@/lib/validation';
 
@@ -76,12 +78,12 @@ export function ForgotPasswordForm() {
         </div>
 
         <div>
-          <h3 className="mb-1 text-xl font-bold text-slate-900">Check your email</h3>
-          <p className="text-sm leading-relaxed text-slate-600">
+          <H3 className="mb-1 text-xl font-bold text-slate-900">Check your email</H3>
+          <P className="text-sm leading-relaxed text-slate-600">
             We sent a password reset link to{' '}
-            <span className="font-semibold text-slate-800">{email}</span>. The link is valid for 30
+            <Span className="font-semibold text-slate-800">{email}</Span>. The link is valid for 30
             minutes.
-          </p>
+          </P>
         </div>
 
         {resendStatus ? (
@@ -138,9 +140,7 @@ export function ForgotPasswordForm() {
       noValidate
     >
       <div className="space-y-1.5">
-        <label htmlFor="email" className="block text-sm font-semibold text-slate-900">
-          Work Email
-        </label>
+        <Label htmlFor="email">Work Email</Label>
         <Input
           id="email"
           type="email"
