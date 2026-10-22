@@ -33,7 +33,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         aria-invalid={hasError || undefined}
         aria-describedby={resolvedDescribedBy}
         className={cn(
-          'h-12 w-full rounded-[12px] border px-4 text-base transition-all duration-150',
+          'h-12 w-full rounded-xl border px-4 text-base transition-all duration-150',
           'bg-white text-slate-900 placeholder:text-slate-400',
           'focus:ring-4 focus:outline-none',
           hasError

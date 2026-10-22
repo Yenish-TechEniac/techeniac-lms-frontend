@@ -142,7 +142,7 @@ function ChangeRoleModalContent({
           {error ? (
             <div
               role="alert"
-              className="flex items-start gap-2 rounded-[12px] border border-red-200 bg-red-50 p-3.5 text-xs text-red-700"
+              className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs text-red-700"
             >
               <span className="font-bold">Error:</span>
               <span>{error}</span>
@@ -150,7 +150,7 @@ function ChangeRoleModalContent({
           ) : null}
 
           {/* User Details Overview */}
-          <div className="flex items-center justify-between rounded-[12px] border border-slate-200 bg-slate-50 p-3.5 text-xs">
+          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-xs">
             <div>
               <p className="font-semibold text-slate-900">{user.name}</p>
               <p className="font-mono text-slate-500">{user.email}</p>
@@ -175,7 +175,7 @@ function ChangeRoleModalContent({
               value={newRole}
               disabled={isRestrictedRole}
               onChange={(e) => setNewRole(e.target.value as UserRole)}
-              className={`h-11 w-full rounded-[12px] border border-slate-200 bg-white px-4 text-sm text-slate-900 transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none ${
+              className={`h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none ${
                 isRestrictedRole
                   ? 'cursor-not-allowed bg-slate-100 text-slate-500'
                   : 'cursor-pointer'
@@ -196,7 +196,7 @@ function ChangeRoleModalContent({
 
           {/* Policy Disclaimers & PRD Section 4 Role Change Impact Matrix Preview */}
           {currentRole === 'MENTOR' && (
-            <div className="rounded-[12px] border border-amber-300 bg-amber-50 p-4 text-xs leading-relaxed text-amber-950 shadow-xs">
+            <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-xs leading-relaxed text-amber-950 shadow-xs">
               <div className="flex items-center gap-2 font-bold text-amber-900">
                 <span className="text-base">⚠️</span>
                 <span>Role Transition Restricted (LMS PRD Policy)</span>
@@ -210,7 +210,7 @@ function ChangeRoleModalContent({
           )}
 
           {currentRole === 'SUPER_ADMIN' && (
-            <div className="rounded-[12px] border border-amber-300 bg-amber-50 p-4 text-xs leading-relaxed text-amber-950 shadow-xs">
+            <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-xs leading-relaxed text-amber-950 shadow-xs">
               <div className="flex items-center gap-2 font-bold text-amber-900">
                 <span className="text-base">⚠️</span>
                 <span>Role Transition Restricted (LMS PRD Policy)</span>
@@ -225,7 +225,7 @@ function ChangeRoleModalContent({
           {currentRole === 'MENTEE' && (
             <div
               aria-live="polite"
-              className="space-y-2 rounded-[12px] border border-amber-200 bg-amber-50/70 p-3.5 text-xs leading-relaxed text-amber-900"
+              className="space-y-2 rounded-xl border border-amber-200 bg-amber-50/70 p-3.5 text-xs leading-relaxed text-amber-900"
             >
               <div className="flex items-center justify-between">
                 <p className="flex items-center gap-1.5 font-bold text-amber-800">
@@ -318,7 +318,7 @@ function ChangeRoleModalContent({
                   ? 'Role transitions for this user are restricted by system policy.'
                   : 'Provide a mandatory justification for auditing purposes (e.g. Completed mentee cohort, promoted to mentor)...'
               }
-              className={`w-full rounded-[12px] border border-slate-200 bg-white p-3 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none ${
+              className={`w-full rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none ${
                 isRestrictedRole ? 'cursor-not-allowed bg-slate-100 text-slate-400' : ''
               }`}
             />

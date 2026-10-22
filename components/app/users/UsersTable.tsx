@@ -634,7 +634,7 @@ export function UsersTable() {
                                   onClick={() => {
                                     void handleResendInvite(u.id, u.name);
                                   }}
-                                  className="min-h-[28px] rounded px-2 py-0.5 text-[11px] font-semibold text-purple-700 transition-colors hover:bg-purple-50 hover:text-purple-900 disabled:opacity-50"
+                                  className="min-h-7 rounded px-2 py-0.5 text-[11px] font-semibold text-purple-700 transition-colors hover:bg-purple-50 hover:text-purple-900 disabled:opacity-50"
                                 >
                                   {inFlightAction[u.id] === 'resend' ? 'Sending...' : 'Resend'}
                                 </button>
@@ -696,14 +696,14 @@ export function UsersTable() {
                           <button
                             type="button"
                             onClick={() => setUserToEdit(u)}
-                            className="min-h-[38px] rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                            className="min-h-9.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
                           >
                             Edit
                           </button>
                           <button
                             type="button"
                             onClick={() => setUserToChangeRole(u)}
-                            className="min-h-[38px] rounded-lg px-3 py-1.5 text-xs font-semibold text-blue-600 transition-colors hover:bg-blue-50"
+                            className="min-h-9.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-blue-600 transition-colors hover:bg-blue-50"
                           >
                             Change Role
                           </button>
@@ -712,7 +712,7 @@ export function UsersTable() {
                             disabled={isDeactivateDisabled || isRowPending}
                             title={deactivateTooltip}
                             onClick={() => handleRequestToggleStatus(u)}
-                            className={`min-h-[38px] rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                            className={`min-h-9.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
                               u.status === 'ACTIVE'
                                 ? 'text-red-600 hover:bg-red-50'
                                 : 'text-emerald-600 hover:bg-emerald-50'

@@ -163,7 +163,7 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
                 value={role}
                 onChange={(e) => setRole(e.target.value as UserRole)}
                 disabled={isSubmitting}
-                className="h-12 w-full cursor-pointer rounded-[12px] border border-slate-200 bg-white px-4 text-sm text-slate-900 transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none"
+                className="h-12 w-full cursor-pointer rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none"
               >
                 <option value="MENTEE">Mentee (Learner)</option>
                 <option value="MENTOR">Mentor (Instructor / Reviewer)</option>
@@ -172,7 +172,7 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
             </div>
 
             {/* PRD Rule Notice */}
-            <div className="rounded-[12px] border border-blue-200 bg-blue-50 p-3.5 text-xs leading-relaxed text-blue-900">
+            <div className="rounded-xl border border-blue-200 bg-blue-50 p-3.5 text-xs leading-relaxed text-blue-900">
               <span className="mb-0.5 block font-semibold">PRD Compliance (FR-2.1):</span>
               Only name, email, and initial role are collected. A temporary password will be
               generated and dispatched via the queued invite email.
