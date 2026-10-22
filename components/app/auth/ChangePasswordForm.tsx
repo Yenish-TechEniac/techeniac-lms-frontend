@@ -1,12 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 
 import { Button, getButtonClassName } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/hooks/useAuth';
+import { PASSWORD_RULES, usePasswordCriteria } from '@/hooks/usePasswordCriteria';
 import { changePasswordSchema } from '@/lib/validation';
 
 export function ChangePasswordForm() {
@@ -26,15 +27,7 @@ export function ChangePasswordForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const criteria = useMemo(() => {
-    return {
-      length: newPassword.length >= 8,
-      upper: /[A-Z]/.test(newPassword),
-      lower: /[a-z]/.test(newPassword),
-      number: /[0-9]/.test(newPassword),
-      special: /[^A-Za-z0-9\s]/.test(newPassword),
-    };
-  }, [newPassword]);
+  const criteria = usePasswordCriteria(newPassword);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -231,11 +224,11 @@ export function ChangePasswordForm() {
       </div>
 
       {/* Criteria Checklist */}
-      <div className="space-y-1 rounded-[12px] border border-slate-200 bg-slate-50 p-3 text-xs">
+      <div className="space-y-1 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs">
         <p className="font-semibold text-slate-700">Password Requirements</p>
         <div className="grid grid-cols-1 gap-0.5 text-slate-600">
           <div className={criteria.length ? 'font-medium text-emerald-600' : ''}>
-            {criteria.length ? '✓' : '•'} At least 8 characters
+            {criteria.length ? '✓' : '•'} At least {PASSWORD_RULES.minLength} characters
           </div>
           <div className={criteria.upper ? 'font-medium text-emerald-600' : ''}>
             {criteria.upper ? '✓' : '•'} At least one uppercase letter (A-Z)

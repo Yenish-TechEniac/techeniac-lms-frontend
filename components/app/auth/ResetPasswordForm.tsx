@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 
 import { Button, getButtonClassName } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/hooks/useAuth';
+import { PASSWORD_RULES, usePasswordCriteria } from '@/hooks/usePasswordCriteria';
 import { resetPasswordSchema } from '@/lib/validation';
 
 export function ResetPasswordForm() {
@@ -24,16 +25,7 @@ export function ResetPasswordForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  // Real-time criteria verification
-  const criteria = useMemo(() => {
-    return {
-      length: password.length >= 8,
-      upper: /[A-Z]/.test(password),
-      lower: /[a-z]/.test(password),
-      number: /[0-9]/.test(password),
-      special: /[^A-Za-z0-9\s]/.test(password),
-    };
-  }, [password]);
+  const criteria = usePasswordCriteria(password);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -158,14 +150,14 @@ export function ResetPasswordForm() {
       </div>
 
       {/* Real-time Checklist */}
-      <div className="space-y-2 rounded-[12px] border border-slate-200 bg-slate-50 p-3.5">
+      <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3.5">
         <p className="text-xs font-semibold text-slate-700">Password Requirements</p>
         <div className="grid grid-cols-1 gap-1 text-xs">
           <div
             className={`flex items-center gap-2 ${criteria.length ? 'font-medium text-emerald-600' : 'text-slate-500'}`}
           >
             <span>{criteria.length ? '✓' : '•'}</span>
-            <span>At least 8 characters</span>
+            <span>At least {PASSWORD_RULES.minLength} characters</span>
           </div>
           <div
             className={`flex items-center gap-2 ${criteria.upper ? 'font-medium text-emerald-600' : 'text-slate-500'}`}
