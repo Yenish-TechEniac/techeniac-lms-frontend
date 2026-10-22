@@ -11,6 +11,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { PASSWORD_RULES, usePasswordCriteria } from '@/hooks/usePasswordCriteria';
 import { resetPasswordSchema } from '@/lib/validation';
 
+import { PasswordVisibilityToggle } from './PasswordVisibilityToggle';
+
 export function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
@@ -161,28 +163,10 @@ export function ResetPasswordForm() {
             disabled={isSubmitting}
             className="pr-12"
           />
-          <button
-            type="button"
-            onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute inset-y-0 right-0 my-auto mr-1.5 flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition-colors hover:text-slate-600 focus:outline-none focus-visible:text-slate-700 focus-visible:ring-2 focus-visible:ring-blue-500"
-            title={showPassword ? 'Hide password' : 'Show password'}
-            aria-label={showPassword ? 'Hide password' : 'Show password'}
-          >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="1.8"
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="1.8"
-                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-              />
-            </svg>
-          </button>
+          <PasswordVisibilityToggle
+            visible={showPassword}
+            onToggle={() => setShowPassword((prev) => !prev)}
+          />
         </div>
         <FieldError id="newPassword-error" error={errors.password} />
       </div>
