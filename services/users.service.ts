@@ -33,13 +33,23 @@ export interface RoleImpactData {
   impactSummary: string;
 }
 
+export interface UserDirectoryCounts {
+  total: number;
+  active: number;
+  inactive: number;
+}
+
 interface ApiResponse<T> {
   success: boolean;
   data: T;
 }
 
 export const usersService = {
-  async listUsers(filters: UserQueryFilters = {}): Promise<{ users: ApiUser[]; total: number }> {
+  async listUsers(filters: UserQueryFilters = {}): Promise<{
+    users: ApiUser[];
+    total: number;
+    counts?: UserDirectoryCounts;
+  }> {
     const params: Record<string, string | number | undefined> = {};
     if (filters.page) params.page = filters.page;
     if (filters.limit) params.limit = filters.limit;
@@ -49,7 +59,9 @@ export const usersService = {
     }
     if (filters.search) params.search = filters.search;
 
-    const res = await apiClient<ApiResponse<{ users: ApiUser[]; total: number }>>('/users', {
+    const res = await apiClient<
+      ApiResponse<{ users: ApiUser[]; total: number; counts?: UserDirectoryCounts }>
+    >('/users', {
       method: 'GET',
       params,
     });

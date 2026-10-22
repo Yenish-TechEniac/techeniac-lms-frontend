@@ -156,6 +156,7 @@ export function UsersTable() {
   const {
     users: apiUsers,
     total: totalCount,
+    counts,
     isLoading,
     error: usersError,
     fetchUsers,
@@ -228,10 +229,6 @@ export function UsersTable() {
 
   // Filtered dataset
   const filteredUsers = users;
-
-  // Telemetry counts
-  const activeCount = users.filter((u) => u.status === 'ACTIVE').length;
-  const inactiveCount = users.filter((u) => u.status === 'INACTIVE').length;
 
   const handleCreateUser = async (data: CreateUserFormData) => {
     try {
@@ -405,7 +402,7 @@ export function UsersTable() {
         >
           <span>Total Users</span>
           <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono font-bold text-blue-600">
-            {totalCount}
+            {counts.total || totalCount}
           </span>
         </button>
         <button
@@ -422,7 +419,7 @@ export function UsersTable() {
         >
           <span className="h-2 w-2 rounded-full bg-emerald-500" />
           <span>Active</span>
-          <span className="font-mono text-slate-500">{activeCount}</span>
+          <span className="font-mono text-slate-500">{counts.active}</span>
         </button>
         <button
           type="button"
@@ -438,7 +435,7 @@ export function UsersTable() {
         >
           <span className="h-2 w-2 rounded-full bg-slate-400" />
           <span>Inactive</span>
-          <span className="font-mono text-slate-500">{inactiveCount}</span>
+          <span className="font-mono text-slate-500">{counts.inactive}</span>
         </button>
       </div>
 

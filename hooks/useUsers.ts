@@ -3,7 +3,12 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import type { ChangeRoleFormData, CreateUserFormData, EditUserFormData } from '@/lib/validation';
-import { type ApiUser, type UserQueryFilters, usersService } from '@/services/users.service';
+import {
+  type ApiUser,
+  type UserDirectoryCounts,
+  type UserQueryFilters,
+  usersService,
+} from '@/services/users.service';
 
 export interface BulkImportFailure {
   row: CreateUserFormData;
@@ -18,6 +23,7 @@ export interface BulkImportResult {
 export interface UseUsersReturn {
   users: ApiUser[];
   total: number;
+  counts: UserDirectoryCounts;
   isLoading: boolean;
   error: string | null;
   fetchUsers: (filters?: UserQueryFilters) => Promise<void>;
@@ -37,6 +43,11 @@ const DEFAULT_FILTERS: UserQueryFilters = {};
 export function useUsers(initialFilters: UserQueryFilters = DEFAULT_FILTERS): UseUsersReturn {
   const [users, setUsers] = useState<ApiUser[]>([]);
   const [total, setTotal] = useState(0);
+  const [counts, setCounts] = useState<UserDirectoryCounts>({
+    total: 0,
+    active: 0,
+    inactive: 0,
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,6 +57,19 @@ export function useUsers(initialFilters: UserQueryFilters = DEFAULT_FILTERS): Us
         const data = await usersService.listUsers(filters ?? initialFilters);
         setUsers(data.users);
         setTotal(data.total);
+        if (data.counts) {
+          setCounts(data.counts);
+        } else {
+          setCounts((prev) =>
+            prev.total > 0
+              ? prev
+              : {
+                  total: data.total,
+                  active: data.users.filter((u) => u.isActive).length,
+                  inactive: data.users.filter((u) => !u.isActive).length,
+                },
+          );
+        }
         setError(null);
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Failed to fetch users';
@@ -67,6 +91,15 @@ export function useUsers(initialFilters: UserQueryFilters = DEFAULT_FILTERS): Us
         if (!ignore) {
           setUsers(data.users);
           setTotal(data.total);
+          if (data.counts) {
+            setCounts(data.counts);
+          } else {
+            setCounts({
+              total: data.total,
+              active: data.users.filter((u) => u.isActive).length,
+              inactive: data.users.filter((u) => !u.isActive).length,
+            });
+          }
           setError(null);
         }
       } catch (err: unknown) {
@@ -143,6 +176,7 @@ export function useUsers(initialFilters: UserQueryFilters = DEFAULT_FILTERS): Us
   return {
     users,
     total,
+    counts,
     isLoading,
     error,
     fetchUsers,
