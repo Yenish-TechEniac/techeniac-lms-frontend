@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import React, { useState } from 'react';
 
+import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/hooks/useAuth';
@@ -84,27 +85,32 @@ export function ForgotPasswordForm() {
         ) : null}
 
         <div className="space-y-3 pt-2">
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            size="md"
             onClick={() => {
               void handleResend();
             }}
             disabled={isResending}
-            className="flex h-11 w-full cursor-pointer items-center justify-center rounded-[12px] bg-slate-100 text-sm font-semibold text-slate-800 transition-colors hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+            isLoading={isResending}
+            className="w-full"
           >
             {isResending ? 'Resending link...' : 'Resend link'}
-          </button>
+          </Button>
 
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="md"
             onClick={() => {
               setIsDispatched(false);
               setResendStatus(null);
             }}
-            className="h-11 w-full cursor-pointer rounded-[12px] border border-slate-200 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+            className="w-full"
           >
             Use a different email
-          </button>
+          </Button>
 
           <Link
             href="/login"
@@ -142,13 +148,16 @@ export function ForgotPasswordForm() {
         <FieldError error={error} />
       </div>
 
-      <button
+      <Button
         type="submit"
+        variant="primary"
+        size="lg"
         disabled={isSubmitting}
-        className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[12px] bg-[#3B82F6] text-base font-semibold text-white shadow-[0_4px_16px_rgba(59,130,246,0.25)] transition-all duration-150 hover:bg-[#2563EB] active:bg-[#1D4ED8] disabled:cursor-not-allowed disabled:opacity-60"
+        isLoading={isSubmitting}
+        className="w-full"
       >
         {isSubmitting ? 'Sending link...' : 'Send reset link'}
-      </button>
+      </Button>
 
       <div className="pt-4 text-center">
         <Link

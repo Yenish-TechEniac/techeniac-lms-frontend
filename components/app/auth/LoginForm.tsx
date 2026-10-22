@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 
+import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/hooks/useAuth';
@@ -157,40 +158,22 @@ export function LoginForm({ onSubmitSuccess }: LoginFormProps) {
 
       {/* Action Section */}
       <div className="pt-2">
-        <button
+        <Button
           type="submit"
+          variant="primary"
+          size="lg"
           disabled={isSubmitting}
-          className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[12px] bg-[#3B82F6] text-base font-semibold text-white shadow-[0_4px_16px_rgba(59,130,246,0.25)] transition-all duration-150 hover:bg-[#2563EB] active:bg-[#1D4ED8] disabled:cursor-not-allowed disabled:opacity-60"
+          isLoading={isSubmitting}
+          className="w-full"
         >
-          {isSubmitting ? (
-            <>
-              <svg className="h-5 w-5 animate-spin text-white" fill="none" viewBox="0 0 24 24">
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
-              </svg>
-              <span>Signing in...</span>
-            </>
-          ) : (
-            <span>Sign in</span>
-          )}
-        </button>
+          {isSubmitting ? 'Signing in...' : 'Sign in'}
+        </Button>
       </div>
 
       <div className="mt-8 border-t border-slate-100 pt-4 text-center">
         <p className="text-xs text-slate-500">
           Need access or role change?{' '}
-          <span className="font-semibold text-blue-600">Contact System Admin</span>
+          <span className="font-medium text-slate-700">Contact System Admin</span>
         </p>
       </div>
     </form>

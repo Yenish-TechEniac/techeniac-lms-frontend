@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import React, { useMemo, useState } from 'react';
 
+import { Button, getButtonClassName } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/hooks/useAuth';
@@ -91,10 +92,7 @@ export function ResetPasswordForm() {
         </div>
 
         <div className="pt-2">
-          <Link
-            href="/login"
-            className="flex h-12 w-full items-center justify-center rounded-[12px] bg-[#3B82F6] text-base font-semibold text-white transition-colors hover:bg-[#2563EB]"
-          >
+          <Link href="/login" className={getButtonClassName('primary', 'lg', 'w-full')}>
             Sign in
           </Link>
         </div>
@@ -214,13 +212,16 @@ export function ResetPasswordForm() {
         <FieldError error={errors.confirmPassword} />
       </div>
 
-      <button
+      <Button
         type="submit"
+        variant="primary"
+        size="lg"
         disabled={isSubmitting}
-        className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[12px] bg-[#3B82F6] text-base font-semibold text-white shadow-[0_4px_16px_rgba(59,130,246,0.25)] transition-all duration-150 hover:bg-[#2563EB] active:bg-[#1D4ED8] disabled:cursor-not-allowed disabled:opacity-60"
+        isLoading={isSubmitting}
+        className="w-full"
       >
         {isSubmitting ? 'Updating password...' : 'Update password'}
-      </button>
+      </Button>
 
       <div className="pt-2 text-center">
         <Link
