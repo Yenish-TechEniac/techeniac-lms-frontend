@@ -167,7 +167,7 @@ export function ChangePasswordForm() {
             )}
           </button>
         </div>
-        <FieldError error={errors.currentPassword} />
+        <FieldError id="currentPassword-error" error={errors.currentPassword} />
       </div>
 
       {/* New Password */}
@@ -220,7 +220,7 @@ export function ChangePasswordForm() {
             )}
           </button>
         </div>
-        <FieldError error={errors.newPassword} />
+        <FieldError id="newPassword-error" error={errors.newPassword} />
       </div>
 
       {/* Criteria Checklist */}
@@ -295,7 +295,7 @@ export function ChangePasswordForm() {
             )}
           </button>
         </div>
-        <FieldError error={errors.confirmPassword} />
+        <FieldError id="confirmPassword-error" error={errors.confirmPassword} />
       </div>
 
       <Button

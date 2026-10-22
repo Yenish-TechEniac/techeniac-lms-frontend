@@ -1,0 +1,99 @@
+'use client';
+
+import { useCallback, useEffect, useMemo, useState } from 'react';
+
+import type { AuthContextValue } from '@/context/AuthContext';
+import { ApiError } from '@/services/api.client';
+import { authService, type AuthUser } from '@/services/auth.service';
+
+export function useAuthProvider(): AuthContextValue {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [sessionError, setSessionError] = useState<string | null>(null);
+
+  const refreshUser = useCallback(async () => {
+    try {
+      const currentUser = await authService.getMe();
+      setUser(currentUser);
+      setSessionError(null);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        setUser(null);
+        setSessionError(null);
+      } else {
+        const msg =
+          err instanceof Error
+            ? err.message
+            : 'Could not verify your session. Please check your connection and retry.';
+        setSessionError(msg);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    authService
+      .getMe()
+      .then((currentUser) => {
+        if (isMounted) {
+          setUser(currentUser);
+          setSessionError(null);
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          if (err instanceof ApiError && err.status === 401) {
+            setUser(null);
+            setSessionError(null);
+          } else {
+            const msg =
+              err instanceof Error
+                ? err.message
+                : 'Could not verify your session. Please check your connection and retry.';
+            setSessionError(msg);
+          }
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const login = useCallback(async (credentials: { email: string; password: string }) => {
+    setIsLoading(true);
+    try {
+      const data = await authService.login(credentials);
+      setUser(data.user);
+      setSessionError(null);
+      return data.user;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const logout = useCallback(async () => {
+    // Note: Do NOT set shared isLoading(true) to avoid page spinner flash
+    await authService.logout();
+    setUser(null);
+    setSessionError(null);
+  }, []);
+
+  return useMemo(
+    () => ({
+      user,
+      isAuthenticated: Boolean(user),
+      isLoading,
+      sessionError,
+      login,
+      logout,
+      refreshUser,
+    }),
+    [user, isLoading, sessionError, login, logout, refreshUser],
+  );
+}

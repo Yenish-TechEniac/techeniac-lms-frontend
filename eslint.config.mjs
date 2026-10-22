@@ -75,7 +75,7 @@ const serviceCallsOnlyInHooksRule = {
     type: 'problem',
     docs: {
       description:
-        'Disallow files under app/** and components/** from importing directly from services/**',
+        'Disallow files under app/**, components/**, and context/** from importing directly from services/**',
     },
     schema: [],
     messages: {
@@ -85,9 +85,10 @@ const serviceCallsOnlyInHooksRule = {
   },
   create(context) {
     const rel = getRepoRelativePath(context);
-    const isAppOrComponent = /^(app|components)\//.test(rel) && !rel.startsWith('components/ui/');
+    const isRestricted =
+      /^(app|components|context)\//.test(rel) && !rel.startsWith('components/ui/');
 
-    if (!isAppOrComponent) {
+    if (!isRestricted) {
       return {};
     }
 
@@ -95,6 +96,8 @@ const serviceCallsOnlyInHooksRule = {
 
     return {
       ImportDeclaration(node) {
+        if (node.importKind === 'type') return;
+
         const importPath = node.source.value;
         if (typeof importPath !== 'string') return;
 

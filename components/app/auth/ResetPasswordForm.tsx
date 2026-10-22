@@ -184,7 +184,7 @@ export function ResetPasswordForm() {
             </svg>
           </button>
         </div>
-        <FieldError error={errors.password} />
+        <FieldError id="newPassword-error" error={errors.password} />
       </div>
 
       {/* Real-time Checklist */}
@@ -239,7 +239,7 @@ export function ResetPasswordForm() {
           hasError={Boolean(errors.confirmPassword)}
           disabled={isSubmitting}
         />
-        <FieldError error={errors.confirmPassword} />
+        <FieldError id="confirmPassword-error" error={errors.confirmPassword} />
       </div>
 
       <Button

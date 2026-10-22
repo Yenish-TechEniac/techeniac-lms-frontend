@@ -145,7 +145,7 @@ export function ForgotPasswordForm() {
           hasError={Boolean(error)}
           disabled={isSubmitting}
         />
-        <FieldError error={error} />
+        <FieldError id="email-error" error={error} />
       </div>
 
       <Button

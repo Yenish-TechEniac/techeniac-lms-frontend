@@ -90,7 +90,7 @@ export function LoginForm({ onSubmitSuccess }: LoginFormProps) {
           hasError={Boolean(errors.email)}
           disabled={isSubmitting}
         />
-        <FieldError error={errors.email} />
+        <FieldError id="email-error" error={errors.email} />
       </div>
 
       {/* Password Field */}
@@ -153,7 +153,7 @@ export function LoginForm({ onSubmitSuccess }: LoginFormProps) {
             )}
           </button>
         </div>
-        <FieldError error={errors.password} />
+        <FieldError id="password-error" error={errors.password} />
       </div>
 
       {/* Action Section */}

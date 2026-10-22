@@ -2,13 +2,36 @@
 
 import React from 'react';
 
+import { MENTEE_PORTAL_NAV } from '@/components/app/navigation/portal-nav.config';
 import { Header } from '@/components/layout/Header';
+import { useAuth } from '@/hooks/useAuth';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 
 export default function MenteePage() {
-  const { user, isAuthorized } = useRoleRedirect({ allowedRoles: ['MENTEE'] });
+  const { user, isAuthorized, sessionError } = useRoleRedirect({ allowedRoles: ['MENTEE'] });
+  const { refreshUser } = useAuth();
 
   if (!isAuthorized || !user) {
+    if (sessionError) {
+      return (
+        <div className="flex min-h-screen flex-1 flex-col items-center justify-center bg-slate-50 p-6 text-center">
+          <div className="max-w-md rounded-2xl border border-red-200 bg-white p-6 shadow-xs">
+            <h2 className="text-lg font-bold text-slate-900">Session Verification Issue</h2>
+            <p className="mt-2 text-sm text-slate-600">{sessionError}</p>
+            <button
+              type="button"
+              onClick={() => {
+                void refreshUser();
+              }}
+              className="mt-4 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+            >
+              Retry Connection
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="flex min-h-screen flex-1 items-center justify-center bg-slate-50 p-6">
         <div className="flex flex-col items-center gap-3">
@@ -21,7 +44,7 @@ export default function MenteePage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
-      <Header />
+      <Header {...MENTEE_PORTAL_NAV} />
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
         {/* Welcome Section */}

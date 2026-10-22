@@ -48,6 +48,7 @@ export interface UseRoleRedirectReturn {
   isAuthenticated: boolean;
   isLoading: boolean;
   isAuthorized: boolean;
+  sessionError: string | null;
 }
 
 export function useRoleRedirect(options: UseRoleRedirectOptions = {}): UseRoleRedirectReturn {
@@ -59,12 +60,13 @@ export function useRoleRedirect(options: UseRoleRedirectOptions = {}): UseRoleRe
   } = options;
 
   const router = useRouter();
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, sessionError } = useAuth();
 
   const isRoleAuthorized = Boolean(user && (!allowedRoles || allowedRoles.includes(user.role)));
 
   const isAuthorized =
     !isLoading &&
+    !sessionError &&
     (requireAuth ? isAuthenticated && Boolean(user) : true) &&
     (allowMustChangePassword || !user?.mustChangePassword) &&
     isRoleAuthorized &&
@@ -77,6 +79,10 @@ export function useRoleRedirect(options: UseRoleRedirectOptions = {}): UseRoleRe
 
     if (!isAuthenticated || !user) {
       if (requireAuth) {
+        // Do not redirect to /login if there is an active transient session error (e.g. 5xx/network issue)
+        if (sessionError) {
+          return;
+        }
         router.replace('/login');
       }
       return;
@@ -97,6 +103,7 @@ export function useRoleRedirect(options: UseRoleRedirectOptions = {}): UseRoleRe
     }
   }, [
     isLoading,
+    sessionError,
     isAuthenticated,
     user,
     requireAuth,
@@ -111,5 +118,6 @@ export function useRoleRedirect(options: UseRoleRedirectOptions = {}): UseRoleRe
     isAuthenticated,
     isLoading,
     isAuthorized,
+    sessionError,
   };
 }
