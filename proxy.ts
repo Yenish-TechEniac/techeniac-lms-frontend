@@ -1,3 +1,4 @@
+import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 /**
@@ -12,8 +13,23 @@ import { NextResponse } from 'next/server';
  * The backend API (/api/v1) MUST independently authenticate, authorize, and
  * validate every single request. Never rely on frontend proxy for security.
  */
-export function proxy() {
-  // Cheap UX redirect placeholder (no heavy auth or database lookups)
+export function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  const isProtectedPath =
+    pathname === '/change-password' ||
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/mentor') ||
+    pathname.startsWith('/mentee');
+
+  if (isProtectedPath) {
+    const hasAuth = request.cookies.has('accessToken') || request.cookies.has('refreshToken');
+    if (!hasAuth) {
+      const loginUrl = new URL('/login', request.url);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
   return NextResponse.next();
 }
 
