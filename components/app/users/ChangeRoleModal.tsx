@@ -270,7 +270,9 @@ function ChangeRoleModalContent({
               </label>
               <span
                 className={`font-mono text-[11px] ${
-                  reason.length < 10 && !isRestrictedRole ? 'text-amber-600' : 'text-slate-400'
+                  reason.length < 10 && !isRestrictedRole
+                    ? 'font-semibold text-amber-800'
+                    : 'text-slate-400'
                 }`}
               >
                 {reason.length} / 500 (min 10)
