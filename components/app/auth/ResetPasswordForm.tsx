@@ -13,6 +13,7 @@ import { resetPasswordSchema } from '@/lib/validation';
 
 export function ResetPasswordForm() {
   const searchParams = useSearchParams();
+  const token = searchParams.get('token');
   const { resetPassword } = useAuth();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -47,7 +48,6 @@ export function ResetPasswordForm() {
       return;
     }
 
-    const token = searchParams.get('token');
     if (!token) {
       setErrors({
         general: 'Invalid or missing password reset token. Please request a new link.',
@@ -66,6 +66,44 @@ export function ResetPasswordForm() {
       setIsSubmitting(false);
     }
   };
+
+  if (!token || !token.trim()) {
+    return (
+      <div className="space-y-6 text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-amber-200 bg-amber-50 text-amber-600">
+          <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+        </div>
+
+        <div>
+          <h3 className="mb-1 text-xl font-bold text-slate-900">Invalid or expired link</h3>
+          <p className="text-sm leading-relaxed text-slate-600">
+            This password reset link is invalid or has expired. Please request a new link to reset
+            your password.
+          </p>
+        </div>
+
+        <div className="space-y-3 pt-2">
+          <Link href="/forgot-password" className={getButtonClassName('primary', 'lg', 'w-full')}>
+            Request new link
+          </Link>
+
+          <Link
+            href="/login"
+            className="inline-block text-sm font-semibold text-blue-600 transition-colors hover:text-blue-700"
+          >
+            ← Return to sign in
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (isSuccess) {
     return (
