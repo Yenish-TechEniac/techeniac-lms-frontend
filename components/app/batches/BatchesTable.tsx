@@ -5,6 +5,7 @@ import React, { useMemo, useState } from 'react';
 
 import { CreateBatchModal } from '@/components/app/batches/CreateBatchModal';
 import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
+import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { H1, P, Span } from '@/components/ui/Typography';
@@ -25,57 +26,6 @@ export interface BatchSummaryItem {
   progressPercent: number;
 }
 
-const INITIAL_BATCHES: BatchSummaryItem[] = [
-  {
-    id: 'batch-1',
-    name: 'Frontend Engineering 2025 Q1',
-    code: 'FE-25Q1',
-    status: 'LIVE',
-    startDate: '2025-01-15',
-    endDate: '2025-06-30',
-    menteesCount: 16,
-    mentorsCount: 2,
-    coursesCount: 4,
-    progressPercent: 48,
-  },
-  {
-    id: 'batch-2',
-    name: 'Cloud & Systems Batch B',
-    code: 'CS-24B4',
-    status: 'LIVE',
-    startDate: '2024-11-01',
-    endDate: '2025-04-30',
-    menteesCount: 12,
-    mentorsCount: 2,
-    coursesCount: 3,
-    progressPercent: 72,
-  },
-  {
-    id: 'batch-3',
-    name: 'Platform Architecture 2025',
-    code: 'PA-25A1',
-    status: 'DRAFT',
-    startDate: '2025-03-01',
-    endDate: '2025-08-31',
-    menteesCount: 0,
-    mentorsCount: 1,
-    coursesCount: 2,
-    progressPercent: 0,
-  },
-  {
-    id: 'batch-4',
-    name: 'Fullstack Systems 2024 Winter',
-    code: 'FS-24W1',
-    status: 'COMPLETED',
-    startDate: '2024-06-01',
-    endDate: '2024-12-15',
-    menteesCount: 20,
-    mentorsCount: 3,
-    coursesCount: 5,
-    progressPercent: 100,
-  },
-];
-
 export function BatchesTable() {
   const { user, isAuthorized, sessionError } = useRoleRedirect({ allowedRoles: ['SUPER_ADMIN'] });
   const [search, setSearch] = useState('');
@@ -88,6 +38,7 @@ export function BatchesTable() {
     data: serverBatches,
     isLoading,
     isSuccess,
+    error,
   } = useBatchesList({
     status: selectedStatus !== 'ALL' ? selectedStatus : undefined,
     search: search.trim() || undefined,
@@ -95,28 +46,24 @@ export function BatchesTable() {
   });
 
   const batches = useMemo<BatchSummaryItem[]>(() => {
-    if (isSuccess && serverBatches && serverBatches.length > 0) {
-      return serverBatches.map((b) => ({
-        id: b.id,
-        name: b.name,
-        code: b.code,
-        status: b.status,
-        startDate: b.startDate,
-        endDate: b.endDate,
-        menteesCount: b.menteesCount ?? 0,
-        mentorsCount: b.mentorsCount ?? 0,
-        coursesCount: b.coursesCount ?? 0,
-        progressPercent: b.progressPercent ?? 0,
-      }));
-    }
-    if (isSuccess && serverBatches) {
+    if (!serverBatches || serverBatches.length === 0) {
       return [];
     }
-    return INITIAL_BATCHES;
-  }, [isSuccess, serverBatches]);
+    return serverBatches.map((b) => ({
+      id: b.id,
+      name: b.name,
+      code: b.code,
+      status: b.status,
+      startDate: b.startDate,
+      endDate: b.endDate,
+      menteesCount: b.menteesCount ?? 0,
+      mentorsCount: b.mentorsCount ?? 0,
+      coursesCount: b.coursesCount ?? 0,
+      progressPercent: b.progressPercent ?? 0,
+    }));
+  }, [serverBatches]);
 
   const filteredBatches = useMemo(() => {
-    if (isSuccess && serverBatches) return batches;
     return batches.filter((b) => {
       const matchesSearch =
         b.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -127,7 +74,7 @@ export function BatchesTable() {
           : b.status === selectedStatus;
       return matchesSearch && matchesStatus;
     });
-  }, [batches, search, selectedStatus, isSuccess, serverBatches]);
+  }, [batches, search, selectedStatus]);
 
   const handleCreateBatch = () => {
     // TanStack Query automatically invalidates the query cache on mutation success
@@ -196,6 +143,14 @@ export function BatchesTable() {
           <Span>Create Batch</Span>
         </Button>
       </div>
+
+      {error ? (
+        <Alert
+          variant="error"
+          title="Error Loading Cohorts"
+          message={error instanceof Error ? error.message : 'Failed to retrieve batches.'}
+        />
+      ) : null}
 
       {/* Filter and Search Bar */}
       <div className="space-y-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">

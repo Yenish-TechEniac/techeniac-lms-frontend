@@ -95,20 +95,33 @@ function parseErrorPayload(response: Response, data: unknown): ApiError {
   const errData = isApiErrorResponse(data) ? data : null;
   const retryAfter = parseRetryAfter(response.headers.get('Retry-After'));
 
-  // Never leak internal backend details or unhandled exceptions on 5xx responses
   if (response.status >= 500) {
-    return new ApiError(
-      response.status,
-      'A server error occurred. Please try again later.',
-      'SERVER_ERROR',
-      undefined,
-      retryAfter,
-    );
+    const serverMessage =
+      errData?.error?.message && errData.error.message !== 'Something went wrong'
+        ? errData.error.message
+        : 'A server error occurred. Please try again later.';
+    return new ApiError(response.status, serverMessage, 'SERVER_ERROR', undefined, retryAfter);
   }
 
   // Fallback chain uses || intentionally so empty strings fall through to the default message
   let message =
     errData?.error?.message || errData?.message || response.statusText || 'An error occurred';
+
+  // Surface detailed field-level validation errors so user sees exactly what is invalid
+  if (Array.isArray(errData?.error?.details) && errData.error.details.length > 0) {
+    const detailList = (errData.error.details as Array<{ field?: string; message?: string }>)
+      .map((d) => {
+        if (d.field && d.message) {
+          return `${d.field}: ${d.message}`;
+        }
+        return d.message || '';
+      })
+      .filter(Boolean);
+
+    if (detailList.length > 0) {
+      message = `${message} — ${detailList.join('; ')}`;
+    }
+  }
 
   if (response.status === 429 && retryAfter && !errData?.error?.message) {
     const minutes = Math.ceil(retryAfter / 60);

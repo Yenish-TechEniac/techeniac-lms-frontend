@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/Label';
 import { Textarea } from '@/components/ui/Textarea';
 import { P, Span } from '@/components/ui/Typography';
 import { useCreateBatchMutation } from '@/hooks/useBatches';
+import { ApiError } from '@/lib/errors';
 import { type CreateBatchFormData, createBatchSchema } from '@/lib/validation';
 
 export interface CreateBatchModalProps {
@@ -61,8 +62,21 @@ export function CreateBatchModal({ isOpen, onClose, onSuccess }: CreateBatchModa
       onSuccess(result.data);
       onClose();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to create batch.';
-      setErrors({ general: message });
+      if (err instanceof ApiError && Array.isArray(err.details)) {
+        const fieldErrors: Record<string, string> = {};
+        for (const item of err.details as Array<{ field?: string; message?: string }>) {
+          if (item.field && item.message) {
+            fieldErrors[item.field] = item.message;
+          }
+        }
+        setErrors({
+          ...fieldErrors,
+          general: err.message,
+        });
+      } else {
+        const message = err instanceof Error ? err.message : 'Failed to create batch.';
+        setErrors({ general: message });
+      }
     }
   };
 

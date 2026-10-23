@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
+import { Form } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { P, Span } from '@/components/ui/Typography';
@@ -67,12 +68,11 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
   }
 
   return (
-    <form
+    <Form
       className="space-y-5"
       onSubmit={(e) => {
         void handleSubmit(e);
       }}
-      noValidate
     >
       {errors.general ? (
         <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -148,6 +148,6 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
           <Span className="font-medium text-slate-700">Contact System Admin</Span>
         </P>
       </div>
-    </form>
+    </Form>
   );
 }

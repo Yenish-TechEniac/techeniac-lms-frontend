@@ -23,6 +23,8 @@ export const batchKeys = {
   menteeBatch: () => ['mentee', 'batch'] as const,
 };
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 export function useBatchesList(filters: BatchQueryFilters = {}) {
   return useQuery<ApiBatchSummary[]>({
     queryKey: batchKeys.list(filters),
@@ -31,11 +33,12 @@ export function useBatchesList(filters: BatchQueryFilters = {}) {
 }
 
 export function useBatchDetail(id: string, initialData?: ApiBatchDetailData) {
+  const isValidUuid = Boolean(id && UUID_REGEX.test(id));
   return useQuery<ApiBatchDetailData>({
     queryKey: batchKeys.detail(id),
     queryFn: () => batchesService.getBatchById(id),
     ...(initialData ? { initialData } : {}),
-    enabled: Boolean(id),
+    enabled: isValidUuid,
   });
 }
 

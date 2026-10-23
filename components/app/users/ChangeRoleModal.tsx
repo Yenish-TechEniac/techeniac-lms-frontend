@@ -4,7 +4,10 @@ import React, { useMemo, useState } from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
+import { Form } from '@/components/ui/Form';
 import { Label } from '@/components/ui/Label';
+import { Select } from '@/components/ui/Select';
+import { Textarea } from '@/components/ui/Textarea';
 import { Code, P, Span } from '@/components/ui/Typography';
 import { useRoleImpact } from '@/hooks/useRoleImpact';
 import { type ChangeRoleFormData, changeRoleSchema, type UserRole } from '@/lib/validation';
@@ -128,13 +131,12 @@ function ChangeRoleModalContent({
         </>
       }
     >
-      <form
+      <Form
         id="change-role-form"
         onSubmit={(e) => {
           void handleSubmit(e);
         }}
         className="space-y-5"
-        noValidate
       >
         {error ? (
           <div
@@ -165,14 +167,14 @@ function ChangeRoleModalContent({
         {/* Target Role Selector */}
         <div className="space-y-1.5">
           <Label htmlFor="target-role">New Assigned Role</Label>
-          <select
+          <Select
             id="target-role"
             value={newRole}
             disabled={isRestrictedRole}
             onChange={(e) => setNewRole(e.target.value as UserRole)}
-            className={`h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none ${
+            className={
               isRestrictedRole ? 'cursor-not-allowed bg-slate-100 text-slate-500' : 'cursor-pointer'
-            }`}
+            }
           >
             {currentRole === 'MENTEE' ? (
               <>
@@ -184,7 +186,7 @@ function ChangeRoleModalContent({
             ) : (
               <option value="SUPER_ADMIN">Super Admin (Role Conversion Restricted)</option>
             )}
-          </select>
+          </Select>
         </div>
 
         {/* Policy Disclaimers & PRD Section 4 Role Change Impact Matrix Preview */}
@@ -300,7 +302,7 @@ function ChangeRoleModalContent({
               {reason.length} / 500 (min 10)
             </Span>
           </div>
-          <textarea
+          <Textarea
             id="role-reason"
             rows={3}
             value={reason}
@@ -311,12 +313,10 @@ function ChangeRoleModalContent({
                 ? 'Role transitions for this user are restricted by system policy.'
                 : 'Provide a mandatory justification for auditing purposes (e.g. Completed mentee cohort, promoted to mentor)...'
             }
-            className={`w-full rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none ${
-              isRestrictedRole ? 'cursor-not-allowed bg-slate-100 text-slate-400' : ''
-            }`}
+            className={isRestrictedRole ? 'cursor-not-allowed bg-slate-100 text-slate-400' : ''}
           />
         </div>
-      </form>
+      </Form>
     </Modal>
   );
 }
