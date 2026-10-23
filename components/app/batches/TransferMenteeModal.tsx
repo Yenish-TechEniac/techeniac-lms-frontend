@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 
-import { env } from '@/lib/config';
+import { useTransferMenteeMutation } from '@/hooks/useBatches';
 
 export interface BatchOption {
   id: string;
@@ -33,7 +33,8 @@ export function TransferMenteeModal({
   const [targetBatchId, setTargetBatchId] = useState<string>(eligibleBatches[0]?.id || '');
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { mutateAsync: transferMentee, isPending: isSubmitting } = useTransferMenteeMutation();
 
   if (!isOpen || !mentee) return null;
 
@@ -42,40 +43,18 @@ export function TransferMenteeModal({
     setError(null);
     if (!targetBatchId) return;
 
-    setIsSubmitting(true);
     try {
-      const res = await fetch(
-        `${env.NEXT_PUBLIC_API_BASE_URL}/batches/${mentee.currentBatchId}/transfer-mentee`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-          },
-          credentials: 'include',
-          body: JSON.stringify({
-            menteeId: mentee.id,
-            targetBatchId,
-            reason: reason || undefined,
-          }),
-        },
-      );
-
-      if (!res.ok) {
-        const json = (await res.json().catch(() => null)) as {
-          error?: { message?: string };
-          message?: string;
-        } | null;
-        setError(json?.error?.message || json?.message || 'Failed to transfer mentee.');
-        return;
-      }
-
+      await transferMentee({
+        sourceBatchId: mentee.currentBatchId,
+        menteeId: mentee.id,
+        targetBatchId,
+        reason: reason || undefined,
+      });
       onSuccess(mentee.id, targetBatchId, reason);
       onClose();
-    } catch {
-      setError('Unable to connect to server. Please try again.');
-    } finally {
-      setIsSubmitting(false);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to transfer mentee.';
+      setError(message);
     }
   };
 

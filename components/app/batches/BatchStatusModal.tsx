@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 
-import { env } from '@/lib/config';
+import { useUpdateBatchStatusMutation } from '@/hooks/useBatches';
 import {
   ALLOWED_STATUS_TRANSITIONS,
   type BatchStatus,
@@ -31,7 +31,8 @@ export function BatchStatusModal({
   const [newStatus, setNewStatus] = useState<BatchStatus>(allowedNextStatuses[0] ?? currentStatus);
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { mutateAsync: updateStatus, isPending: isSubmitting } = useUpdateBatchStatusMutation();
 
   if (!isOpen) return null;
 
@@ -50,33 +51,17 @@ export function BatchStatusModal({
       return;
     }
 
-    setIsSubmitting(true);
     try {
-      const res = await fetch(`${env.NEXT_PUBLIC_API_BASE_URL}/batches/${batchId}/status`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(result.data),
+      await updateStatus({
+        batchId,
+        newStatus: result.data.newStatus,
+        reason: result.data.reason,
       });
-
-      if (!res.ok) {
-        const json = (await res.json().catch(() => null)) as {
-          error?: { message?: string };
-          message?: string;
-        } | null;
-        setError(json?.error?.message || json?.message || 'Failed to update batch status.');
-        return;
-      }
-
       onSuccess(batchId, result.data);
       onClose();
-    } catch {
-      setError('Unable to connect to server. Please try again.');
-    } finally {
-      setIsSubmitting(false);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to update batch status.';
+      setError(message);
     }
   };
 

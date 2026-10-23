@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 
 import { Input } from '@/components/ui/Input';
-import { env } from '@/lib/config';
+import { useCreateBatchMutation } from '@/hooks/useBatches';
 import { type CreateBatchFormData, createBatchSchema } from '@/lib/validation';
 
 export interface CreateBatchModalProps {
@@ -19,7 +19,8 @@ export function CreateBatchModal({ isOpen, onClose, onSuccess }: CreateBatchModa
   const [endDate, setEndDate] = useState('');
   const [description, setDescription] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { mutateAsync: createBatch, isPending: isSubmitting } = useCreateBatchMutation();
 
   if (!isOpen) return null;
 
@@ -47,37 +48,13 @@ export function CreateBatchModal({ isOpen, onClose, onSuccess }: CreateBatchModa
       return;
     }
 
-    setIsSubmitting(true);
     try {
-      const res = await fetch(`${env.NEXT_PUBLIC_API_BASE_URL}/batches`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(result.data),
-      });
-
-      if (!res.ok) {
-        const json = (await res.json().catch(() => null)) as {
-          error?: { message?: string };
-          message?: string;
-        } | null;
-        setErrors({
-          general: json?.error?.message || json?.message || 'Failed to create batch.',
-        });
-        return;
-      }
-
+      await createBatch(result.data);
       onSuccess(result.data);
       onClose();
-    } catch {
-      setErrors({
-        general: 'Unable to connect to server. Please try again.',
-      });
-    } finally {
-      setIsSubmitting(false);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to create batch.';
+      setErrors({ general: message });
     }
   };
 

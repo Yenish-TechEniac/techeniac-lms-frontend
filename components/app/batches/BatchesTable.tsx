@@ -1,10 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { CreateBatchModal } from '@/components/app/batches/CreateBatchModal';
-import { env } from '@/lib/config';
+import { useBatchesList } from '@/hooks/useBatches';
 import { type BatchStatus } from '@/lib/validation';
 
 export interface BatchSummaryItem {
@@ -72,83 +72,43 @@ const INITIAL_BATCHES: BatchSummaryItem[] = [
 ];
 
 export function BatchesTable() {
-  const [batches, setBatches] = useState<BatchSummaryItem[]>(INITIAL_BATCHES);
   const [search, setSearch] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [isLiveConnected, setIsLiveConnected] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
 
-  useEffect(() => {
-    let ignore = false;
+  const {
+    data: serverBatches,
+    isLoading,
+    isSuccess,
+  } = useBatchesList({
+    status: selectedStatus !== 'ALL' ? selectedStatus : undefined,
+    search: search.trim() || undefined,
+    limit: 50,
+  });
 
-    async function load() {
-      try {
-        const params = new URLSearchParams();
-        if (selectedStatus !== 'ALL') params.set('status', selectedStatus);
-        if (search.trim()) params.set('search', search.trim());
-        params.set('limit', '50');
-
-        const res = await fetch(`${env.NEXT_PUBLIC_API_BASE_URL}/batches?${params.toString()}`, {
-          credentials: 'include',
-          headers: { Accept: 'application/json' },
-        });
-
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-        const json = (await res.json()) as {
-          success: boolean;
-          data: Array<{
-            id: string;
-            name: string;
-            code: string;
-            status: BatchStatus;
-            startDate: string;
-            endDate: string;
-            menteesCount?: number;
-            mentorsCount?: number;
-            coursesCount?: number;
-            progressPercent?: number;
-          }>;
-        };
-
-        if (!ignore && json.success && Array.isArray(json.data)) {
-          const mapped: BatchSummaryItem[] = json.data.map((b) => ({
-            id: b.id,
-            name: b.name,
-            code: b.code,
-            status: b.status,
-            startDate: b.startDate,
-            endDate: b.endDate,
-            menteesCount: b.menteesCount ?? 0,
-            mentorsCount: b.mentorsCount ?? 0,
-            coursesCount: b.coursesCount ?? 0,
-            progressPercent: b.progressPercent ?? 0,
-          }));
-          setBatches(mapped);
-          setIsLiveConnected(true);
-        }
-      } catch {
-        if (!ignore) setIsLiveConnected(false);
-      } finally {
-        if (!ignore) setIsLoading(false);
-      }
+  const batches = useMemo<BatchSummaryItem[]>(() => {
+    if (isSuccess && serverBatches && serverBatches.length > 0) {
+      return serverBatches.map((b) => ({
+        id: b.id,
+        name: b.name,
+        code: b.code,
+        status: b.status,
+        startDate: b.startDate,
+        endDate: b.endDate,
+        menteesCount: b.menteesCount ?? 0,
+        mentorsCount: b.mentorsCount ?? 0,
+        coursesCount: b.coursesCount ?? 0,
+        progressPercent: b.progressPercent ?? 0,
+      }));
     }
-
-    queueMicrotask(() => {
-      if (!ignore) setIsLoading(true);
-    });
-
-    void load();
-
-    return () => {
-      ignore = true;
-    };
-  }, [search, selectedStatus, refreshKey]);
+    if (isSuccess && serverBatches) {
+      return [];
+    }
+    return INITIAL_BATCHES;
+  }, [isSuccess, serverBatches]);
 
   const filteredBatches = useMemo(() => {
-    if (isLiveConnected) return batches;
+    if (isSuccess && serverBatches) return batches;
     return batches.filter((b) => {
       const matchesSearch =
         b.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -159,10 +119,10 @@ export function BatchesTable() {
           : b.status === selectedStatus;
       return matchesSearch && matchesStatus;
     });
-  }, [batches, search, selectedStatus, isLiveConnected]);
+  }, [batches, search, selectedStatus, isSuccess, serverBatches]);
 
   const handleCreateBatch = () => {
-    setRefreshKey((k) => k + 1);
+    // TanStack Query automatically invalidates the query cache on mutation success
   };
 
   const getStatusBadge = (status: BatchStatus) => {
@@ -181,6 +141,8 @@ export function BatchesTable() {
         return 'bg-slate-100 text-slate-700';
     }
   };
+
+  const isLiveConnected = isSuccess && serverBatches !== undefined;
 
   return (
     <div className="space-y-6">
