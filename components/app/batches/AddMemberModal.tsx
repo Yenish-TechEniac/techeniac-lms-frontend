@@ -3,8 +3,10 @@
 import React, { useState } from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
+import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/Checkbox';
+import { Form } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { P, Span } from '@/components/ui/Typography';
@@ -128,7 +130,7 @@ export function AddMemberModal({
         </div>
       }
     >
-      <form
+      <Form
         id="add-member-form"
         onSubmit={(e) => {
           void handleSubmit(e);
@@ -136,13 +138,7 @@ export function AddMemberModal({
         className="space-y-4"
       >
         {submitError ? (
-          <div
-            role="alert"
-            className="flex items-start gap-2 rounded-xl border border-red-300 bg-red-50 p-3.5 text-xs text-red-800"
-          >
-            <Span className="mt-0.5 text-sm">⚠️</Span>
-            <P className="text-xs leading-relaxed font-semibold text-red-800">{submitError}</P>
-          </div>
+          <Alert variant="error" title="Enrollment Failed" message={submitError} />
         ) : null}
 
         {/* Role toggle */}
@@ -248,7 +244,7 @@ export function AddMemberModal({
             )}
           </div>
         </div>
-      </form>
+      </Form>
     </Modal>
   );
 }

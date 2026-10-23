@@ -7,6 +7,7 @@ import React, { useMemo, useState } from 'react';
 import { AddMemberModal } from '@/components/app/batches/AddMemberModal';
 import { BatchStatusModal } from '@/components/app/batches/BatchStatusModal';
 import { CreateBatchModal } from '@/components/app/batches/CreateBatchModal';
+import { MapMenteeModal } from '@/components/app/batches/MapMenteeModal';
 import {
   type BatchOption,
   TransferMenteeModal,
@@ -77,6 +78,10 @@ export function BatchDashboardView({ initialBatch }: { initialBatch: BatchDetail
     currentBatchId: string;
     currentBatchName: string;
   } | null>(null);
+  const [mapMenteeTarget, setMapMenteeTarget] = useState<{
+    isOpen: boolean;
+    targetMentee?: { id: string; name: string; currentMentorName?: string | undefined } | null;
+  }>({ isOpen: false, targetMentee: null });
 
   const { data: serverBatchDetail } = useBatchDetail(initialBatch.id);
   const { data: availableBatchesList } = useAvailableBatches();
@@ -127,6 +132,16 @@ export function BatchDashboardView({ initialBatch }: { initialBatch: BatchDetail
 
   const mentees = batch.members.filter((m) => m.memberRole === 'MENTEE');
   const mentors = batch.members.filter((m) => m.memberRole === 'MENTOR');
+
+  const unmappedMentees = useMemo(() => {
+    return mentees
+      .filter((m) => !m.mappedToName)
+      .map((m) => ({ id: m.id, name: m.name, email: m.email }));
+  }, [mentees]);
+
+  const mentorOptions = useMemo(() => {
+    return mentors.map((m) => ({ id: m.id, name: m.name, email: m.email }));
+  }, [mentors]);
 
   const handleStatusSuccess = () => {
     // TanStack Query invalidation automatically synchronizes batch state
@@ -288,16 +303,30 @@ export function BatchDashboardView({ initialBatch }: { initialBatch: BatchDetail
                 A mentee can belong to only 1 active cohort at a time (FR-5.2)
               </P>
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setIsAddMemberOpen(true)}
-              className="flex items-center gap-1.5"
-            >
-              <Span>+</Span>
-              <Span>Add Members</Span>
-            </Button>
+            <div className="flex items-center gap-2">
+              {mentors.length > 0 && unmappedMentees.length > 0 ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setMapMenteeTarget({ isOpen: true, targetMentee: null })}
+                  className="flex items-center gap-1.5 border-blue-200 text-blue-700 hover:bg-blue-50"
+                >
+                  <Span>🔗</Span>
+                  <Span>Map Mentees ({unmappedMentees.length})</Span>
+                </Button>
+              ) : null}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setIsAddMemberOpen(true)}
+                className="flex items-center gap-1.5"
+              >
+                <Span>+</Span>
+                <Span>Add Members</Span>
+              </Button>
+            </div>
           </div>
 
           <div className="overflow-x-auto">
@@ -340,7 +369,57 @@ export function BatchDashboardView({ initialBatch }: { initialBatch: BatchDetail
                       </Span>
                     </td>
                     <td className="px-4 py-3.5 text-xs text-slate-700">
-                      <Span>{m.memberRole === 'MENTEE' ? m.mappedToName || 'Unmapped' : '—'}</Span>
+                      {m.memberRole === 'MENTEE' ? (
+                        m.mappedToName ? (
+                          <div className="flex items-center gap-2">
+                            <Span className="font-semibold text-slate-900">{m.mappedToName}</Span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                setMapMenteeTarget({
+                                  isOpen: true,
+                                  targetMentee: {
+                                    id: m.id,
+                                    name: m.name,
+                                    currentMentorName: m.mappedToName,
+                                  },
+                                })
+                              }
+                              className="h-6 px-1.5 text-[11px] font-bold text-blue-600 hover:bg-blue-50"
+                            >
+                              Reassign
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <Span className="rounded-md bg-amber-100 px-2 py-0.5 font-mono text-[10px] font-bold text-amber-800">
+                              Unmapped
+                            </Span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              disabled={mentors.length === 0}
+                              onClick={() =>
+                                setMapMenteeTarget({
+                                  isOpen: true,
+                                  targetMentee: {
+                                    id: m.id,
+                                    name: m.name,
+                                  },
+                                })
+                              }
+                              className="h-6 px-1.5 text-[11px] font-bold text-blue-600 hover:bg-blue-50"
+                            >
+                              Assign Mentor
+                            </Button>
+                          </div>
+                        )
+                      ) : (
+                        <Span className="text-slate-400">—</Span>
+                      )}
                     </td>
                     <td className="px-4 py-3.5 font-mono text-xs text-slate-500">
                       <Span>{m.joinedAt}</Span>
@@ -491,6 +570,18 @@ export function BatchDashboardView({ initialBatch }: { initialBatch: BatchDetail
         onClose={() => setIsAddMemberOpen(false)}
         onSuccess={() => {}}
         existingMemberUserIds={batch.members.map((m) => m.id)}
+      />
+
+      <MapMenteeModal
+        key={mapMenteeTarget.targetMentee?.id ?? 'batch-map'}
+        isOpen={mapMenteeTarget.isOpen}
+        onClose={() => setMapMenteeTarget({ isOpen: false, targetMentee: null })}
+        onSuccess={() => setMapMenteeTarget({ isOpen: false, targetMentee: null })}
+        batchId={batch.id}
+        batchName={batch.name}
+        mentors={mentorOptions}
+        targetMentee={mapMenteeTarget.targetMentee}
+        unmappedMentees={unmappedMentees}
       />
 
       <CreateBatchModal

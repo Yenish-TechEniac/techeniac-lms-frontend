@@ -8,6 +8,7 @@ export interface ApiBatchSummary {
   status: BatchStatus;
   startDate: string;
   endDate: string;
+  description?: string | null | undefined;
   menteesCount?: number;
   mentorsCount?: number;
   coursesCount?: number;
@@ -44,6 +45,36 @@ export interface ApiStatusHistoryEntry {
   changedBy: string;
   changedAt: string;
   reason?: string | undefined;
+}
+
+export interface ApiMentorMenteeMapping {
+  id: string;
+  batchId: string;
+  mentorId: string;
+  menteeId: string;
+  startDate: string;
+  endDate?: string | null;
+  isActive: boolean;
+  endReason?: string | null;
+  mentor?: { id: string; name: string; email: string };
+  mentee?: { id: string; name: string; email: string };
+}
+
+export interface ApiMentorMappedMentee {
+  id: string;
+  menteeId: string;
+  name?: string;
+  email?: string;
+  batchId: string;
+  batchName?: string;
+  batchCode?: string;
+  startDate: string;
+}
+
+export interface ApiMenteeBatchView {
+  batch: ApiBatchSummary | null;
+  mentor: { id: string; name: string; email: string } | null;
+  joinedAt?: string | null;
 }
 
 export interface ApiBatchDetailData {
@@ -237,5 +268,79 @@ export const batchesService = {
     await apiClient<ApiResponse<unknown>>(`/batches/${batchId}/members/${userId}`, {
       method: 'DELETE',
     });
+  },
+
+  async mapMentees(
+    batchId: string,
+    data: { mentorId: string; menteeIds: string[] },
+  ): Promise<void> {
+    await apiClient<ApiResponse<unknown>>(`/batches/${batchId}/mappings`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async reassignMentee(
+    batchId: string,
+    data: { menteeId: string; newMentorId: string; reason?: string | undefined },
+  ): Promise<void> {
+    await apiClient<ApiResponse<unknown>>(`/batches/${batchId}/mappings/reassign`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async getBatchMappings(batchId: string): Promise<ApiMentorMenteeMapping[]> {
+    const res = await apiClient<ApiResponse<{ mappings: ApiMentorMenteeMapping[] }>>(
+      `/batches/${batchId}/mappings`,
+      { method: 'GET' },
+    );
+    return res.data.mappings ?? [];
+  },
+
+  async listMentorBatches(filters: BatchQueryFilters = {}): Promise<ApiBatchSummary[]> {
+    const params: Record<string, string | number | undefined> = {};
+    if (filters.status && filters.status !== 'ALL') params.status = filters.status;
+    if (filters.search) params.search = filters.search.trim();
+    if (filters.limit) params.limit = filters.limit;
+    if (filters.page) params.page = filters.page;
+
+    const res = await apiClient<
+      ApiResponse<
+        | ApiBatchSummary[]
+        | {
+            items: ApiBatchSummary[];
+            pagination?: { page: number; limit: number; total: number; totalPages: number };
+          }
+      >
+    >('/mentor/batches', {
+      method: 'GET',
+      params,
+    });
+
+    if (Array.isArray(res.data)) return res.data;
+    if (res.data && Array.isArray(res.data.items)) return res.data.items;
+    return [];
+  },
+
+  async getMentorMentees(batchId?: string): Promise<ApiMentorMappedMentee[]> {
+    const params: Record<string, string | undefined> = {};
+    if (batchId) params.batchId = batchId;
+
+    const res = await apiClient<ApiResponse<{ mentees: ApiMentorMappedMentee[] }>>(
+      '/mentor/mentees',
+      {
+        method: 'GET',
+        params,
+      },
+    );
+    return res.data.mentees ?? [];
+  },
+
+  async getMyBatch(): Promise<ApiMenteeBatchView> {
+    const res = await apiClient<ApiResponse<ApiMenteeBatchView>>('/mentee/batch', {
+      method: 'GET',
+    });
+    return res.data;
   },
 };

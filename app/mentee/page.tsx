@@ -5,11 +5,15 @@ import React from 'react';
 import { MENTEE_PORTAL_NAV } from '@/components/app/navigation/portal-nav.config';
 import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
 import { Header } from '@/components/layout/Header';
+import { Alert } from '@/components/ui/Alert';
 import { H1, H2, H3, P, Span } from '@/components/ui/Typography';
+import { useMenteeBatch } from '@/hooks/useBatches';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 
 export default function MenteePage() {
   const { user, isAuthorized, sessionError } = useRoleRedirect({ allowedRoles: ['MENTEE'] });
+
+  const { data: menteeBatchView, isLoading: isLoadingBatch, error: batchError } = useMenteeBatch();
 
   if (!isAuthorized || !user) {
     return (
@@ -19,6 +23,10 @@ export default function MenteePage() {
       />
     );
   }
+
+  const batch = menteeBatchView?.batch;
+  const mentor = menteeBatchView?.mentor;
+  const joinedAt = menteeBatchView?.joinedAt;
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
@@ -51,38 +59,151 @@ export default function MenteePage() {
           </div>
         </div>
 
-        {/* Mentee Overview Cards */}
+        {/* Global Error Banner */}
+        {batchError ? (
+          <div className="mb-6">
+            <Alert
+              variant="error"
+              title="Error Loading Cohort Enrollment"
+              message={
+                batchError.message ||
+                'An error occurred while fetching your active cohort assignment.'
+              }
+            />
+          </div>
+        ) : null}
+
+        {/* Active Cohort & Mentor Section */}
+        <div className="mb-8">
+          <div className="mb-4">
+            <H2 className="text-base font-bold text-slate-900">Your Active Cohort</H2>
+            <P variant="muted" className="text-xs text-slate-500">
+              One-batch policy: mentees belong to exactly one active training cohort (FR-5.2)
+            </P>
+          </div>
+
+          {isLoadingBatch ? (
+            <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-xs font-medium text-slate-400">
+              Loading cohort and mentor details...
+            </div>
+          ) : !batch ? (
+            <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-xs">
+              <P className="text-sm font-semibold text-slate-800">
+                Not Enrolled in an Active Batch
+              </P>
+              <P className="mt-1 text-xs text-slate-500">
+                You are not currently enrolled in any active cohort. Please contact your
+                administrator or program manager to receive your batch assignment.
+              </P>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+              {/* Batch Card */}
+              <div className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <Span className="text-[10px] font-bold tracking-wider text-blue-700 uppercase">
+                      Current Cohort
+                    </Span>
+                    <Span
+                      className={`inline-block rounded-full px-2.5 py-0.5 font-mono text-[11px] font-bold uppercase ${
+                        batch.status === 'LIVE'
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : batch.status === 'DRAFT'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-slate-200 text-slate-700'
+                      }`}
+                    >
+                      {batch.status}
+                    </Span>
+                  </div>
+                  <H3 className="mt-3 text-xl font-bold text-slate-900">{batch.name}</H3>
+                  <Span className="mt-1 inline-block rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 font-mono text-xs font-bold text-slate-700">
+                    {batch.code}
+                  </Span>
+                  {batch.description ? (
+                    <P className="mt-2 text-xs leading-relaxed text-slate-600">
+                      {batch.description}
+                    </P>
+                  ) : null}
+                </div>
+
+                <div className="mt-6 border-t border-slate-100 pt-4 text-xs">
+                  <div className="flex items-center justify-between text-slate-500">
+                    <Span>Timeline Window:</Span>
+                    <Span className="font-mono font-semibold text-slate-800">
+                      {batch.startDate} → {batch.endDate}
+                    </Span>
+                  </div>
+                  {joinedAt ? (
+                    <div className="mt-2 flex items-center justify-between text-slate-500">
+                      <Span>Enrolled Date:</Span>
+                      <Span className="font-mono font-semibold text-slate-800">
+                        {joinedAt.slice(0, 10)}
+                      </Span>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+
+              {/* Mentor Card */}
+              <div className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <Span className="text-[10px] font-bold tracking-wider text-purple-700 uppercase">
+                      Dedicated Mentor
+                    </Span>
+                    <Span className="inline-flex items-center rounded-full bg-purple-50 px-2 py-0.5 text-[10px] font-semibold text-purple-700">
+                      1-on-1 Guidance
+                    </Span>
+                  </div>
+                  {mentor ? (
+                    <>
+                      <H3 className="mt-3 text-xl font-bold text-slate-900">{mentor.name}</H3>
+                      <P className="mt-1 font-mono text-xs text-slate-500">{mentor.email}</P>
+                      <P className="mt-3 text-xs leading-relaxed text-slate-600">
+                        Your assigned mentor will guide your coursework, perform code reviews on
+                        your assignment submissions, and track your milestone completions.
+                      </P>
+                    </>
+                  ) : (
+                    <>
+                      <H3 className="mt-3 text-lg font-bold text-slate-700">
+                        Mentor Assignment in Progress
+                      </H3>
+                      <P className="mt-2 text-xs leading-relaxed text-slate-500">
+                        You have been enrolled in this cohort! Your dedicated mentor will be
+                        assigned shortly by an administrator.
+                      </P>
+                    </>
+                  )}
+                </div>
+
+                <div className="mt-6 border-t border-slate-100 pt-4 text-xs">
+                  <div className="flex items-center justify-between text-slate-500">
+                    <Span>Mentorship Status:</Span>
+                    <Span
+                      className={`font-semibold ${mentor ? 'text-emerald-700' : 'text-amber-700'}`}
+                    >
+                      {mentor ? 'Active Guidance' : 'Pending Mentor Assignment'}
+                    </Span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Learning Tracks / Modules */}
         <div className="mb-6">
           <H2 className="text-base font-bold text-slate-900">Your Learning Tracks</H2>
           <P variant="muted" className="text-xs text-slate-500">
-            Enrolled courses, submissions, and mentor support
+            Enrolled courses, submissions, and milestone tracking
           </P>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {/* Card 1: My Cohort */}
-          <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-            <div>
-              <div className="flex items-center justify-between">
-                <Span className="text-[10px] font-bold tracking-wider text-blue-700 uppercase">
-                  Batch & Mentor
-                </Span>
-                <Span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
-                  Module 2
-                </Span>
-              </div>
-              <H3 className="mt-2 text-base font-bold text-slate-900">Assigned Cohort</H3>
-              <P className="mt-1 text-xs leading-relaxed text-slate-600">
-                You will be assigned to a cohort and paired with an expert mentor when Module 2 is
-                active.
-              </P>
-            </div>
-            <div className="mt-4 border-t border-slate-100 pt-3">
-              <Span className="text-[11px] text-slate-400">Enrollment pending batch launch</Span>
-            </div>
-          </div>
-
-          {/* Card 2: Course Progress */}
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          {/* Card 1: Course Progress */}
           <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
             <div>
               <div className="flex items-center justify-between">
@@ -99,28 +220,29 @@ export default function MenteePage() {
               </P>
             </div>
             <div className="mt-4 border-t border-slate-100 pt-3">
-              <Span className="text-[11px] text-slate-400">Courses upcoming</Span>
+              <Span className="text-[11px] text-slate-400">Curriculum catalog upcoming</Span>
             </div>
           </div>
 
-          {/* Card 3: Assignments */}
+          {/* Card 2: Assignments & Deadlines */}
           <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
             <div>
               <div className="flex items-center justify-between">
                 <Span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
-                  Assignments
+                  Tasks
                 </Span>
                 <Span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
                   Module 4
                 </Span>
               </div>
-              <H3 className="mt-2 text-base font-bold text-slate-900">Tasks & Submissions</H3>
+              <H3 className="mt-2 text-base font-bold text-slate-900">Assignments & Due Dates</H3>
               <P className="mt-1 text-xs leading-relaxed text-slate-600">
-                Submit assignments for code review and receive direct feedback from your mentor.
+                Submit assignment deliverables, review mentor feedback, and track your submission
+                history.
               </P>
             </div>
             <div className="mt-4 border-t border-slate-100 pt-3">
-              <Span className="text-[11px] text-slate-400">No pending submissions</Span>
+              <Span className="text-[11px] text-slate-400">No active assignment deadlines</Span>
             </div>
           </div>
         </div>

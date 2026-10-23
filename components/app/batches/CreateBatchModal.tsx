@@ -3,8 +3,10 @@
 import React, { useState } from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
+import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
+import { Form } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Textarea } from '@/components/ui/Textarea';
@@ -88,22 +90,15 @@ export function CreateBatchModal({ isOpen, onClose, onSuccess }: CreateBatchModa
         </>
       }
     >
-      <form
+      <Form
         id="create-batch-form"
         onSubmit={(e) => {
           void handleSubmit(e);
         }}
         className="space-y-4"
-        noValidate
       >
         {errors.general ? (
-          <div
-            role="alert"
-            className="flex items-start gap-2 rounded-xl border border-red-300 bg-red-50 p-3.5 text-xs text-red-800"
-          >
-            <Span className="mt-0.5 text-sm">⚠️</Span>
-            <P className="text-xs leading-relaxed font-semibold text-red-800">{errors.general}</P>
-          </div>
+          <Alert variant="error" title="Batch Creation Failed" message={errors.general} />
         ) : null}
 
         {/* Name */}
@@ -195,7 +190,7 @@ export function CreateBatchModal({ isOpen, onClose, onSuccess }: CreateBatchModa
             before making the batch Live for mentees.
           </P>
         </div>
-      </form>
+      </Form>
     </Modal>
   );
 }

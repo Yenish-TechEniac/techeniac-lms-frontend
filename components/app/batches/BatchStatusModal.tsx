@@ -3,7 +3,9 @@
 import React, { useState } from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
+import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
+import { Form } from '@/components/ui/Form';
 import { Label } from '@/components/ui/Label';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
@@ -116,23 +118,14 @@ export function BatchStatusModal({
         </>
       }
     >
-      <form
+      <Form
         id="status-change-form"
         onSubmit={(e) => {
           void handleSubmit(e);
         }}
         className="space-y-4"
-        noValidate
       >
-        {error ? (
-          <div
-            role="alert"
-            className="flex items-start gap-2 rounded-xl border border-red-300 bg-red-50 p-3.5 text-xs text-red-800"
-          >
-            <Span className="mt-0.5 text-sm">⚠️</Span>
-            <P className="text-xs leading-relaxed font-semibold text-red-800">{error}</P>
-          </div>
-        ) : null}
+        {error ? <Alert variant="error" title="Status Change Failed" message={error} /> : null}
 
         {/* Current Status Pill */}
         <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-xs">
@@ -193,7 +186,7 @@ export function BatchStatusModal({
             placeholder="Record the operational reason for this status change..."
           />
         </div>
-      </form>
+      </Form>
     </Modal>
   );
 }

@@ -17,6 +17,10 @@ export const batchKeys = {
   details: () => [...batchKeys.all, 'detail'] as const,
   detail: (id: string) => [...batchKeys.details(), id] as const,
   available: () => [...batchKeys.all, 'available'] as const,
+  mappings: (id: string) => [...batchKeys.detail(id), 'mappings'] as const,
+  mentorBatches: (filters?: BatchQueryFilters) => ['mentor', 'batches', filters] as const,
+  mentorMentees: (batchId?: string) => ['mentor', 'mentees', batchId] as const,
+  menteeBatch: () => ['mentee', 'batch'] as const,
 };
 
 export function useBatchesList(filters: BatchQueryFilters = {}) {
@@ -117,5 +121,68 @@ export function useRemoveBatchMemberMutation() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: batchKeys.all });
     },
+  });
+}
+
+export function useBatchMappings(batchId: string) {
+  return useQuery({
+    queryKey: batchKeys.mappings(batchId),
+    queryFn: () => batchesService.getBatchMappings(batchId),
+    enabled: Boolean(batchId),
+  });
+}
+
+export function useMapMenteesMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (variables: { batchId: string; mentorId: string; menteeIds: string[] }) =>
+      batchesService.mapMentees(variables.batchId, {
+        mentorId: variables.mentorId,
+        menteeIds: variables.menteeIds,
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: batchKeys.all });
+    },
+  });
+}
+
+export function useReassignMenteeMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (variables: {
+      batchId: string;
+      menteeId: string;
+      newMentorId: string;
+      reason?: string | undefined;
+    }) =>
+      batchesService.reassignMentee(variables.batchId, {
+        menteeId: variables.menteeId,
+        newMentorId: variables.newMentorId,
+        reason: variables.reason,
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: batchKeys.all });
+    },
+  });
+}
+
+export function useMentorBatches(filters: BatchQueryFilters = {}) {
+  return useQuery({
+    queryKey: batchKeys.mentorBatches(filters),
+    queryFn: () => batchesService.listMentorBatches(filters),
+  });
+}
+
+export function useMentorMentees(batchId?: string) {
+  return useQuery({
+    queryKey: batchKeys.mentorMentees(batchId),
+    queryFn: () => batchesService.getMentorMentees(batchId),
+  });
+}
+
+export function useMenteeBatch() {
+  return useQuery({
+    queryKey: batchKeys.menteeBatch(),
+    queryFn: () => batchesService.getMyBatch(),
   });
 }
