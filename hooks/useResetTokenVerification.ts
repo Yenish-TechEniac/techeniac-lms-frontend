@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 
-import { authService, type TokenVerificationStatus } from '@/services/auth.service';
+import { authService } from '@/services/auth.service';
+
+export type TokenVerificationStatus = 'valid' | 'invalid' | 'unverifiable';
 
 export interface UseResetTokenVerificationReturn {
   status: TokenVerificationStatus | null;
@@ -34,9 +36,9 @@ export function useResetTokenVerification(token: string | null): UseResetTokenVe
 
     void authService
       .verifyResetToken(queryKey)
-      .then((status) => {
+      .then((isValid) => {
         if (!ignore) {
-          setState({ key: queryKey, status });
+          setState({ key: queryKey, status: isValid ? 'valid' : 'invalid' });
         }
       })
       .catch(() => {

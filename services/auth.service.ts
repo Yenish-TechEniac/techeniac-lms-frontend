@@ -31,11 +31,9 @@ export interface MessageResponse {
   message: string;
 }
 
-export type TokenVerificationStatus = 'valid' | 'invalid' | 'unverifiable';
-
 export interface VerifyResetTokenResponse {
   success: boolean;
-  data?: {
+  data: {
     valid: boolean;
   };
 }
@@ -101,16 +99,19 @@ export const authService = {
     return response.message;
   },
 
-  async verifyResetToken(token: string): Promise<TokenVerificationStatus> {
-    try {
-      const response = await apiClient<VerifyResetTokenResponse>('/auth/verify-reset-token', {
-        method: 'POST',
-        body: JSON.stringify({ token }),
-      });
-      return response?.data?.valid ? 'valid' : 'invalid';
-    } catch {
-      return 'unverifiable';
+  async verifyResetToken(token: string): Promise<boolean> {
+    const response = await apiClient<VerifyResetTokenResponse>('/auth/verify-reset-token', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    });
+    if (!response?.success || typeof response?.data?.valid !== 'boolean') {
+      throw new ApiError(
+        500,
+        'Invalid token verification response from server',
+        'INVALID_RESPONSE',
+      );
     }
+    return response.data.valid;
   },
 
   async changePassword(currentPassword: string, newPassword: string): Promise<string> {
