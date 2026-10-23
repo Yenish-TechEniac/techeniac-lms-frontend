@@ -212,9 +212,9 @@ export function MapMenteeModal({
                 unmappedMentees.map((mentee) => {
                   const isChecked = selectedMenteeIds.includes(mentee.id);
                   return (
-                    <label
+                    <Label
                       key={mentee.id}
-                      className={`flex cursor-pointer items-center justify-between rounded-lg p-2 text-xs transition-colors ${
+                      className={`flex cursor-pointer items-center justify-between rounded-lg p-2 text-xs font-normal transition-colors ${
                         isChecked
                           ? 'border border-blue-200 bg-blue-50 text-blue-900'
                           : 'bg-white text-slate-800 hover:bg-slate-100'
@@ -227,7 +227,7 @@ export function MapMenteeModal({
                           <Span className="text-[11px] text-slate-500">{mentee.email}</Span>
                         </div>
                       </div>
-                    </label>
+                    </Label>
                   );
                 })
               )}
