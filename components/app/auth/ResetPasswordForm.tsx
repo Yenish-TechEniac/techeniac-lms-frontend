@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import { Button, getButtonClassName } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
@@ -11,49 +11,33 @@ import { Label } from '@/components/ui/Label';
 import { H3, P } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { usePasswordCriteria } from '@/hooks/usePasswordCriteria';
+import { useResetTokenVerification } from '@/hooks/useResetTokenVerification';
 import { ApiError } from '@/lib/errors';
 import { extractZodErrors, resetPasswordSchema } from '@/lib/validation';
 
 import { PasswordCriteriaChecklist } from './PasswordCriteriaChecklist';
 import { PasswordVisibilityToggle } from './PasswordVisibilityToggle';
 
+type ResetState = 'verifying' | 'valid' | 'invalid' | 'unverifiable' | 'done';
+
 export function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
-  const { resetPassword, verifyResetToken } = useAuth();
+  const { resetPassword } = useAuth();
+  const { status, isVerifying, retry } = useResetTokenVerification(token);
+
+  const [submissionState, setSubmissionState] = useState<'done' | 'invalid' | null>(null);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [isVerifyingToken, setIsVerifyingToken] = useState<boolean>(() => Boolean(token?.trim()));
-  const [isTokenValid, setIsTokenValid] = useState<boolean | null>(() =>
-    token?.trim() ? null : false,
-  );
+
+  const state: ResetState =
+    submissionState ?? (isVerifying ? 'verifying' : (status ?? 'verifying'));
 
   const criteria = usePasswordCriteria(password);
-
-  useEffect(() => {
-    let isMounted = true;
-    const tokenVal = token?.trim();
-
-    if (!tokenVal) {
-      return;
-    }
-
-    void verifyResetToken(tokenVal).then((valid) => {
-      if (isMounted) {
-        setIsTokenValid(valid);
-        setIsVerifyingToken(false);
-      }
-    });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [token, verifyResetToken]);
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -66,35 +50,34 @@ export function ResetPasswordForm() {
       return;
     }
 
-    if (!token?.trim() || isTokenValid === false) {
+    if (!token?.trim() || state !== 'valid') {
       setErrors({
         general: 'This password reset link is invalid or has expired. Please request a new link.',
       });
-      setIsTokenValid(false);
+      setSubmissionState('invalid');
       return;
     }
 
     setIsSubmitting(true);
     try {
       await resetPassword(token.trim(), password);
-      setIsSuccess(true);
-      setIsTokenValid(false);
       if (typeof window !== 'undefined') {
         window.history.replaceState({}, '', '/reset-password');
       }
+      setSubmissionState('done');
     } catch (err) {
       const message =
         err instanceof ApiError ? err.message : 'Failed to reset password. Please try again.';
       setErrors({ general: message });
       if (err instanceof ApiError && (err.status === 400 || err.status === 401)) {
-        setIsTokenValid(false);
+        setSubmissionState('invalid');
       }
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (isVerifyingToken) {
+  if (state === 'verifying') {
     return (
       <div className="space-y-4 py-8 text-center">
         <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
@@ -103,7 +86,91 @@ export function ResetPasswordForm() {
     );
   }
 
-  if (!token?.trim() || isTokenValid === false) {
+  if (state === 'done') {
+    return (
+      <div className="space-y-6 text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-600">
+          <svg
+            className="h-8 w-8"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+
+        <div>
+          <H3 className="mb-1 text-xl font-bold text-slate-900">Password updated</H3>
+          <P className="text-sm leading-relaxed text-slate-600">
+            Your new password has been set. You can now sign in with your updated credentials.
+          </P>
+        </div>
+
+        <div className="pt-2">
+          <Link href="/login" className={getButtonClassName('primary', 'lg', 'w-full')}>
+            Sign in
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (state === 'unverifiable') {
+    return (
+      <div className="space-y-6 text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-amber-200 bg-amber-50 text-amber-600">
+          <svg
+            className="h-8 w-8"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+        </div>
+
+        <div>
+          <H3 className="mb-1 text-xl font-bold text-slate-900">Unable to verify link</H3>
+          <P className="text-sm leading-relaxed text-slate-600">
+            We could not verify your password reset link due to a network or server issue. Please
+            check your connection and try again.
+          </P>
+        </div>
+
+        <div className="space-y-3 pt-2">
+          <Button
+            type="button"
+            variant="primary"
+            size="lg"
+            className="w-full"
+            onClick={() => {
+              setSubmissionState(null);
+              retry();
+            }}
+          >
+            Try again
+          </Button>
+
+          <Link
+            href="/login"
+            className="inline-block text-sm font-semibold text-blue-600 transition-colors hover:text-blue-700"
+          >
+            &larr; Return to sign in
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (state === 'invalid') {
     return (
       <div className="space-y-6 text-center">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-amber-200 bg-amber-50 text-amber-600">
@@ -141,37 +208,6 @@ export function ResetPasswordForm() {
             className="inline-block text-sm font-semibold text-blue-600 transition-colors hover:text-blue-700"
           >
             &larr; Return to sign in
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  if (isSuccess) {
-    return (
-      <div className="space-y-6 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-600">
-          <svg
-            className="h-8 w-8"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            aria-hidden="true"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
-
-        <div>
-          <H3 className="mb-1 text-xl font-bold text-slate-900">Password updated</H3>
-          <P className="text-sm leading-relaxed text-slate-600">
-            Your new password has been set. You can now sign in with your updated credentials.
-          </P>
-        </div>
-
-        <div className="pt-2">
-          <Link href="/login" className={getButtonClassName('primary', 'lg', 'w-full')}>
-            Sign in
           </Link>
         </div>
       </div>
