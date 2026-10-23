@@ -31,6 +31,13 @@ export interface MessageResponse {
   message: string;
 }
 
+export interface VerifyResetTokenResponse {
+  success: boolean;
+  data?: {
+    valid: boolean;
+  };
+}
+
 export const authService = {
   async login(credentials: { email: string; password: string }): Promise<LoginResponse['data']> {
     const response = await apiClient<LoginResponse>('/auth/login', {
@@ -90,6 +97,18 @@ export const authService = {
       throw new ApiError(500, 'Invalid response from server', 'INVALID_RESPONSE');
     }
     return response.message;
+  },
+
+  async verifyResetToken(token: string): Promise<boolean> {
+    try {
+      const response = await apiClient<VerifyResetTokenResponse>('/auth/verify-reset-token', {
+        method: 'POST',
+        body: JSON.stringify({ token }),
+      });
+      return Boolean(response?.data?.valid);
+    } catch {
+      return false;
+    }
   },
 
   async changePassword(currentPassword: string, newPassword: string): Promise<string> {

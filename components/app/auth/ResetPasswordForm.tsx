@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { Button, getButtonClassName } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
@@ -20,7 +20,7 @@ import { PasswordVisibilityToggle } from './PasswordVisibilityToggle';
 export function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
-  const { resetPassword } = useAuth();
+  const { resetPassword, verifyResetToken } = useAuth();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -28,8 +28,32 @@ export function ResetPasswordForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isVerifyingToken, setIsVerifyingToken] = useState<boolean>(() => Boolean(token?.trim()));
+  const [isTokenValid, setIsTokenValid] = useState<boolean | null>(() =>
+    token?.trim() ? null : false,
+  );
 
   const criteria = usePasswordCriteria(password);
+
+  useEffect(() => {
+    let isMounted = true;
+    const tokenVal = token?.trim();
+
+    if (!tokenVal) {
+      return;
+    }
+
+    void verifyResetToken(tokenVal).then((valid) => {
+      if (isMounted) {
+        setIsTokenValid(valid);
+        setIsVerifyingToken(false);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [token, verifyResetToken]);
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -42,27 +66,44 @@ export function ResetPasswordForm() {
       return;
     }
 
-    if (!token) {
+    if (!token?.trim() || isTokenValid === false) {
       setErrors({
-        general: 'Invalid or missing password reset token. Please request a new link.',
+        general: 'This password reset link is invalid or has expired. Please request a new link.',
       });
+      setIsTokenValid(false);
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await resetPassword(token, password);
+      await resetPassword(token.trim(), password);
       setIsSuccess(true);
+      setIsTokenValid(false);
+      if (typeof window !== 'undefined') {
+        window.history.replaceState({}, '', '/reset-password');
+      }
     } catch (err) {
       const message =
         err instanceof ApiError ? err.message : 'Failed to reset password. Please try again.';
       setErrors({ general: message });
+      if (err instanceof ApiError && (err.status === 400 || err.status === 401)) {
+        setIsTokenValid(false);
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (!token?.trim()) {
+  if (isVerifyingToken) {
+    return (
+      <div className="space-y-4 py-8 text-center">
+        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+        <P className="text-sm font-medium text-slate-500">Verifying password reset link...</P>
+      </div>
+    );
+  }
+
+  if (!token?.trim() || isTokenValid === false) {
     return (
       <div className="space-y-6 text-center">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-amber-200 bg-amber-50 text-amber-600">
@@ -99,7 +140,7 @@ export function ResetPasswordForm() {
             href="/login"
             className="inline-block text-sm font-semibold text-blue-600 transition-colors hover:text-blue-700"
           >
-            ← Return to sign in
+            &larr; Return to sign in
           </Link>
         </div>
       </div>
