@@ -248,18 +248,18 @@ export function AssignmentEditor({
       <div className="flex flex-col gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <span className="rounded bg-purple-100 px-2 py-0.5 text-[10px] font-bold text-purple-800 uppercase">
+            <span className="rounded bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-800 uppercase">
               {assignment.scope} Task
             </span>
             <span className="font-mono text-xs text-slate-400">#{assignment.id.slice(0, 8)}</span>
           </div>
-          <h2 className="mt-1 text-xl font-bold text-slate-900">{assignment.title}</h2>
+          <h2 className="mt-1 text-2xl font-bold text-slate-900">{assignment.title}</h2>
         </div>
 
         <div className="flex items-center gap-3">
           {saveSuccess && (
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            <span className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-600">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
               Saved Live
             </span>
           )}
@@ -270,7 +270,7 @@ export function AssignmentEditor({
             onClick={() => {
               void handleSave();
             }}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-slate-800 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-slate-800 disabled:opacity-50"
           >
             {isSaving ? 'Saving...' : 'Save Changes'}
           </button>
@@ -292,7 +292,7 @@ export function AssignmentEditor({
       )}
 
       {errorMsg && (
-        <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+        <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
           {errorMsg}
         </div>
       )}
@@ -308,7 +308,7 @@ export function AssignmentEditor({
         <div className="space-y-6 lg:col-span-7">
           {/* Assignment Title */}
           <div>
-            <label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
+            <label className="block text-sm font-bold tracking-wide text-slate-800 uppercase">
               Assignment Title *
             </label>
             <input
@@ -316,7 +316,7 @@ export function AssignmentEditor({
               value={title}
               onChange={(e) => handleChange(() => setTitle(e.target.value))}
               placeholder="e.g. Build a Raft Distributed Consensus Node"
-              className="mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+              className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-base text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
             />
           </div>
 

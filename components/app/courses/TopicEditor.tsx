@@ -237,16 +237,16 @@ export function TopicEditor({
     <div className="flex h-full flex-col overflow-y-auto p-4 sm:p-6">
       <div className="flex flex-col gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <span className="block text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+          <span className="block text-xs font-bold tracking-wider text-slate-500 uppercase">
             Topic Parameters
           </span>
-          <h2 className="text-xl font-bold text-slate-900">{topic.title}</h2>
+          <h2 className="text-2xl font-bold text-slate-900">{topic.title}</h2>
         </div>
 
         <div className="flex items-center gap-3">
           {saveSuccess && (
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            <span className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-600">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
               Saved Live
             </span>
           )}
@@ -257,7 +257,7 @@ export function TopicEditor({
             onClick={() => {
               void handleSave();
             }}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-slate-800 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-slate-800 disabled:opacity-50"
           >
             {isSaving ? 'Saving...' : 'Save Changes'}
           </button>
@@ -279,7 +279,7 @@ export function TopicEditor({
       )}
 
       {errorMsg && (
-        <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+        <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
           {errorMsg}
         </div>
       )}
@@ -289,10 +289,10 @@ export function TopicEditor({
         onSubmit={(e) => {
           void handleSave(e);
         }}
-        className="mt-6 max-w-2xl space-y-5"
+        className="mt-6 max-w-2xl space-y-6"
       >
         <div>
-          <label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
+          <label className="block text-sm font-bold tracking-wide text-slate-800 uppercase">
             Topic Title *
           </label>
           <input
@@ -300,12 +300,12 @@ export function TopicEditor({
             value={title}
             onChange={(e) => handleChange(() => setTitle(e.target.value))}
             placeholder="e.g. Branching & Trunk Strategies"
-            className="mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+            className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-base text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
+          <label className="block text-sm font-bold tracking-wide text-slate-800 uppercase">
             Description
           </label>
           <textarea
@@ -313,17 +313,17 @@ export function TopicEditor({
             value={description}
             onChange={(e) => handleChange(() => setDescription(e.target.value))}
             placeholder="Brief scope of this topic..."
-            className="mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+            className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
+          <label className="block text-sm font-bold tracking-wide text-slate-800 uppercase">
             Estimated Duration
           </label>
-          <div className="mt-1.5 grid max-w-xs grid-cols-2 gap-3">
+          <div className="mt-2 grid max-w-xs grid-cols-2 gap-3">
             <div>
-              <label className="block text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
+              <label className="block text-xs font-bold tracking-wider text-slate-600 uppercase">
                 Hours
               </label>
               <div className="relative mt-1">
@@ -333,7 +333,7 @@ export function TopicEditor({
                   value={durationHours}
                   onChange={(e) => handleChange(() => setDurationHours(e.target.value))}
                   placeholder="0"
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 pr-10 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 pr-10 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
                 />
                 <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
                   hrs
@@ -341,7 +341,7 @@ export function TopicEditor({
               </div>
             </div>
             <div>
-              <label className="block text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
+              <label className="block text-xs font-bold tracking-wider text-slate-600 uppercase">
                 Minutes
               </label>
               <div className="relative mt-1">
@@ -359,7 +359,7 @@ export function TopicEditor({
                     handleChange(() => setDurationMinutes(sanitized));
                   }}
                   placeholder="0"
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 pr-10 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 pr-10 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
                 />
                 <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
                   mins
@@ -367,7 +367,7 @@ export function TopicEditor({
               </div>
             </div>
           </div>
-          <span className="mt-1.5 block text-xs text-slate-500">
+          <span className="mt-1.5 block text-xs font-medium text-slate-600">
             {totalEstimatedMins !== null && totalEstimatedMins > 0
               ? `${totalEstimatedMins} minutes total (${Math.floor(totalEstimatedMins / 60)}h ${totalEstimatedMins % 60}m)`
               : 'Optional'}

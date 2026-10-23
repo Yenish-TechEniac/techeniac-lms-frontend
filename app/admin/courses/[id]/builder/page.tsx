@@ -28,7 +28,6 @@ function CourseBuilderContent() {
   const {
     course,
     impact,
-    isLoading: loading,
     reloadCourse,
     updateCourse,
     createTopic,
@@ -89,8 +88,8 @@ function CourseBuilderContent() {
   } | null>(null);
   const [isDeletingNode, setIsDeletingNode] = useState(false);
 
-  // Reorder loading state
-  const [reorderingId, setReorderingId] = useState<string | null>(null);
+  // Reorder loading state - array of active reordering IDs for non-blocking concurrent reorders
+  const [reorderingIds, setReorderingIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (!isLoading) {
@@ -127,16 +126,26 @@ function CourseBuilderContent() {
     }
   };
 
+  // Reorder states
+  const [isReorderingTopics, setIsReorderingTopics] = useState(false);
+  const [reorderingSubtopicTopicIds, setReorderingSubtopicTopicIds] = useState<string[]>([]);
+  const [reorderingTopicAssignmentTopicIds, setReorderingTopicAssignmentTopicIds] = useState<
+    string[]
+  >([]);
+  const [isReorderingCourseAssignments, setIsReorderingCourseAssignments] = useState(false);
+
   // Reorder handlers
   const handleReorderTopics = async (targetId: string, orderedIds: string[]) => {
-    setReorderingId(targetId);
+    setIsReorderingTopics(true);
+    setReorderingIds((prev) => (prev.includes(targetId) ? prev : [...prev, targetId]));
     const items = orderedIds.map((id, index) => ({ id, displayOrder: index }));
     try {
       await reorderTopics(items);
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : 'Failed to reorder topics');
     } finally {
-      setReorderingId(null);
+      setIsReorderingTopics(false);
+      setReorderingIds((prev) => prev.filter((id) => id !== targetId));
     }
   };
 
@@ -145,26 +154,44 @@ function CourseBuilderContent() {
     topicId: string,
     orderedIds: string[],
   ) => {
-    setReorderingId(targetId);
+    setReorderingSubtopicTopicIds((prev) => (prev.includes(topicId) ? prev : [...prev, topicId]));
+    setReorderingIds((prev) => (prev.includes(targetId) ? prev : [...prev, targetId]));
     const items = orderedIds.map((id, index) => ({ id, displayOrder: index }));
     try {
       await reorderSubtopics(topicId, items);
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : 'Failed to reorder subtopics');
     } finally {
-      setReorderingId(null);
+      setReorderingSubtopicTopicIds((prev) => prev.filter((id) => id !== topicId));
+      setReorderingIds((prev) => prev.filter((id) => id !== targetId));
     }
   };
 
-  const handleReorderAssignments = async (targetId: string, orderedIds: string[]) => {
-    setReorderingId(targetId);
+  const handleReorderAssignments = async (
+    targetId: string,
+    orderedIds: string[],
+    topicId?: string,
+  ) => {
+    if (topicId) {
+      setReorderingTopicAssignmentTopicIds((prev) =>
+        prev.includes(topicId) ? prev : [...prev, topicId],
+      );
+    } else {
+      setIsReorderingCourseAssignments(true);
+    }
+    setReorderingIds((prev) => (prev.includes(targetId) ? prev : [...prev, targetId]));
     const items = orderedIds.map((id, index) => ({ id, displayOrder: index }));
     try {
       await reorderAssignments(items);
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : 'Failed to reorder assignments');
     } finally {
-      setReorderingId(null);
+      if (topicId) {
+        setReorderingTopicAssignmentTopicIds((prev) => prev.filter((id) => id !== topicId));
+      } else {
+        setIsReorderingCourseAssignments(false);
+      }
+      setReorderingIds((prev) => prev.filter((id) => id !== targetId));
     }
   };
 
@@ -331,7 +358,7 @@ function CourseBuilderContent() {
     }
   };
 
-  if (loading || !course) {
+  if (!course) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-2">
@@ -454,7 +481,7 @@ function CourseBuilderContent() {
         <div className="flex items-center gap-2 truncate sm:gap-3">
           <Link
             href="/admin/courses"
-            className="rounded-lg p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+            className="rounded-lg p-1 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900"
             title="Return to Course Library"
           >
             &larr; Library
@@ -462,14 +489,14 @@ function CourseBuilderContent() {
 
           <span className="h-4 w-px bg-slate-200" />
 
-          <div className="flex items-center gap-1.5 truncate text-xs font-semibold text-slate-500 sm:gap-2">
+          <div className="flex items-center gap-1.5 truncate text-sm font-semibold text-slate-500 sm:gap-2">
             <span className="hidden sm:inline">Course Builder</span>
             <span className="hidden sm:inline">/</span>
             <span className="truncate font-bold text-slate-900">{course.title}</span>
           </div>
 
           <span
-            className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+            className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
               course.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'
             }`}
           >
@@ -505,39 +532,24 @@ function CourseBuilderContent() {
             )}
           </button>
         </div>
-
-        {/* Live Editing Protocol Reminder (FR-6.8) */}
-        <div className="flex items-center gap-2 text-xs sm:gap-3">
-          <div className="hidden items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 font-mono text-[11px] text-slate-600 sm:inline-flex">
-            <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-            Live Auto-Publish Enabled
-          </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              void reloadCourse();
-            }}
-            title="Reload latest from server"
-            className="rounded-lg border border-slate-200 p-1.5 text-slate-600 hover:bg-slate-50"
-          >
-            &#x21bb;
-          </button>
-        </div>
       </div>
 
       {/* Dual Pane Layout: 320px Left Tree + Fluid Right Editor on lg+; Switched tabs on <lg */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Pane: Outline Tree */}
         <div
-          className={`w-full lg:flex lg:w-80 lg:shrink-0 lg:flex-col ${
+          className={`w-full lg:flex lg:w-[350px] lg:flex-none lg:flex-col ${
             mobileTab === 'outline' ? 'flex flex-1 flex-col overflow-hidden' : 'hidden'
           }`}
         >
           <CourseOutlineTree
             course={course}
             selectedNode={selectedNode}
-            reorderingId={reorderingId}
+            reorderingIds={reorderingIds}
+            isReorderingTopics={isReorderingTopics}
+            isReorderingCourseAssignments={isReorderingCourseAssignments}
+            reorderingSubtopicTopicIds={reorderingSubtopicTopicIds}
+            reorderingTopicAssignmentTopicIds={reorderingTopicAssignmentTopicIds}
             onSelectNode={handleSelectNode}
             onAddTopic={() => setIsAddTopicOpen(true)}
             onAddSubtopic={(topicId) => {
@@ -560,8 +572,8 @@ function CourseBuilderContent() {
             onReorderSubtopics={(targetId, topicId, orderedIds) => {
               void handleReorderSubtopics(targetId, topicId, orderedIds);
             }}
-            onReorderAssignments={(targetId, orderedIds) => {
-              void handleReorderAssignments(targetId, orderedIds);
+            onReorderAssignments={(targetId, orderedIds, topicId) => {
+              void handleReorderAssignments(targetId, orderedIds, topicId);
             }}
             onRequestDeleteNode={(type, id, title) => setDeleteTarget({ type, id, title })}
           />

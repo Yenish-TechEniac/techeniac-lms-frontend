@@ -125,7 +125,6 @@ export function useCourseBuilder(courseId: string) {
   const [error, setError] = useState<string | null>(null);
 
   const reloadCourse = useCallback(async () => {
-    setIsLoading(true);
     try {
       const data = await coursesService.getCourseById(courseId, true);
       setCourse(data);
@@ -135,8 +134,6 @@ export function useCourseBuilder(courseId: string) {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to load course';
       setError(msg);
-    } finally {
-      setIsLoading(false);
     }
   }, [courseId]);
 
@@ -199,6 +196,14 @@ export function useCourseBuilder(courseId: string) {
   };
 
   const reorderTopics = async (items: ReorderItemInput[]): Promise<void> => {
+    setCourse((prev) => {
+      if (!prev || !prev.topics) return prev;
+      const orderMap = new Map(items.map((it) => [it.id, it.displayOrder]));
+      const sortedTopics = [...prev.topics]
+        .map((t) => ({ ...t, displayOrder: orderMap.get(t.id) ?? t.displayOrder }))
+        .sort((a, b) => a.displayOrder - b.displayOrder);
+      return { ...prev, topics: sortedTopics };
+    });
     await coursesService.reorderTopics(courseId, items);
     await reloadCourse();
   };
@@ -233,6 +238,18 @@ export function useCourseBuilder(courseId: string) {
   };
 
   const reorderSubtopics = async (topicId: string, items: ReorderItemInput[]): Promise<void> => {
+    setCourse((prev) => {
+      if (!prev || !prev.topics) return prev;
+      const orderMap = new Map(items.map((it) => [it.id, it.displayOrder]));
+      const updatedTopics = prev.topics.map((t) => {
+        if (t.id !== topicId || !t.subtopics) return t;
+        const sortedSubtopics = [...t.subtopics]
+          .map((s) => ({ ...s, displayOrder: orderMap.get(s.id) ?? s.displayOrder }))
+          .sort((a, b) => a.displayOrder - b.displayOrder);
+        return { ...t, subtopics: sortedSubtopics };
+      });
+      return { ...prev, topics: updatedTopics };
+    });
     await coursesService.reorderSubtopics(topicId, items);
     await reloadCourse();
   };
@@ -273,6 +290,27 @@ export function useCourseBuilder(courseId: string) {
   };
 
   const reorderAssignments = async (items: ReorderItemInput[]): Promise<void> => {
+    setCourse((prev) => {
+      if (!prev) return prev;
+      const orderMap = new Map(items.map((it) => [it.id, it.displayOrder]));
+      const currentCourseAssigns = prev.courseAssignments || prev.assignments || [];
+      const updatedCourseAssigns = currentCourseAssigns
+        .map((a) => ({ ...a, displayOrder: orderMap.get(a.id) ?? a.displayOrder }))
+        .sort((a, b) => a.displayOrder - b.displayOrder);
+      const updatedTopics = prev.topics?.map((t) => {
+        if (!t.assignments) return t;
+        const sortedTopicAssigns = [...t.assignments]
+          .map((a) => ({ ...a, displayOrder: orderMap.get(a.id) ?? a.displayOrder }))
+          .sort((a, b) => a.displayOrder - b.displayOrder);
+        return { ...t, assignments: sortedTopicAssigns };
+      });
+      return {
+        ...prev,
+        assignments: updatedCourseAssigns,
+        courseAssignments: updatedCourseAssigns,
+        topics: updatedTopics,
+      };
+    });
     await coursesService.reorderAssignments(courseId, items);
     await reloadCourse();
   };

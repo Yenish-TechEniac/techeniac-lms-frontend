@@ -228,16 +228,16 @@ export function SubtopicEditor({
       {/* Top Header */}
       <div className="flex flex-col gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <span className="block text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+          <span className="block text-xs font-bold tracking-wider text-slate-500 uppercase">
             Subtopic Lesson Editor
           </span>
-          <h2 className="text-xl font-bold text-slate-900">{subtopic.title}</h2>
+          <h2 className="text-2xl font-bold text-slate-900">{subtopic.title}</h2>
         </div>
 
         <div className="flex items-center gap-3">
           {saveSuccess && (
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            <span className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-600">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
               Saved Live
             </span>
           )}
@@ -248,7 +248,7 @@ export function SubtopicEditor({
             onClick={() => {
               void handleSave();
             }}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-slate-800 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-slate-800 disabled:opacity-50"
           >
             {isSaving ? 'Saving...' : 'Save Changes'}
           </button>
@@ -269,7 +269,7 @@ export function SubtopicEditor({
       )}
 
       {errorMsg && (
-        <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+        <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
           {errorMsg}
         </div>
       )}
@@ -283,7 +283,7 @@ export function SubtopicEditor({
         className="mt-6 max-w-3xl space-y-6"
       >
         <div>
-          <label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
+          <label className="block text-sm font-bold tracking-wide text-slate-800 uppercase">
             Subtopic Title *
           </label>
           <input
@@ -291,17 +291,17 @@ export function SubtopicEditor({
             value={title}
             onChange={(e) => handleChange(() => setTitle(e.target.value))}
             placeholder="e.g. Interactive Rebase and Squash Commits"
-            className="mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+            className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-base text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
+          <label className="block text-sm font-bold tracking-wide text-slate-800 uppercase">
             Estimated Duration
           </label>
-          <div className="mt-1.5 grid max-w-xs grid-cols-2 gap-3">
+          <div className="mt-2 grid max-w-xs grid-cols-2 gap-3">
             <div>
-              <label className="block text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
+              <label className="block text-xs font-bold tracking-wider text-slate-600 uppercase">
                 Hours
               </label>
               <div className="relative mt-1">
@@ -311,7 +311,7 @@ export function SubtopicEditor({
                   value={durationHours}
                   onChange={(e) => handleChange(() => setDurationHours(e.target.value))}
                   placeholder="0"
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 pr-10 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 pr-10 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
                 />
                 <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
                   hrs
@@ -319,7 +319,7 @@ export function SubtopicEditor({
               </div>
             </div>
             <div>
-              <label className="block text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
+              <label className="block text-xs font-bold tracking-wider text-slate-600 uppercase">
                 Minutes
               </label>
               <div className="relative mt-1">
@@ -337,7 +337,7 @@ export function SubtopicEditor({
                     handleChange(() => setDurationMinutes(sanitized));
                   }}
                   placeholder="0"
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 pr-10 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 pr-10 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
                 />
                 <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
                   mins
@@ -345,7 +345,7 @@ export function SubtopicEditor({
               </div>
             </div>
           </div>
-          <span className="mt-1.5 block text-xs text-slate-500">
+          <span className="mt-1.5 block text-xs font-medium text-slate-600">
             {totalEstimatedMins !== null && totalEstimatedMins > 0
               ? `${totalEstimatedMins} minutes total (${Math.floor(totalEstimatedMins / 60)}h ${totalEstimatedMins % 60}m)`
               : 'Optional'}
@@ -369,14 +369,14 @@ export function SubtopicEditor({
         {/* Content Area with Editor / Preview Tabs */}
         <div>
           <div className="flex items-center justify-between">
-            <label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
+            <label className="block text-sm font-bold tracking-wide text-slate-800 uppercase">
               Lesson Content & Instructions (Rich Text)
             </label>
             <div className="inline-flex rounded-lg border border-slate-200 bg-slate-100 p-0.5 text-xs">
               <button
                 type="button"
                 onClick={() => setActiveTab('editor')}
-                className={`rounded-md px-2.5 py-1 font-semibold transition-colors ${
+                className={`rounded-md px-3 py-1.5 font-semibold transition-colors ${
                   activeTab === 'editor'
                     ? 'bg-white text-slate-900 shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
@@ -387,7 +387,7 @@ export function SubtopicEditor({
               <button
                 type="button"
                 onClick={() => setActiveTab('preview')}
-                className={`rounded-md px-2.5 py-1 font-semibold transition-colors ${
+                className={`rounded-md px-3 py-1.5 font-semibold transition-colors ${
                   activeTab === 'preview'
                     ? 'bg-white text-slate-900 shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
@@ -404,7 +404,7 @@ export function SubtopicEditor({
               value={content}
               onChange={(e) => handleChange(() => setContent(e.target.value))}
               placeholder="Enter markdown lesson content, instructions, command code blocks..."
-              className="mt-2 w-full rounded-xl border border-slate-300 bg-white p-4 font-mono text-xs leading-relaxed text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+              className="mt-2 w-full rounded-xl border border-slate-300 bg-white p-4 font-mono text-sm leading-relaxed text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
             />
           ) : (
             <div className="mt-2 min-h-[260px] rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
@@ -423,8 +423,8 @@ export function SubtopicEditor({
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-slate-900">Resource Links & Attachments</h3>
-              <p className="text-[11px] text-slate-500">
+              <h3 className="text-base font-bold text-slate-900">Resource Links & Attachments</h3>
+              <p className="text-xs text-slate-500">
                 Supplementary links, documentation references, and download URLs saved as jsonb.
               </p>
             </div>
@@ -485,7 +485,7 @@ export function SubtopicEditor({
           )}
 
           {/* Add Resource Inputs */}
-          <div className="mt-4 grid grid-cols-1 gap-2 border-t border-slate-100 pt-3 sm:grid-cols-12">
+          <div className="mt-4 grid grid-cols-1 gap-2.5 border-t border-slate-100 pt-3.5 sm:grid-cols-12">
             <div className="sm:col-span-4">
               <input
                 type="text"
@@ -495,7 +495,7 @@ export function SubtopicEditor({
                   setNewResourceTitle(e.target.value);
                   if (errorMsg) setErrorMsg(null);
                 }}
-                className="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
               />
             </div>
             <div className="sm:col-span-5">
@@ -507,14 +507,14 @@ export function SubtopicEditor({
                   setNewResourceUrl(e.target.value);
                   if (errorMsg) setErrorMsg(null);
                 }}
-                className="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
               />
             </div>
             <div className="sm:col-span-2">
               <select
                 value={newResourceType}
                 onChange={(e) => setNewResourceType(e.target.value as 'LINK' | 'ATTACHMENT')}
-                className="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-xs text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                className="w-full rounded-lg border border-slate-300 px-2.5 py-2 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
               >
                 <option value="LINK">LINK</option>
                 <option value="ATTACHMENT">FILE</option>
@@ -524,7 +524,7 @@ export function SubtopicEditor({
               <button
                 type="button"
                 onClick={handleAddResource}
-                className="w-full rounded-lg bg-blue-600 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-blue-700"
+                className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white shadow-xs hover:bg-blue-700"
               >
                 <span className="sm:hidden">+ Add Resource</span>
                 <span className="hidden sm:inline">+</span>
@@ -536,8 +536,8 @@ export function SubtopicEditor({
         {/* Active Toggle */}
         <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-4">
           <div>
-            <span className="block text-xs font-bold text-slate-900">Subtopic Active Status</span>
-            <span className="text-[11px] text-slate-500">
+            <span className="block text-base font-bold text-slate-900">Subtopic Active Status</span>
+            <span className="text-xs text-slate-500">
               When inactive, hidden from mentees and excluded from progress calculations.
             </span>
           </div>
