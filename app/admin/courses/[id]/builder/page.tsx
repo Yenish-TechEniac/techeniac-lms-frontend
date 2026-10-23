@@ -51,6 +51,7 @@ function CourseBuilderContent() {
     id: courseId,
   });
   const [pendingSelection, setPendingSelection] = useState<ActiveNodeSelection | null>(null);
+  const [mobileTab, setMobileTab] = useState<'outline' | 'editor'>('outline');
 
   // Form states
   const [isDirty, setIsDirty] = useState(false);
@@ -104,6 +105,7 @@ function CourseBuilderContent() {
   // Node Selection with Unsaved Changes Guard (FR-6.14, CRS-22)
   const handleSelectNode = (selection: ActiveNodeSelection) => {
     if (selection.type === selectedNode.type && selection.id === selectedNode.id) {
+      setMobileTab('editor');
       return;
     }
     if (isDirty) {
@@ -112,6 +114,7 @@ function CourseBuilderContent() {
       return;
     }
     setSelectedNode(selection);
+    setMobileTab('editor');
   };
 
   const confirmDiscardChanges = () => {
@@ -120,6 +123,7 @@ function CourseBuilderContent() {
     if (pendingSelection) {
       setSelectedNode(pendingSelection);
       setPendingSelection(null);
+      setMobileTab('editor');
     }
   };
 
@@ -187,6 +191,7 @@ function CourseBuilderContent() {
       setIsAddTopicOpen(false);
       setNewTopicTitle('');
       setSelectedNode({ type: 'TOPIC', id: created.id });
+      setMobileTab('editor');
     } catch (err: unknown) {
       setTopicModalError(formatErrorMessage(err, 'Failed to create topic'));
     } finally {
@@ -219,6 +224,7 @@ function CourseBuilderContent() {
         id: created.id,
         parentTopicId: targetTopicId,
       });
+      setMobileTab('editor');
     } catch (err: unknown) {
       setSubtopicModalError(formatErrorMessage(err, 'Failed to create subtopic'));
     } finally {
@@ -295,6 +301,7 @@ function CourseBuilderContent() {
         id: created.id,
         parentTopicId: assignmentTopicId ?? undefined,
       });
+      setMobileTab('editor');
     } catch (err: unknown) {
       setAssignmentModalError(formatErrorMessage(err, 'Failed to create assignment'));
     } finally {
@@ -316,6 +323,7 @@ function CourseBuilderContent() {
       }
       setDeleteTarget(null);
       setSelectedNode({ type: 'COURSE', id: courseId });
+      setMobileTab('outline');
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : 'Failed to delete item');
     } finally {
@@ -442,8 +450,8 @@ function CourseBuilderContent() {
       <Header />
 
       {/* Builder Top Command Bar */}
-      <div className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-2.5">
-        <div className="flex items-center gap-3 truncate">
+      <div className="flex items-center justify-between border-b border-slate-200 bg-white px-3 py-2.5 sm:px-6">
+        <div className="flex items-center gap-2 truncate sm:gap-3">
           <Link
             href="/admin/courses"
             className="rounded-lg p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
@@ -454,9 +462,9 @@ function CourseBuilderContent() {
 
           <span className="h-4 w-px bg-slate-200" />
 
-          <div className="flex items-center gap-2 truncate text-xs font-semibold text-slate-500">
-            <span>Course Builder</span>
-            <span>/</span>
+          <div className="flex items-center gap-1.5 truncate text-xs font-semibold text-slate-500 sm:gap-2">
+            <span className="hidden sm:inline">Course Builder</span>
+            <span className="hidden sm:inline">/</span>
             <span className="truncate font-bold text-slate-900">{course.title}</span>
           </div>
 
@@ -469,9 +477,38 @@ function CourseBuilderContent() {
           </span>
         </div>
 
+        {/* View Switcher on < lg screens */}
+        <div className="flex items-center rounded-lg bg-slate-100 p-0.5 text-xs font-medium lg:hidden">
+          <button
+            type="button"
+            onClick={() => setMobileTab('outline')}
+            className={`rounded px-2.5 py-1 transition-colors ${
+              mobileTab === 'outline'
+                ? 'bg-white font-bold text-slate-900 shadow-xs'
+                : 'text-slate-500 hover:text-slate-900'
+            }`}
+          >
+            Outline
+          </button>
+          <button
+            type="button"
+            onClick={() => setMobileTab('editor')}
+            className={`flex items-center gap-1 rounded px-2.5 py-1 transition-colors ${
+              mobileTab === 'editor'
+                ? 'bg-white font-bold text-slate-900 shadow-xs'
+                : 'text-slate-500 hover:text-slate-900'
+            }`}
+          >
+            <span>Editor</span>
+            {isDirty && (
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" title="Unsaved changes" />
+            )}
+          </button>
+        </div>
+
         {/* Live Editing Protocol Reminder (FR-6.8) */}
-        <div className="flex items-center gap-3 text-xs">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 font-mono text-[11px] text-slate-600">
+        <div className="flex items-center gap-2 text-xs sm:gap-3">
+          <div className="hidden items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 font-mono text-[11px] text-slate-600 sm:inline-flex">
             <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
             Live Auto-Publish Enabled
           </div>
@@ -489,10 +526,14 @@ function CourseBuilderContent() {
         </div>
       </div>
 
-      {/* Dual Pane Layout: 320px Left Tree + Fluid Right Editor */}
+      {/* Dual Pane Layout: 320px Left Tree + Fluid Right Editor on lg+; Switched tabs on <lg */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Pane: Outline Tree */}
-        <div className="w-80 shrink-0">
+        <div
+          className={`w-full lg:flex lg:w-80 lg:shrink-0 lg:flex-col ${
+            mobileTab === 'outline' ? 'flex flex-1 flex-col overflow-hidden' : 'hidden'
+          }`}
+        >
           <CourseOutlineTree
             course={course}
             selectedNode={selectedNode}
@@ -527,7 +568,26 @@ function CourseBuilderContent() {
         </div>
 
         {/* Right Pane: Dynamic Editor */}
-        <div className="flex-1 overflow-hidden bg-white">{activeEditorComponent}</div>
+        <div
+          className={`w-full overflow-hidden bg-white lg:flex lg:flex-1 lg:flex-col ${
+            mobileTab === 'editor' ? 'flex flex-1 flex-col' : 'hidden'
+          }`}
+        >
+          {/* Mobile quick-return banner (< lg) */}
+          <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-4 py-2 lg:hidden">
+            <button
+              type="button"
+              onClick={() => setMobileTab('outline')}
+              className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800"
+            >
+              &larr; Back to Outline
+            </button>
+            <span className="text-[11px] font-medium tracking-wide text-slate-500 uppercase">
+              {selectedNode.type}
+            </span>
+          </div>
+          <div className="flex-1 overflow-hidden">{activeEditorComponent}</div>
+        </div>
       </div>
 
       {/* Unsaved Changes Guard Modal (FR-6.14, CRS-22) */}
@@ -570,7 +630,7 @@ function CourseBuilderContent() {
       {/* Add Topic Modal */}
       {isAddTopicOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+          <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
             <h3 className="text-base font-bold text-slate-900">Add New Topic</h3>
 
             {topicModalError && (
@@ -632,7 +692,7 @@ function CourseBuilderContent() {
       {/* Add Subtopic Modal */}
       {isAddSubtopicOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+          <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
             <h3 className="text-base font-bold text-slate-900">Add New Subtopic Lesson</h3>
 
             {subtopicModalError && (
@@ -694,7 +754,7 @@ function CourseBuilderContent() {
       {/* Add Assignment Modal */}
       {isAddAssignmentOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+          <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
             <h3 className="text-base font-bold text-slate-900">Add {assignmentScope} Assignment</h3>
 
             {assignmentModalError && (

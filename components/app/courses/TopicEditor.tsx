@@ -234,8 +234,8 @@ export function TopicEditor({
   const affectedMentees = impact?.affectedMenteesCount ?? 0;
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto p-6">
-      <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+    <div className="flex h-full flex-col overflow-y-auto p-4 sm:p-6">
+      <div className="flex flex-col gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <span className="block text-[10px] font-bold tracking-wider text-slate-400 uppercase">
             Topic Parameters
@@ -503,7 +503,8 @@ export function TopicEditor({
                 onClick={handleAddResource}
                 className="w-full rounded-lg bg-slate-900 py-1.5 text-xs font-bold text-white hover:bg-slate-800"
               >
-                +
+                <span className="sm:hidden">+ Add Resource</span>
+                <span className="hidden sm:inline">+</span>
               </button>
             </div>
           </div>
