@@ -5,6 +5,8 @@ import React, { useState } from 'react';
 import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
 import { Label } from '@/components/ui/Label';
+import { Select } from '@/components/ui/Select';
+import { Textarea } from '@/components/ui/Textarea';
 import { P, Span } from '@/components/ui/Typography';
 import { useUpdateBatchStatusMutation } from '@/hooks/useBatches';
 import {
@@ -125,16 +127,17 @@ export function BatchStatusModal({
         {error ? (
           <div
             role="alert"
-            className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700"
+            className="flex items-start gap-2 rounded-xl border border-red-300 bg-red-50 p-3.5 text-xs text-red-800"
           >
-            <P>{error}</P>
+            <Span className="mt-0.5 text-sm">⚠️</Span>
+            <P className="text-xs leading-relaxed font-semibold text-red-800">{error}</P>
           </div>
         ) : null}
 
         {/* Current Status Pill */}
         <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-xs">
-          <Span className="font-semibold text-slate-600">Current Status:</Span>
-          <Span className="rounded-full bg-slate-200 px-2.5 py-1 font-mono font-bold text-slate-800">
+          <Span className="font-semibold text-slate-700">Current Status:</Span>
+          <Span className="rounded-full border border-slate-300 bg-slate-200 px-3 py-1 font-mono text-xs font-bold text-slate-900">
             {currentStatus}
           </Span>
         </div>
@@ -145,22 +148,22 @@ export function BatchStatusModal({
             <Label htmlFor="target-batch-status" required>
               New Allowed Status
             </Label>
-            <select
+            <Select
               id="target-batch-status"
               value={newStatus}
               onChange={(e) => setNewStatus(e.target.value as BatchStatus)}
-              className="h-11 w-full cursor-pointer rounded-[12px] border border-slate-200 bg-white px-3 font-mono text-sm font-semibold text-slate-900 transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none"
+              className="cursor-pointer font-mono text-sm font-bold text-slate-900"
             >
               {allowedNextStatuses.map((st) => (
-                <option key={st} value={st}>
+                <option key={st} value={st} className="font-sans font-medium text-slate-900">
                   {st}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
         ) : (
-          <div className="rounded-xl bg-slate-100 p-3.5 text-center text-xs font-medium text-slate-600">
-            <P className="text-xs text-slate-600">
+          <div className="rounded-xl border border-slate-200 bg-slate-100 p-3.5 text-center text-xs font-medium text-slate-600">
+            <P className="text-xs font-medium text-slate-700">
               This batch has reached final ARCHIVED status. No further state transitions are
               permitted.
             </P>
@@ -169,24 +172,25 @@ export function BatchStatusModal({
 
         {/* Impact Explainer */}
         {allowedNextStatuses.length > 0 ? (
-          <div className="space-y-1 rounded-[12px] border border-amber-200 bg-amber-50 p-3.5 text-xs leading-relaxed text-amber-900">
-            <P className="font-bold">⚠️ Lifecycle Impact:</P>
-            <P className="text-xs text-amber-900">{getStatusImpactNotice(newStatus)}</P>
+          <div className="space-y-1.5 rounded-xl border border-amber-300 bg-amber-50 p-3.5 text-xs leading-relaxed text-amber-950 shadow-xs">
+            <P className="font-bold text-amber-900">⚠️ Lifecycle Impact (PRD Section 5.3):</P>
+            <P className="text-xs leading-relaxed font-medium text-amber-950">
+              {getStatusImpactNotice(newStatus)}
+            </P>
           </div>
         ) : null}
 
         {/* Reason (Optional) */}
         <div className="space-y-1">
           <Label htmlFor="status-reason">
-            Audit Reason <Span className="text-xs font-normal text-slate-400">(optional)</Span>
+            Audit Reason <Span className="text-xs font-normal text-slate-500">(optional)</Span>
           </Label>
-          <textarea
+          <Textarea
             id="status-reason"
             rows={2}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder="Record the operational reason for this status change..."
-            className="w-full rounded-[12px] border border-slate-200 bg-white p-3 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none"
           />
         </div>
       </form>

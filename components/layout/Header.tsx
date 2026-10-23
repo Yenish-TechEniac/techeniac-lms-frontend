@@ -69,24 +69,38 @@ export function Header({
           {/* Navigation Links */}
           {nav.length > 0 ? (
             <nav className="hidden items-center gap-1 md:flex">
-              {nav.map((item) =>
-                item.active ? (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className="rounded-md bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 transition-colors"
-                  >
-                    {item.label}
-                  </Link>
-                ) : (
+              {nav.map((item) => {
+                if (item.active) {
+                  return (
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      className="rounded-md bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 transition-colors"
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                }
+                if (item.href !== '#') {
+                  return (
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      className="rounded-md px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                }
+                return (
                   <Span
                     key={item.label}
                     className="cursor-not-allowed rounded-md px-3 py-1.5 text-xs font-medium text-slate-400"
                   >
                     {item.label}
                   </Span>
-                ),
-              )}
+                );
+              })}
             </nav>
           ) : null}
         </div>

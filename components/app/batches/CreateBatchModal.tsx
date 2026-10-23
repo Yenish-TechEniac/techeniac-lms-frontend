@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
+import { Textarea } from '@/components/ui/Textarea';
 import { P, Span } from '@/components/ui/Typography';
 import { useCreateBatchMutation } from '@/hooks/useBatches';
 import { type CreateBatchFormData, createBatchSchema } from '@/lib/validation';
@@ -98,9 +99,10 @@ export function CreateBatchModal({ isOpen, onClose, onSuccess }: CreateBatchModa
         {errors.general ? (
           <div
             role="alert"
-            className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700"
+            className="flex items-start gap-2 rounded-xl border border-red-300 bg-red-50 p-3.5 text-xs text-red-800"
           >
-            <P>{errors.general}</P>
+            <Span className="mt-0.5 text-sm">⚠️</Span>
+            <P className="text-xs leading-relaxed font-semibold text-red-800">{errors.general}</P>
           </div>
         ) : null}
 
@@ -175,14 +177,13 @@ export function CreateBatchModal({ isOpen, onClose, onSuccess }: CreateBatchModa
           <Label htmlFor="batch-desc">
             Description <Span className="text-xs font-normal text-slate-400">(optional)</Span>
           </Label>
-          <textarea
+          <Textarea
             id="batch-desc"
             rows={2}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Brief objective of this training cohort..."
             disabled={isSubmitting}
-            className="w-full rounded-[12px] border border-slate-200 bg-white p-3 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none disabled:bg-slate-50 disabled:opacity-70"
           />
         </div>
 

@@ -5,6 +5,8 @@ import React, { useState } from 'react';
 import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
 import { Label } from '@/components/ui/Label';
+import { Select } from '@/components/ui/Select';
+import { Textarea } from '@/components/ui/Textarea';
 import { P, Span } from '@/components/ui/Typography';
 import { useTransferMenteeMutation } from '@/hooks/useBatches';
 
@@ -103,20 +105,21 @@ export function TransferMenteeModal({
         {error ? (
           <div
             role="alert"
-            className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700"
+            className="flex items-start gap-2 rounded-xl border border-red-300 bg-red-50 p-3.5 text-xs text-red-800"
           >
-            <P>{error}</P>
+            <Span className="mt-0.5 text-sm">⚠️</Span>
+            <P className="text-xs leading-relaxed font-semibold text-red-800">{error}</P>
           </div>
         ) : null}
 
         <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-xs">
           <div>
-            <Span className="block text-[10px] font-bold text-slate-400 uppercase">
+            <Span className="block text-[10px] font-bold text-slate-500 uppercase">
               Current Batch
             </Span>
-            <Span className="font-semibold text-slate-800">{mentee.currentBatchName}</Span>
+            <Span className="font-bold text-slate-900">{mentee.currentBatchName}</Span>
           </div>
-          <Span className="rounded bg-blue-100 px-2 py-0.5 font-mono text-[10px] font-bold text-blue-800">
+          <Span className="rounded-full border border-blue-200 bg-blue-100 px-2.5 py-0.5 font-mono text-[10px] font-bold text-blue-800">
             ONE-BATCH RULE
           </Span>
         </div>
@@ -125,24 +128,24 @@ export function TransferMenteeModal({
           <Label htmlFor="target-batch" required>
             Select Destination Batch
           </Label>
-          <select
+          <Select
             id="target-batch"
             value={targetBatchId}
             onChange={(e) => setTargetBatchId(e.target.value)}
-            className="h-11 w-full cursor-pointer rounded-[12px] border border-slate-200 bg-white px-3 text-sm font-medium text-slate-900 transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none"
+            className="cursor-pointer"
           >
             {eligibleBatches.map((b) => (
-              <option key={b.id} value={b.id}>
+              <option key={b.id} value={b.id} className="text-slate-900">
                 {b.name} ({b.code}) — {b.status}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
         {/* Transfer Policy Box (BAT-10) */}
-        <div className="space-y-1 rounded-[12px] border border-amber-200 bg-amber-50 p-3.5 text-xs leading-relaxed text-amber-900">
-          <P className="font-bold">⚠️ Transfer Impact (PRD Section 5.4 / BAT-10):</P>
-          <ul className="list-disc space-y-1 pl-4 text-slate-700">
+        <div className="space-y-1.5 rounded-xl border border-amber-300 bg-amber-50 p-3.5 text-xs leading-relaxed shadow-xs">
+          <P className="font-bold text-amber-900">⚠️ Transfer Impact (PRD Section 5.4 / BAT-10):</P>
+          <ul className="list-disc space-y-1 pl-4 text-slate-800">
             <li>
               <Span>Membership in {mentee.currentBatchName} ends (status: BATCH_TRANSFER).</Span>
             </li>
@@ -162,15 +165,14 @@ export function TransferMenteeModal({
 
         <div className="space-y-1">
           <Label htmlFor="transfer-reason">
-            Transfer Reason <Span className="text-xs font-normal text-slate-400">(optional)</Span>
+            Transfer Reason <Span className="text-xs font-normal text-slate-500">(optional)</Span>
           </Label>
-          <textarea
+          <Textarea
             id="transfer-reason"
             rows={2}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder="e.g. Schedule realignment or curriculum track adjustment..."
-            className="w-full rounded-[12px] border border-slate-200 bg-white p-3 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none"
           />
         </div>
       </form>

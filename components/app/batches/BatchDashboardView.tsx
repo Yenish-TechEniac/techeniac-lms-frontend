@@ -1,14 +1,17 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import React, { useMemo, useState } from 'react';
 
 import { AddMemberModal } from '@/components/app/batches/AddMemberModal';
 import { BatchStatusModal } from '@/components/app/batches/BatchStatusModal';
+import { CreateBatchModal } from '@/components/app/batches/CreateBatchModal';
 import {
   type BatchOption,
   TransferMenteeModal,
 } from '@/components/app/batches/TransferMenteeModal';
+import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
 import { Button } from '@/components/ui/Button';
 import { H1, H3, P, Span } from '@/components/ui/Typography';
 import {
@@ -16,6 +19,7 @@ import {
   useBatchDetail,
   useRemoveBatchMemberMutation,
 } from '@/hooks/useBatches';
+import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 import { type BatchStatus } from '@/lib/validation';
 
 export interface BatchMemberItem {
@@ -58,11 +62,15 @@ export interface BatchDetailData {
 }
 
 export function BatchDashboardView({ initialBatch }: { initialBatch: BatchDetailData }) {
+  const router = useRouter();
+  const { user, isAuthorized, sessionError } = useRoleRedirect({ allowedRoles: ['SUPER_ADMIN'] });
+
   const [activeTab, setActiveTab] = useState<'members' | 'courses' | 'timeline'>('members');
 
   // Modals state
   const [isStatusOpen, setIsStatusOpen] = useState(false);
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [menteeToTransfer, setMenteeToTransfer] = useState<{
     id: string;
     name: string;
@@ -128,6 +136,16 @@ export function BatchDashboardView({ initialBatch }: { initialBatch: BatchDetail
     // TanStack Query invalidation automatically synchronizes batch state
   };
 
+  if (!isAuthorized || !user) {
+    return (
+      <PortalSessionState
+        sessionError={sessionError}
+        loadingMessage="Verifying administrator authorization..."
+        spinnerColor="border-blue-600"
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Breadcrumb & Navigation */}
@@ -161,14 +179,28 @@ export function BatchDashboardView({ initialBatch }: { initialBatch: BatchDetail
             </Span>
           </div>
 
-          <Button
-            type="button"
-            onClick={() => setIsStatusOpen(true)}
-            className="flex h-10 items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
-          >
-            <Span>🔄</Span>
-            <Span>Change Status</Span>
-          </Button>
+          <div className="flex items-center gap-2.5">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsCreateOpen(true)}
+              className="flex items-center gap-1.5 rounded-xl border-slate-300 bg-white font-bold text-slate-800 shadow-xs hover:bg-slate-50"
+            >
+              <Span className="text-sm font-extrabold text-blue-600">+</Span>
+              <Span>Create Batch</Span>
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              onClick={() => setIsStatusOpen(true)}
+              className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-bold text-white shadow-sm shadow-blue-600/25 hover:bg-blue-700"
+            >
+              <Span>🔄</Span>
+              <Span>Change Status</Span>
+            </Button>
+          </div>
         </div>
 
         <P className="mt-1 text-sm text-slate-600">
@@ -459,6 +491,15 @@ export function BatchDashboardView({ initialBatch }: { initialBatch: BatchDetail
         onClose={() => setIsAddMemberOpen(false)}
         onSuccess={() => {}}
         existingMemberUserIds={batch.members.map((m) => m.id)}
+      />
+
+      <CreateBatchModal
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        onSuccess={() => {
+          setIsCreateOpen(false);
+          router.push('/admin/batches');
+        }}
       />
     </div>
   );

@@ -33,13 +33,24 @@ export function AddMemberModal({
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const { users: candidates, isLoading: isLoadingCandidates } = useUsers({
+  const {
+    users: candidates,
+    isLoading: isLoadingCandidates,
+    fetchUsers,
+  } = useUsers({
     role,
     status: 'active',
     limit: 100,
   });
 
   const { mutateAsync: addMembers, isPending: isSubmitting } = useAddBatchMembersMutation();
+
+  const handleRoleChange = (newRole: 'MENTEE' | 'MENTOR') => {
+    setRole(newRole);
+    setSelectedUserIds([]);
+    setSubmitError(null);
+    void fetchUsers({ role: newRole, status: 'active', limit: 100 });
+  };
 
   if (!isOpen) return null;
 
@@ -54,12 +65,6 @@ export function AddMemberModal({
     setSelectedUserIds((prev) =>
       prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId],
     );
-  };
-
-  const handleRoleChange = (newRole: 'MENTEE' | 'MENTOR') => {
-    setRole(newRole);
-    setSelectedUserIds([]);
-    setSubmitError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -88,24 +93,36 @@ export function AddMemberModal({
       isOpen={isOpen}
       onClose={onClose}
       title="Add Batch Members"
-      description={`Enroll mentors or mentees into ${batchName}`}
+      description={
+        <Span className="text-xs text-slate-600">
+          Enroll mentors or mentees into <strong className="text-slate-900">{batchName}</strong>
+        </Span>
+      }
       size="lg"
       footer={
         <div className="flex w-full items-center justify-between">
-          <Span className="text-xs text-slate-500">
+          <Span className="text-xs font-semibold text-slate-600">
             {selectedUserIds.length} candidate{selectedUserIds.length === 1 ? '' : 's'} selected
           </Span>
           <div className="flex items-center gap-3">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
             <Button
               type="submit"
               form="add-member-form"
               variant="primary"
+              size="sm"
               disabled={isSubmitting || selectedUserIds.length === 0}
+              isLoading={isSubmitting}
             >
-              {isSubmitting ? 'Adding...' : `Add Selected (${selectedUserIds.length})`}
+              Add Selected ({selectedUserIds.length})
             </Button>
           </div>
         </div>
@@ -121,31 +138,40 @@ export function AddMemberModal({
         {submitError ? (
           <div
             role="alert"
-            className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700"
+            className="flex items-start gap-2 rounded-xl border border-red-300 bg-red-50 p-3.5 text-xs text-red-800"
           >
-            <P>{submitError}</P>
+            <Span className="mt-0.5 text-sm">⚠️</Span>
+            <P className="text-xs leading-relaxed font-semibold text-red-800">{submitError}</P>
           </div>
         ) : null}
 
         {/* Role toggle */}
         <div className="space-y-1.5">
-          <Label>Select Role to Enroll</Label>
+          <Label required>Select Role to Enroll</Label>
           <div className="grid grid-cols-2 gap-2">
             <Button
               type="button"
-              variant={role === 'MENTEE' ? 'primary' : 'outline'}
+              variant={role === 'MENTEE' ? 'primary' : 'secondary'}
               size="sm"
               onClick={() => handleRoleChange('MENTEE')}
-              className={role === 'MENTEE' ? 'bg-blue-600 text-white' : ''}
+              className={
+                role === 'MENTEE'
+                  ? 'bg-blue-600 font-bold text-white shadow-xs'
+                  : 'font-semibold text-slate-700'
+              }
             >
               Mentees
             </Button>
             <Button
               type="button"
-              variant={role === 'MENTOR' ? 'primary' : 'outline'}
+              variant={role === 'MENTOR' ? 'primary' : 'secondary'}
               size="sm"
               onClick={() => handleRoleChange('MENTOR')}
-              className={role === 'MENTOR' ? 'bg-blue-600 text-white' : ''}
+              className={
+                role === 'MENTOR'
+                  ? 'bg-blue-600 font-bold text-white shadow-xs'
+                  : 'font-semibold text-slate-700'
+              }
             >
               Mentors
             </Button>
@@ -166,15 +192,22 @@ export function AddMemberModal({
 
         {/* Candidate list */}
         <div className="space-y-1.5">
-          <Label>
-            Eligible {role === 'MENTEE' ? 'Mentees' : 'Mentors'} ({filteredCandidates.length})
-          </Label>
-          <div className="max-h-60 space-y-1 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/50 p-2">
+          <div className="flex items-center justify-between">
+            <Label>
+              Eligible {role === 'MENTEE' ? 'Mentees' : 'Mentors'} ({filteredCandidates.length})
+            </Label>
+            {filteredCandidates.length > 0 ? (
+              <Span className="text-[11px] text-slate-500">Click to select</Span>
+            ) : null}
+          </div>
+          <div className="max-h-60 space-y-1.5 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/70 p-2">
             {isLoadingCandidates ? (
-              <P className="p-4 text-center text-xs text-slate-500">Loading candidate users...</P>
+              <P className="p-4 text-center text-xs font-medium text-slate-500">
+                Loading candidate users...
+              </P>
             ) : filteredCandidates.length === 0 ? (
-              <P className="p-4 text-center text-xs text-slate-500">
-                No eligible {role.toLowerCase()}s available to add.
+              <P className="p-4 text-center text-xs font-medium text-slate-500">
+                No eligible active {role.toLowerCase()}s available to add.
               </P>
             ) : (
               filteredCandidates.map((user) => {
@@ -183,10 +216,10 @@ export function AddMemberModal({
                   <Label
                     key={user.id}
                     htmlFor={`user-select-${user.id}`}
-                    className={`flex cursor-pointer items-center justify-between rounded-lg p-2.5 text-xs font-normal transition-colors ${
+                    className={`flex cursor-pointer items-center justify-between rounded-xl border p-2.5 text-xs font-normal transition-all ${
                       isSelected
-                        ? 'border border-blue-200 bg-blue-50/70 text-blue-900'
-                        : 'border border-transparent bg-white text-slate-800 hover:bg-slate-100'
+                        ? 'border-blue-400 bg-blue-50/90 text-blue-900 shadow-xs ring-1 ring-blue-300'
+                        : 'border-slate-200 bg-white text-slate-800 shadow-xs hover:border-slate-300 hover:bg-slate-50'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -196,11 +229,17 @@ export function AddMemberModal({
                         onChange={() => toggleUser(user.id)}
                       />
                       <div>
-                        <P className="font-semibold text-slate-900">{user.name}</P>
+                        <P className="text-xs font-bold text-slate-900">{user.name}</P>
                         <Span className="text-[11px] text-slate-500">{user.email}</Span>
                       </div>
                     </div>
-                    <Span className="rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[10px] text-slate-600">
+                    <Span
+                      className={`rounded-full border px-2 py-0.5 font-mono text-[10px] font-bold ${
+                        user.role === 'MENTOR'
+                          ? 'border-purple-200 bg-purple-100 text-purple-800'
+                          : 'border-blue-200 bg-blue-100 text-blue-800'
+                      }`}
+                    >
                       {user.role}
                     </Span>
                   </Label>

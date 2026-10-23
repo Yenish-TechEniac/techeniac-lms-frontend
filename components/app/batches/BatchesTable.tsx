@@ -4,10 +4,12 @@ import Link from 'next/link';
 import React, { useMemo, useState } from 'react';
 
 import { CreateBatchModal } from '@/components/app/batches/CreateBatchModal';
+import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { H1, P, Span } from '@/components/ui/Typography';
 import { useBatchesList } from '@/hooks/useBatches';
+import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 import { type BatchStatus } from '@/lib/validation';
 
 export interface BatchSummaryItem {
@@ -75,9 +77,12 @@ const INITIAL_BATCHES: BatchSummaryItem[] = [
 ];
 
 export function BatchesTable() {
+  const { user, isAuthorized, sessionError } = useRoleRedirect({ allowedRoles: ['SUPER_ADMIN'] });
   const [search, setSearch] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(
+    () => typeof window !== 'undefined' && window.location.search.includes('create=true'),
+  );
 
   const {
     data: serverBatches,
@@ -131,21 +136,31 @@ export function BatchesTable() {
   const getStatusBadge = (status: BatchStatus) => {
     switch (status) {
       case 'LIVE':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        return 'bg-emerald-50 text-emerald-800 border-emerald-300 font-bold';
       case 'DRAFT':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
+        return 'bg-blue-50 text-blue-800 border-blue-300 font-bold';
       case 'ON_HOLD':
-        return 'bg-amber-50 text-amber-700 border-amber-200';
+        return 'bg-amber-50 text-amber-800 border-amber-300 font-bold';
       case 'COMPLETED':
-        return 'bg-slate-100 text-slate-800 border-slate-300';
+        return 'bg-slate-100 text-slate-800 border-slate-300 font-bold';
       case 'ARCHIVED':
-        return 'bg-slate-200 text-slate-500 border-slate-300';
+        return 'bg-slate-200 text-slate-600 border-slate-300 font-bold';
       default:
         return 'bg-slate-100 text-slate-700';
     }
   };
 
   const isLiveConnected = isSuccess && serverBatches !== undefined;
+
+  if (!isAuthorized || !user) {
+    return (
+      <PortalSessionState
+        sessionError={sessionError}
+        loadingMessage="Verifying administrator authorization..."
+        spinnerColor="border-blue-600"
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -160,7 +175,7 @@ export function BatchesTable() {
           <div className="flex items-center gap-3">
             <H1 className="text-3xl font-extrabold tracking-tight text-slate-900">Batches</H1>
             {isLiveConnected ? (
-              <Span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-emerald-700">
+              <Span className="inline-flex items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-0.5 font-mono text-[11px] font-bold text-emerald-800">
                 <Span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
                 Live API
               </Span>
@@ -173,10 +188,11 @@ export function BatchesTable() {
 
         <Button
           type="button"
+          variant="primary"
           onClick={() => setIsCreateOpen(true)}
-          className="flex h-10 items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
+          className="flex h-11 items-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-bold text-white shadow-sm shadow-blue-600/25 transition-all hover:bg-blue-700"
         >
-          <Span>+</Span>
+          <Span className="text-base font-extrabold">+</Span>
           <Span>Create Batch</Span>
         </Button>
       </div>

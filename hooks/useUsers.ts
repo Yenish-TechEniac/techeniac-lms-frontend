@@ -51,7 +51,13 @@ const DEFAULT_FILTERS: UserQueryFilters = {};
 
 export function useUsers(initialFilters: UserQueryFilters = DEFAULT_FILTERS): UseUsersReturn {
   const queryClient = useQueryClient();
-  const [activeFilters, setActiveFilters] = useState<UserQueryFilters>(initialFilters);
+  const [overrideFilters, setOverrideFilters] = useState<UserQueryFilters | null>(null);
+
+  const serializedInitial = JSON.stringify(initialFilters);
+  const activeFilters = useMemo(() => {
+    return overrideFilters ?? initialFilters;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [overrideFilters, serializedInitial]);
 
   const {
     data,
@@ -67,7 +73,7 @@ export function useUsers(initialFilters: UserQueryFilters = DEFAULT_FILTERS): Us
   const fetchUsers = useCallback(
     async (filters?: UserQueryFilters) => {
       if (filters) {
-        setActiveFilters(filters);
+        setOverrideFilters(filters);
       } else {
         await refetch();
       }

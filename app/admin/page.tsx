@@ -6,6 +6,7 @@ import React from 'react';
 import { ADMIN_PORTAL_NAV } from '@/components/app/navigation/portal-nav.config';
 import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
 import { Header } from '@/components/layout/Header';
+import { Button } from '@/components/ui/Button';
 import { Code, H1, H2, H3, P, Span } from '@/components/ui/Typography';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 
@@ -44,12 +45,38 @@ export default function AdminPage() {
               </P>
             </div>
 
-            <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-xs">
-              <Span className="block text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
-                Active Administrator
-              </Span>
-              <Span className="mt-0.5 block font-bold text-slate-800">{user.name}</Span>
-              <Span className="mt-1 block text-slate-500">{user.email}</Span>
+            <div className="flex flex-col gap-3 sm:items-end">
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-xs">
+                <Span className="block text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+                  Active Administrator
+                </Span>
+                <Span className="mt-0.5 block font-bold text-slate-800">{user.name}</Span>
+                <Span className="mt-1 block text-slate-500">{user.email}</Span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Link href="/admin/batches?create=true">
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="sm"
+                    className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-bold text-white shadow-sm shadow-blue-600/25 hover:bg-blue-700"
+                  >
+                    <Span className="text-sm font-extrabold">+</Span>
+                    <Span>Create Batch</Span>
+                  </Button>
+                </Link>
+                <Link href="/admin/users">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1.5 rounded-xl border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50"
+                  >
+                    <Span>Manage Users</Span>
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -94,10 +121,7 @@ export default function AdminPage() {
           </Link>
 
           {/* Module 2: Batches */}
-          <Link
-            href="/admin/batches"
-            className="group flex flex-col justify-between rounded-xl border border-blue-200 bg-blue-50/50 p-5 shadow-xs transition-all hover:border-blue-300 hover:bg-blue-50 hover:shadow-sm"
-          >
+          <div className="group flex flex-col justify-between rounded-xl border border-blue-200 bg-blue-50/50 p-5 shadow-xs transition-all hover:border-blue-300 hover:bg-blue-50 hover:shadow-sm">
             <div>
               <div className="flex items-center justify-between">
                 <Span className="text-[10px] font-bold tracking-wider text-blue-700 uppercase">
@@ -107,20 +131,31 @@ export default function AdminPage() {
                   Operational
                 </Span>
               </div>
-              <H3 className="mt-2 text-base font-bold text-slate-900 transition-colors group-hover:text-blue-700">
-                Batches & Cohorts
-              </H3>
+              <Link href="/admin/batches" className="block">
+                <H3 className="mt-2 text-base font-bold text-slate-900 transition-colors group-hover:text-blue-700">
+                  Batches & Cohorts
+                </H3>
+              </Link>
               <P className="mt-1 text-xs leading-relaxed text-slate-600">
                 Batch creation (DRAFT, LIVE, COMPLETED), mentor-mentee mapping, and batch transfers.
               </P>
             </div>
             <div className="mt-4 flex items-center justify-between border-t border-blue-100 pt-3">
-              <Span className="text-[11px] font-semibold text-blue-700 group-hover:underline">
-                Manage Batches &rarr;
-              </Span>
-              <Span className="text-[10px] font-medium text-blue-600">Live & Cached</Span>
+              <Link
+                href="/admin/batches"
+                className="text-[11px] font-semibold text-blue-700 hover:underline"
+              >
+                <Span>Manage Batches &rarr;</Span>
+              </Link>
+              <Link
+                href="/admin/batches?create=true"
+                className="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1 text-[11px] font-bold text-white shadow-xs hover:bg-blue-700"
+              >
+                <Span>+</Span>
+                <Span>Create</Span>
+              </Link>
             </div>
-          </Link>
+          </div>
 
           {/* Module 3: Curriculum */}
           <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
