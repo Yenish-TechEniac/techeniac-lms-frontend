@@ -45,7 +45,8 @@ function isAuthBypassEndpoint(endpoint: string): boolean {
     clean.startsWith('auth/refresh') ||
     clean.startsWith('auth/logout') ||
     clean.startsWith('auth/forgot-password') ||
-    clean.startsWith('auth/reset-password')
+    clean.startsWith('auth/reset-password') ||
+    clean.startsWith('auth/verify-reset-token')
   );
 }
 
