@@ -157,7 +157,7 @@
   3. Establish centralized, reusable atomic validation schemas in `lib/validation/` using Zod.
 - **Choice**: Option 3 (Centralized atomic schemas in `lib/validation/`).
 - **Reasons**:
-  - Parity with backend constraints: Enforces exact parity with `techeniac-lms-backend` validation rules (`passwordSchema`, `emailSchema`, `uuidSchema`), guaranteeing identical password complexity (min 8, max 128, uppercase, lowercase, number, special character) and email formats.
+  - Parity with backend constraints: Enforces exact parity with `techeniac-lms-backend` validation rules (`passwordSchema`, `emailSchema`, `uuidSchema`), guaranteeing identical password complexity (min 10, max 64, uppercase, lowercase, number, special character) and email formats.
   - DRY & Composable: Individual form schemas (login, registration, change password) compose these centralized primitives directly rather than duplicating validation rules.
   - Type Inference: Zod provides automatic TypeScript type inference (`z.infer<typeof schema>`), ensuring end-to-end type safety between form state and validated data.
 - **Consequences**:

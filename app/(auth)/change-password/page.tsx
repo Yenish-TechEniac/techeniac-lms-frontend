@@ -1,14 +1,34 @@
-import type { Metadata } from 'next';
+'use client';
+
+import { useRouter } from 'next/navigation';
+import React, { useEffect } from 'react';
 
 import { AuthShell } from '@/components/app/auth/AuthShell';
 import { ChangePasswordForm } from '@/components/app/auth/ChangePasswordForm';
-
-export const metadata: Metadata = {
-  title: 'Change Temporary Password | Techeniac LMS',
-  description: 'Update your temporary password on your first sign-in.',
-};
+import { P } from '@/components/ui/Typography';
+import { redirectUserByRole, useRoleRedirect } from '@/hooks/useRoleRedirect';
 
 export default function ChangePasswordPage() {
+  const router = useRouter();
+  const { user, isAuthorized } = useRoleRedirect({ allowMustChangePassword: true });
+
+  useEffect(() => {
+    if (user && !user.mustChangePassword) {
+      redirectUserByRole(router, user);
+    }
+  }, [user, router]);
+
+  if (!isAuthorized || (user && !user.mustChangePassword)) {
+    return (
+      <div className="flex min-h-screen flex-1 items-center justify-center bg-slate-50 p-6">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+          <P className="text-sm font-medium text-slate-500">Loading...</P>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <AuthShell
       title="Update temporary password"

@@ -1,11 +1,16 @@
-import type { ChangeRoleFormData, CreateUserFormData, EditUserFormData } from '@/lib/validation';
+import type {
+  ChangeRoleFormData,
+  CreateUserFormData,
+  EditUserFormData,
+  UserRole,
+} from '@/lib/validation';
 import { apiClient } from '@/services/api.client';
 
 export interface ApiUser {
   id: string;
   name: string;
   email: string;
-  role: 'SUPER_ADMIN' | 'MENTOR' | 'MENTEE';
+  role: UserRole;
   isActive: boolean;
   tokenVersion: number;
   mustChangePassword: boolean;
@@ -33,13 +38,23 @@ export interface RoleImpactData {
   impactSummary: string;
 }
 
+export interface UserDirectoryCounts {
+  total: number;
+  active: number;
+  inactive: number;
+}
+
 interface ApiResponse<T> {
   success: boolean;
   data: T;
 }
 
 export const usersService = {
-  async listUsers(filters: UserQueryFilters = {}): Promise<{ users: ApiUser[]; total: number }> {
+  async listUsers(filters: UserQueryFilters = {}): Promise<{
+    users: ApiUser[];
+    total: number;
+    counts?: UserDirectoryCounts;
+  }> {
     const params: Record<string, string | number | undefined> = {};
     if (filters.page) params.page = filters.page;
     if (filters.limit) params.limit = filters.limit;
@@ -49,7 +64,9 @@ export const usersService = {
     }
     if (filters.search) params.search = filters.search;
 
-    const res = await apiClient<ApiResponse<{ users: ApiUser[]; total: number }>>('/users', {
+    const res = await apiClient<
+      ApiResponse<{ users: ApiUser[]; total: number; counts?: UserDirectoryCounts }>
+    >('/users', {
       method: 'GET',
       params,
     });

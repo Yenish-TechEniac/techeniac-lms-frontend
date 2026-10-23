@@ -46,3 +46,4 @@ Techeniac LMS Frontend provides the student, instructor, and admin web experienc
 - [Architecture Decision Records](.agent/decisions.md)
 - [Git Safety Rules](.agent/rules/git-safety.md)
 - [Security Rules](.agent/rules/security.md)
+- [UI Components & Design System Rules](.agent/rules/ui-components.md)

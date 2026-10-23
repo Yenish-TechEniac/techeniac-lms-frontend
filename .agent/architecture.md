@@ -29,7 +29,7 @@
 - **`hooks/`**: Custom, reusable React hooks for UI interactions and device capabilities.
 - **`services/`**: API interaction services connecting to `NEXT_PUBLIC_API_BASE_URL` (`/api/v1`).
 - **`lib/`**: Generic pure utility functions, client library wrappers, and client-side validation schemas (`lib/validation/`).
-- **`context/`**: React contexts reserved strictly for localized client-only UI state (theme, sidebar toggle).
+- **`context/`**: React contexts reserved strictly for localized client-only UI state (theme, sidebar toggle) and root session propagation. Contexts are thin state containers and must never call services directly; all service invocations reside exclusively in `hooks/` (e.g. `hooks/useAuthProvider.ts`).
 - **`proxy.ts`**: Edge routing/proxy placeholder for early UX redirects (Next.js 16 convention replacing deprecated `middleware.ts`).
 
 ## Architectural Principles

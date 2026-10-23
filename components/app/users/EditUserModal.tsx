@@ -2,7 +2,11 @@
 
 import React, { useState } from 'react';
 
-import { emailSchema } from '@/lib/validation';
+import { Modal } from '@/components/patterns/Modal';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { editUserSchema } from '@/lib/validation';
 
 export interface UserToEdit {
   id: string;
@@ -14,7 +18,7 @@ export interface EditUserModalProps {
   user: UserToEdit | null;
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (userId: string, data: { name: string; email: string }) => void;
+  onSuccess: (userId: string, data: { name: string; email: string }) => Promise<void>;
 }
 
 function EditUserModalContent({
@@ -24,34 +28,32 @@ function EditUserModalContent({
 }: {
   user: UserToEdit;
   onClose: () => void;
-  onSuccess: (userId: string, data: { name: string; email: string }) => void;
+  onSuccess: (userId: string, data: { name: string; email: string }) => Promise<void>;
 }) {
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
 
-    const trimmedName = name.trim();
-    if (trimmedName.length < 2) {
-      setError('Full name must be at least 2 characters.');
-      return;
-    }
+    const parsed = editUserSchema.pick({ name: true, email: true }).safeParse({
+      name,
+      email,
+    });
 
-    const emailResult = emailSchema.safeParse(email);
-    if (!emailResult.success) {
-      setError('Please provide a valid email address.');
+    if (!parsed.success) {
+      setError(parsed.error.issues[0]?.message ?? 'Invalid input details.');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      onSuccess(user.id, { name: trimmedName, email: emailResult.data });
+      await onSuccess(user.id, parsed.data);
       onClose();
-    } catch (err) {
+    } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to update user');
     } finally {
       setIsSubmitting(false);
@@ -59,86 +61,73 @@ function EditUserModalContent({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      {/* Modal Dialog */}
-      <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold tracking-tight text-slate-900">Edit User Details</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title="Edit User Details"
+      description="Update the display name or primary email for this account."
+      size="sm"
+      footer={
+        <>
+          <Button variant="outline" size="sm" onClick={onClose} disabled={isSubmitting}>
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            form="edit-user-form"
+            variant="primary"
+            size="sm"
+            isLoading={isSubmitting}
           >
-            ✕
-          </button>
+            Save Changes
+          </Button>
+        </>
+      }
+    >
+      {error ? (
+        <div
+          role="alert"
+          className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700"
+        >
+          {error}
+        </div>
+      ) : null}
+
+      <form
+        id="edit-user-form"
+        onSubmit={(e) => {
+          void handleSubmit(e);
+        }}
+        className="space-y-4"
+      >
+        <div className="space-y-1.5">
+          <Label htmlFor="edit-name" required>
+            Full Name
+          </Label>
+          <Input
+            id="edit-name"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
         </div>
 
-        <p className="mb-6 text-sm text-slate-500">
-          Update the display name or primary email for this account.
-        </p>
-
-        {error ? (
-          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
-            {error}
-          </div>
-        ) : null}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="edit-name" className="block text-xs font-semibold text-slate-700">
-              Full Name
-            </label>
-            <input
-              id="edit-name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="mt-1 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="edit-email" className="block text-xs font-semibold text-slate-700">
-              Email Address
-            </label>
-            <input
-              id="edit-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 font-mono text-sm text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-              required
-            />
-          </div>
-
-          <div className="mt-6 flex justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="h-10 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="h-10 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50"
-            >
-              {isSubmitting ? 'Saving...' : 'Save Changes'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="edit-email" required>
+            Email Address
+          </Label>
+          <Input
+            id="edit-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="font-mono text-sm"
+            required
+          />
+        </div>
+      </form>
+    </Modal>
   );
 }
 

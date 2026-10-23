@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext } from 'react';
+import { useContext, useMemo } from 'react';
 
 import { AuthContext, type AuthContextValue } from '@/context/AuthContext';
 import { authService } from '@/services/auth.service';
@@ -11,30 +11,25 @@ export interface UseAuthReturn extends AuthContextValue {
   changePassword: (currentPassword: string, newPassword: string) => Promise<string>;
 }
 
+const forgotPassword = (email: string): Promise<string> => authService.forgotPassword(email);
+const resetPassword = (token: string, newPassword: string): Promise<string> =>
+  authService.resetPassword(token, newPassword);
+const changePassword = (currentPassword: string, newPassword: string): Promise<string> =>
+  authService.changePassword(currentPassword, newPassword);
+
 export function useAuth(): UseAuthReturn {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
 
-  const forgotPassword = async (email: string): Promise<string> => {
-    return authService.forgotPassword(email);
-  };
-
-  const resetPassword = async (token: string, newPassword: string): Promise<string> => {
-    return authService.resetPassword(token, newPassword);
-  };
-
-  const changePassword = async (currentPassword: string, newPassword: string): Promise<string> => {
-    const result = await authService.changePassword(currentPassword, newPassword);
-    await context.refreshUser();
-    return result;
-  };
-
-  return {
-    ...context,
-    forgotPassword,
-    resetPassword,
-    changePassword,
-  };
+  return useMemo(
+    () => ({
+      ...context,
+      forgotPassword,
+      resetPassword,
+      changePassword,
+    }),
+    [context],
+  );
 }

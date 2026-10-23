@@ -37,6 +37,7 @@ Before modifying or creating any code for any feature, module, or change:
 - [GEMINI.md](GEMINI.md)
 - [Git Safety Rules](.agent/rules/git-safety.md)
 - [Security Rules](.agent/rules/security.md)
+- [UI Components & Design System Rules](.agent/rules/ui-components.md)
 - [Architecture Overview](.agent/architecture.md)
 - [Development Conventions](.agent/conventions.md)
 - [Architecture Decision Records](.agent/decisions.md)

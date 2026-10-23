@@ -3,35 +3,57 @@
 import Link from 'next/link';
 import React, { useState } from 'react';
 
+import { Button } from '@/components/ui/Button';
+import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { H3, P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
-import { forgotPasswordSchema } from '@/lib/validation';
+import { extractZodErrors, forgotPasswordSchema } from '@/lib/validation';
 
 export function ForgotPasswordForm() {
   const { forgotPassword } = useAuth();
   const [email, setEmail] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDispatched, setIsDispatched] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [resendStatus, setResendStatus] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError(null);
+    if (isSubmitting) return;
+    setErrors({});
+    setResendStatus(null);
 
     const result = forgotPasswordSchema.safeParse({ email });
     if (!result.success) {
-      setError(result.error.issues[0]?.message ?? 'Invalid email address');
+      setErrors(extractZodErrors(result.error.issues));
       return;
     }
 
     setIsSubmitting(true);
     try {
       await forgotPassword(email);
-      setIsDispatched(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send reset link');
+    } catch {
+      // Suppress server errors to prevent user account enumeration
     } finally {
       setIsSubmitting(false);
+      setIsDispatched(true);
+    }
+  };
+
+  const handleResend = async () => {
+    if (isResending) return;
+    setIsResending(true);
+    setResendStatus(null);
+    try {
+      await forgotPassword(email);
+    } catch {
+      // Suppress server errors to prevent user account enumeration
+    } finally {
+      setIsResending(false);
+      setResendStatus('A new reset link has been sent if this email is registered.');
     }
   };
 
@@ -39,7 +61,13 @@ export function ForgotPasswordForm() {
     return (
       <div className="space-y-6 text-center">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-blue-600">
-          <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg
+            className="h-8 w-8"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -50,22 +78,47 @@ export function ForgotPasswordForm() {
         </div>
 
         <div>
-          <h3 className="mb-1 text-xl font-bold text-slate-900">Check your email</h3>
-          <p className="text-sm leading-relaxed text-slate-600">
+          <H3 className="mb-1 text-xl font-bold text-slate-900">Check your email</H3>
+          <P className="text-sm leading-relaxed text-slate-600">
             We sent a password reset link to{' '}
-            <span className="font-semibold text-slate-800">{email}</span>. The link is valid for 15
+            <Span className="font-semibold text-slate-800">{email}</Span>. The link is valid for 30
             minutes.
-          </p>
+          </P>
         </div>
 
+        {resendStatus ? (
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-2.5 text-xs font-medium text-emerald-800">
+            {resendStatus}
+          </div>
+        ) : null}
+
         <div className="space-y-3 pt-2">
-          <button
+          <Button
             type="button"
-            onClick={() => setIsDispatched(false)}
-            className="h-11 w-full rounded-[12px] border border-slate-200 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+            variant="secondary"
+            size="md"
+            onClick={() => {
+              void handleResend();
+            }}
+            disabled={isResending}
+            isLoading={isResending}
+            className="w-full"
           >
-            Send again
-          </button>
+            {isResending ? 'Resending link...' : 'Resend link'}
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="md"
+            onClick={() => {
+              setIsDispatched(false);
+              setResendStatus(null);
+            }}
+            className="w-full"
+          >
+            Use a different email
+          </Button>
 
           <Link
             href="/login"
@@ -87,9 +140,7 @@ export function ForgotPasswordForm() {
       noValidate
     >
       <div className="space-y-1.5">
-        <label htmlFor="email" className="block text-sm font-semibold text-slate-900">
-          Work Email
-        </label>
+        <Label htmlFor="email">Work Email</Label>
         <Input
           id="email"
           type="email"
@@ -97,19 +148,22 @@ export function ForgotPasswordForm() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@company.com"
           autoComplete="email"
-          hasError={Boolean(error)}
+          hasError={Boolean(errors.email)}
           disabled={isSubmitting}
         />
-        {error ? <p className="mt-1 text-xs font-medium text-red-500">{error}</p> : null}
+        <FieldError id="email-error" error={errors.email} />
       </div>
 
-      <button
+      <Button
         type="submit"
+        variant="primary"
+        size="lg"
         disabled={isSubmitting}
-        className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[12px] bg-[#3B82F6] text-base font-semibold text-white shadow-[0_4px_16px_rgba(59,130,246,0.25)] transition-all duration-150 hover:bg-[#2563EB] active:bg-[#1D4ED8] disabled:cursor-not-allowed disabled:opacity-60"
+        isLoading={isSubmitting}
+        className="w-full"
       >
         {isSubmitting ? 'Sending link...' : 'Send reset link'}
-      </button>
+      </Button>
 
       <div className="pt-4 text-center">
         <Link

@@ -6,7 +6,19 @@ export type TypographyVariant =
   'h1' | 'h2' | 'h3' | 'h4' | 'p' | 'lead' | 'large' | 'small' | 'muted' | 'code';
 
 export type TypographyElement =
-  'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | 'span' | 'div' | 'small' | 'code' | 'blockquote';
+  | 'h1'
+  | 'h2'
+  | 'h3'
+  | 'h4'
+  | 'h5'
+  | 'h6'
+  | 'p'
+  | 'span'
+  | 'div'
+  | 'small'
+  | 'code'
+  | 'blockquote'
+  | 'label';
 
 const defaultElementMap: Record<TypographyVariant, TypographyElement> = {
   h1: 'h1',
@@ -59,3 +71,68 @@ export const Typography = React.forwardRef<HTMLElement, TypographyProps>(
 );
 
 Typography.displayName = 'Typography';
+
+export const H1 = React.forwardRef<HTMLHeadingElement, Omit<TypographyProps, 'as'>>(
+  ({ variant = 'h1', ...props }, ref) => (
+    <Typography ref={ref} as="h1" variant={variant} {...props} />
+  ),
+);
+H1.displayName = 'H1';
+
+export const H2 = React.forwardRef<HTMLHeadingElement, Omit<TypographyProps, 'as'>>(
+  ({ variant = 'h2', ...props }, ref) => (
+    <Typography ref={ref} as="h2" variant={variant} {...props} />
+  ),
+);
+H2.displayName = 'H2';
+
+export const H3 = React.forwardRef<HTMLHeadingElement, Omit<TypographyProps, 'as'>>(
+  ({ variant = 'h3', ...props }, ref) => (
+    <Typography ref={ref} as="h3" variant={variant} {...props} />
+  ),
+);
+H3.displayName = 'H3';
+
+export const H4 = React.forwardRef<HTMLHeadingElement, Omit<TypographyProps, 'as'>>(
+  ({ variant = 'h4', ...props }, ref) => (
+    <Typography ref={ref} as="h4" variant={variant} {...props} />
+  ),
+);
+H4.displayName = 'H4';
+
+export const P = React.forwardRef<HTMLParagraphElement, Omit<TypographyProps, 'as'>>(
+  ({ variant = 'p', ...props }, ref) => (
+    <Typography ref={ref} as="p" variant={variant} {...props} />
+  ),
+);
+P.displayName = 'P';
+
+export const Span = React.forwardRef<HTMLSpanElement, Omit<TypographyProps, 'as'>>(
+  ({ className, children, ...props }, ref) => (
+    <span ref={ref} className={className} {...props}>
+      {children}
+    </span>
+  ),
+);
+Span.displayName = 'Span';
+
+export const Lead = React.forwardRef<HTMLParagraphElement, Omit<TypographyProps, 'as'>>(
+  ({ variant = 'lead', ...props }, ref) => (
+    <Typography ref={ref} as="p" variant={variant} {...props} />
+  ),
+);
+Lead.displayName = 'Lead';
+
+export const Muted = React.forwardRef<HTMLParagraphElement, Omit<TypographyProps, 'as'>>(
+  ({ variant = 'muted', ...props }, ref) => (
+    <Typography ref={ref} as="p" variant={variant} {...props} />
+  ),
+);
+Muted.displayName = 'Muted';
+
+export const Code = React.forwardRef<HTMLElement, Omit<TypographyProps, 'as'>>(
+  ({ variant = 'code', ...props }, ref) => (
+    <Typography ref={ref} as="code" variant={variant} {...props} />
+  ),
+);
+Code.displayName = 'Code';

@@ -1,39 +1,28 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import React, { useEffect } from 'react';
+import React from 'react';
 
+import { MENTEE_PORTAL_NAV } from '@/components/app/navigation/portal-nav.config';
+import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
 import { Header } from '@/components/layout/Header';
-import { useAuth } from '@/hooks/useAuth';
+import { H1, H2, H3, P, Span } from '@/components/ui/Typography';
+import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 
 export default function MenteePage() {
-  const router = useRouter();
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthorized, sessionError } = useRoleRedirect({ allowedRoles: ['MENTEE'] });
 
-  useEffect(() => {
-    if (!isLoading) {
-      if (!isAuthenticated || !user) {
-        router.replace('/login');
-      } else if (user.mustChangePassword) {
-        router.replace('/change-password');
-      }
-    }
-  }, [isLoading, isAuthenticated, user, router]);
-
-  if (isLoading || !isAuthenticated || !user) {
+  if (!isAuthorized || !user) {
     return (
-      <div className="flex min-h-screen flex-1 items-center justify-center bg-slate-50 p-6">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-          <p className="text-sm font-medium text-slate-500">Loading student workspace...</p>
-        </div>
-      </div>
+      <PortalSessionState
+        sessionError={sessionError}
+        loadingMessage="Loading student workspace..."
+      />
     );
   }
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
-      <Header />
+      <Header {...MENTEE_PORTAL_NAV} />
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
         {/* Welcome Section */}
@@ -41,33 +30,33 @@ export default function MenteePage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-                <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-                Student Portal Active
+                <Span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                <Span>Student Portal Active</Span>
               </div>
-              <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+              <H1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
                 Welcome, {user.name}
-              </h1>
-              <p className="mt-1 text-sm text-slate-500">
+              </H1>
+              <P variant="muted" className="mt-1 text-sm text-slate-500">
                 Track your course progress, complete assignments, and collaborate with your mentor.
-              </p>
+              </P>
             </div>
 
             <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-xs">
-              <span className="block text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+              <Span className="block text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
                 Student Account
-              </span>
-              <span className="mt-0.5 block font-bold text-slate-800">{user.role}</span>
-              <span className="mt-1 block text-slate-500">{user.email}</span>
+              </Span>
+              <Span className="mt-0.5 block font-bold text-slate-800">{user.role}</Span>
+              <Span className="mt-1 block text-slate-500">{user.email}</Span>
             </div>
           </div>
         </div>
 
         {/* Mentee Overview Cards */}
         <div className="mb-6">
-          <h2 className="text-base font-bold text-slate-900">Your Learning Tracks</h2>
-          <p className="text-xs text-slate-500">
+          <H2 className="text-base font-bold text-slate-900">Your Learning Tracks</H2>
+          <P variant="muted" className="text-xs text-slate-500">
             Enrolled courses, submissions, and mentor support
-          </p>
+          </P>
         </div>
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -75,21 +64,21 @@ export default function MenteePage() {
           <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold tracking-wider text-blue-700 uppercase">
+                <Span className="text-[10px] font-bold tracking-wider text-blue-700 uppercase">
                   Batch & Mentor
-                </span>
-                <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
+                </Span>
+                <Span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
                   Module 2
-                </span>
+                </Span>
               </div>
-              <h3 className="mt-2 text-base font-bold text-slate-900">Assigned Cohort</h3>
-              <p className="mt-1 text-xs leading-relaxed text-slate-600">
+              <H3 className="mt-2 text-base font-bold text-slate-900">Assigned Cohort</H3>
+              <P className="mt-1 text-xs leading-relaxed text-slate-600">
                 You will be assigned to a cohort and paired with an expert mentor when Module 2 is
                 active.
-              </p>
+              </P>
             </div>
             <div className="mt-4 border-t border-slate-100 pt-3">
-              <span className="text-[11px] text-slate-400">Enrollment pending batch launch</span>
+              <Span className="text-[11px] text-slate-400">Enrollment pending batch launch</Span>
             </div>
           </div>
 
@@ -97,20 +86,20 @@ export default function MenteePage() {
           <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                <Span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
                   Curriculum
-                </span>
-                <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
+                </Span>
+                <Span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
                   Module 3
-                </span>
+                </Span>
               </div>
-              <h3 className="mt-2 text-base font-bold text-slate-900">Courses & Topics</h3>
-              <p className="mt-1 text-xs leading-relaxed text-slate-600">
+              <H3 className="mt-2 text-base font-bold text-slate-900">Courses & Topics</H3>
+              <P className="mt-1 text-xs leading-relaxed text-slate-600">
                 Access structured learning modules, topic checklists, and hands-on coding exercises.
-              </p>
+              </P>
             </div>
             <div className="mt-4 border-t border-slate-100 pt-3">
-              <span className="text-[11px] text-slate-400">Courses upcoming</span>
+              <Span className="text-[11px] text-slate-400">Courses upcoming</Span>
             </div>
           </div>
 
@@ -118,20 +107,20 @@ export default function MenteePage() {
           <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                <Span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
                   Assignments
-                </span>
-                <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
+                </Span>
+                <Span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
                   Module 4
-                </span>
+                </Span>
               </div>
-              <h3 className="mt-2 text-base font-bold text-slate-900">Tasks & Submissions</h3>
-              <p className="mt-1 text-xs leading-relaxed text-slate-600">
+              <H3 className="mt-2 text-base font-bold text-slate-900">Tasks & Submissions</H3>
+              <P className="mt-1 text-xs leading-relaxed text-slate-600">
                 Submit assignments for code review and receive direct feedback from your mentor.
-              </p>
+              </P>
             </div>
             <div className="mt-4 border-t border-slate-100 pt-3">
-              <span className="text-[11px] text-slate-400">No pending submissions</span>
+              <Span className="text-[11px] text-slate-400">No pending submissions</Span>
             </div>
           </div>
         </div>
