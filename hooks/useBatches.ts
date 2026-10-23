@@ -189,3 +189,41 @@ export function useMenteeBatch() {
     queryFn: () => batchesService.getMyBatch(),
   });
 }
+
+export function useBatchesMentors(batchIds: string[]) {
+  const uniqueBatchIds = Array.from(new Set(batchIds.filter((id) => UUID_REGEX.test(id))));
+  return useQuery({
+    queryKey: ['batches', 'mentors-for-batches', uniqueBatchIds],
+    queryFn: async () => {
+      const results = await Promise.all(
+        uniqueBatchIds.map(async (batchId) => {
+          try {
+            const detail = await batchesService.getBatchById(batchId);
+            return detail.members
+              .filter((m) => m.memberRole === 'MENTOR')
+              .map((m) => ({
+                id: m.id,
+                name: m.name,
+                email: m.email,
+                batchId,
+                batchName: detail.name,
+              }));
+          } catch {
+            return [];
+          }
+        }),
+      );
+      const map = new Map<
+        string,
+        { id: string; name: string; email: string; batchId: string; batchName: string }
+      >();
+      for (const m of results.flat()) {
+        if (!map.has(m.id)) {
+          map.set(m.id, m);
+        }
+      }
+      return Array.from(map.values());
+    },
+    enabled: uniqueBatchIds.length > 0,
+  });
+}

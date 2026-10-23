@@ -28,6 +28,14 @@ export interface UserQueryFilters {
   batchId?: string | undefined;
 }
 
+export interface RoleImpactActiveMentee {
+  id: string;
+  name: string;
+  email: string;
+  batchId: string;
+  batchName: string;
+}
+
 export interface RoleImpactData {
   userId: string;
   name: string;
@@ -36,6 +44,11 @@ export interface RoleImpactData {
   newRole: string;
   isSameRole: boolean;
   willRevokeSessions: boolean;
+  isBlocked?: boolean;
+  blockReason?: string | null;
+  activeMenteesCount?: number;
+  activeMentees?: RoleImpactActiveMentee[];
+  impactPoints?: string[];
   impactSummary: string;
 }
 

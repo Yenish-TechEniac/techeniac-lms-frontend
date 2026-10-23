@@ -26,7 +26,7 @@ export const createBatchSchema = z
       .transform((val) => val.toUpperCase()),
     startDate: z.string({ required_error: 'Start date is required' }),
     endDate: z.string({ required_error: 'End date is required' }),
-    description: z.string().max(1000, 'Description must not exceed 1000 characters').optional(),
+    description: z.string().max(5000, 'Description must not exceed 5000 characters').optional(),
   })
   .refine((data) => new Date(data.startDate) <= new Date(data.endDate), {
     message: 'Start date must be earlier than or equal to end date',
