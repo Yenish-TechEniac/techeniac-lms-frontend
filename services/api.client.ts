@@ -16,6 +16,8 @@ function isApiErrorResponse(data: unknown): data is ApiErrorResponse {
   return typeof data === 'object' && data !== null && !Array.isArray(data);
 }
 
+export { formatErrorMessage } from '@/lib/errors';
+
 export interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean | undefined>;
   timeoutMs?: number;
