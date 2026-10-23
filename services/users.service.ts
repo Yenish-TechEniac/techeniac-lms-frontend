@@ -25,6 +25,7 @@ export interface UserQueryFilters {
   role?: string | undefined;
   status?: string | undefined;
   search?: string | undefined;
+  batchId?: string | undefined;
 }
 
 export interface RoleImpactData {
@@ -63,6 +64,7 @@ export const usersService = {
       params.status = filters.status.toLowerCase();
     }
     if (filters.search) params.search = filters.search;
+    if (filters.batchId) params.batchId = filters.batchId;
 
     const res = await apiClient<
       ApiResponse<{ users: ApiUser[]; total: number; counts?: UserDirectoryCounts }>

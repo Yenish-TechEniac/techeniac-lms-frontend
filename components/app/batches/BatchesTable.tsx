@@ -4,6 +4,9 @@ import Link from 'next/link';
 import React, { useMemo, useState } from 'react';
 
 import { CreateBatchModal } from '@/components/app/batches/CreateBatchModal';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { H1, P, Span } from '@/components/ui/Typography';
 import { useBatchesList } from '@/hooks/useBatches';
 import { type BatchStatus } from '@/lib/validation';
 
@@ -150,69 +153,73 @@ export function BatchesTable() {
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <div className="mb-1 flex items-center gap-2 text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            <span>Administration</span>
-            <span>/</span>
-            <span className="text-blue-600">Cohorts</span>
+            <Span>Administration</Span>
+            <Span>/</Span>
+            <Span className="text-blue-600">Cohorts</Span>
           </div>
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">Batches</h1>
+            <H1 className="text-3xl font-extrabold tracking-tight text-slate-900">Batches</H1>
             {isLiveConnected ? (
-              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-emerald-700">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+              <Span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-emerald-700">
+                <Span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
                 Live API
-              </span>
+              </Span>
             ) : null}
           </div>
-          <p className="mt-1 max-w-2xl text-sm text-slate-600">
+          <P className="mt-1 max-w-2xl text-sm text-slate-600">
             Configure learning batches, member assignments, and lifecycle status machines.
-          </p>
+          </P>
         </div>
 
-        <button
+        <Button
           type="button"
           onClick={() => setIsCreateOpen(true)}
           className="flex h-10 items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
         >
-          <span>+</span>
-          <span>Create Batch</span>
-        </button>
+          <Span>+</Span>
+          <Span>Create Batch</Span>
+        </Button>
       </div>
 
       {/* Filter and Search Bar */}
       <div className="space-y-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
         {/* Status quick select tabs */}
         <div className="flex scrollbar-none items-center gap-1.5 overflow-x-auto pb-1 text-xs font-semibold">
-          {['ALL', 'LIVE', 'DRAFT', 'ON_HOLD', 'COMPLETED', 'ARCHIVED'].map((st) => (
-            <button
+          {(['ALL', 'LIVE', 'DRAFT', 'ON_HOLD', 'COMPLETED', 'ARCHIVED'] as const).map((st) => (
+            <Button
               key={st}
               type="button"
+              variant={selectedStatus === st ? 'primary' : 'ghost'}
+              size="sm"
               onClick={() => setSelectedStatus(st)}
-              className={`rounded-lg px-3 py-1.5 whitespace-nowrap transition-all ${
+              className={`rounded-lg px-3 py-1.5 text-xs whitespace-nowrap transition-all ${
                 selectedStatus === st
-                  ? 'bg-blue-600 text-white shadow-sm'
+                  ? 'bg-blue-600 text-white shadow-sm hover:bg-blue-700'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
               {st === 'ALL' ? 'Active Batches' : st}
-            </button>
+            </Button>
           ))}
         </div>
 
         {/* Search */}
         <div className="flex items-center gap-3">
           <div className="relative flex-1">
-            <span className="absolute top-2.5 left-3.5 text-sm text-slate-400">🔍</span>
-            <input
+            <Span className="absolute top-2.5 left-3.5 text-sm text-slate-400">🔍</Span>
+            <Input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search batches by name or code..."
-              className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pr-3 pl-9 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none"
+              className="h-10 pl-9 text-sm"
             />
           </div>
           {search || selectedStatus !== 'ALL' ? (
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => {
                 setSearch('');
                 setSelectedStatus('ALL');
@@ -220,7 +227,7 @@ export function BatchesTable() {
               className="px-2 text-xs font-semibold whitespace-nowrap text-blue-600 hover:text-blue-700"
             >
               Reset Filters
-            </button>
+            </Button>
           ) : null}
         </div>
       </div>
@@ -231,26 +238,40 @@ export function BatchesTable() {
           <table className="w-full border-collapse text-left text-sm">
             <thead className="border-b border-slate-200/80 bg-slate-50/80 text-xs font-semibold tracking-wider text-slate-500 uppercase">
               <tr>
-                <th className="px-6 py-3.5">Batch Name</th>
-                <th className="px-4 py-3.5">Code</th>
-                <th className="px-4 py-3.5">Status</th>
-                <th className="px-4 py-3.5">Timeline</th>
-                <th className="px-4 py-3.5">Mentees</th>
-                <th className="px-4 py-3.5">Overall Progress</th>
-                <th className="px-6 py-3.5 text-right">Dashboard</th>
+                <th className="px-6 py-3.5">
+                  <Span>Batch Name</Span>
+                </th>
+                <th className="px-4 py-3.5">
+                  <Span>Code</Span>
+                </th>
+                <th className="px-4 py-3.5">
+                  <Span>Status</Span>
+                </th>
+                <th className="px-4 py-3.5">
+                  <Span>Timeline</Span>
+                </th>
+                <th className="px-4 py-3.5">
+                  <Span>Mentees</Span>
+                </th>
+                <th className="px-4 py-3.5">
+                  <Span>Overall Progress</Span>
+                </th>
+                <th className="px-6 py-3.5 text-right">
+                  <Span>Dashboard</Span>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {isLoading && filteredBatches.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
-                    Loading cohorts from live database...
+                    <Span>Loading cohorts from live database...</Span>
                   </td>
                 </tr>
               ) : filteredBatches.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
-                    No batches match the applied filter.
+                    <Span>No batches match the applied filter.</Span>
                   </td>
                 </tr>
               ) : (
@@ -265,22 +286,24 @@ export function BatchesTable() {
                       </Link>
                     </td>
                     <td className="px-4 py-4 font-mono text-xs font-bold text-slate-700">
-                      {b.code}
+                      <Span>{b.code}</Span>
                     </td>
                     <td className="px-4 py-4">
-                      <span
+                      <Span
                         className={`inline-block rounded-full border px-2.5 py-0.5 font-mono text-xs font-bold ${getStatusBadge(
                           b.status,
                         )}`}
                       >
                         {b.status}
-                      </span>
+                      </Span>
                     </td>
                     <td className="px-4 py-4 font-mono text-xs text-slate-600">
-                      {b.startDate} → {b.endDate}
+                      <Span>
+                        {b.startDate} → {b.endDate}
+                      </Span>
                     </td>
                     <td className="px-4 py-4 font-mono text-xs font-semibold text-slate-700">
-                      {b.menteesCount} mentees
+                      <Span>{b.menteesCount} mentees</Span>
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-2">
@@ -290,9 +313,9 @@ export function BatchesTable() {
                             style={{ width: `${b.progressPercent}%` }}
                           />
                         </div>
-                        <span className="font-mono text-xs font-bold text-slate-700">
+                        <Span className="font-mono text-xs font-bold text-slate-700">
                           {b.progressPercent}%
-                        </span>
+                        </Span>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">

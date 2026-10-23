@@ -2,6 +2,10 @@
 
 import React, { useState } from 'react';
 
+import { Modal } from '@/components/patterns/Modal';
+import { Button } from '@/components/ui/Button';
+import { Label } from '@/components/ui/Label';
+import { P, Span } from '@/components/ui/Typography';
 import { useTransferMenteeMutation } from '@/hooks/useBatches';
 
 export interface BatchOption {
@@ -59,118 +63,117 @@ export function TransferMenteeModal({
   };
 
   return (
-    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm duration-150">
-      <div className="flex w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 p-6">
-          <div>
-            <h3 className="text-lg font-bold text-slate-900">Transfer Mentee</h3>
-            <p className="mt-0.5 text-xs text-slate-500">
-              Move <span className="font-semibold text-slate-800">{mentee.name}</span> to a new
-              cohort.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Body */}
-        <form
-          id="transfer-form"
-          onSubmit={(e) => {
-            void handleSubmit(e);
-          }}
-          className="space-y-4 p-6"
-        >
-          {error ? (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-600">
-              {error}
-            </div>
-          ) : null}
-
-          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-xs">
-            <div>
-              <span className="block text-[10px] font-bold text-slate-400 uppercase">
-                Current Batch
-              </span>
-              <span className="font-semibold text-slate-800">{mentee.currentBatchName}</span>
-            </div>
-            <span className="rounded bg-blue-100 px-2 py-0.5 font-mono text-[10px] font-bold text-blue-800">
-              ONE-BATCH RULE
-            </span>
-          </div>
-
-          <div className="space-y-1.5">
-            <label htmlFor="target-batch" className="block text-sm font-semibold text-slate-900">
-              Select Destination Batch
-            </label>
-            <select
-              id="target-batch"
-              value={targetBatchId}
-              onChange={(e) => setTargetBatchId(e.target.value)}
-              className="h-11 w-full cursor-pointer rounded-[12px] border border-slate-200 bg-white px-3 text-sm font-medium text-slate-900 transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none"
-            >
-              {eligibleBatches.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name} ({b.code}) — {b.status}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Transfer Policy Box (BAT-10) */}
-          <div className="space-y-1 rounded-[12px] border border-amber-200 bg-amber-50 p-3.5 text-xs leading-relaxed text-amber-900">
-            <p className="font-bold">⚠️ Transfer Impact (PRD Section 5.4 / BAT-10):</p>
-            <ul className="list-disc space-y-1 pl-4 text-slate-700">
-              <li>Membership in {mentee.currentBatchName} ends (status: BATCH_TRANSFER).</li>
-              <li>Active mentor mapping in the old batch ends.</li>
-              <li>
-                Open allocations in the previous batch close as CLOSED_BATCH_CHANGE (read-only).
-              </li>
-              <li>New batch open courses are allocated with fresh 0% progress.</li>
-            </ul>
-          </div>
-
-          <div className="space-y-1">
-            <label htmlFor="transfer-reason" className="block text-sm font-semibold text-slate-900">
-              Transfer Reason <span className="text-xs font-normal text-slate-400">(optional)</span>
-            </label>
-            <textarea
-              id="transfer-reason"
-              rows={2}
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder="e.g. Schedule realignment or curriculum track adjustment..."
-              className="w-full rounded-[12px] border border-slate-200 bg-white p-3 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none"
-            />
-          </div>
-        </form>
-
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50 p-4">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={isSubmitting}
-            className="rounded-[10px] border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100"
-          >
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Transfer Mentee"
+      description={
+        <Span>
+          Move <strong className="font-semibold text-slate-800">{mentee.name}</strong> to a new
+          cohort.
+        </Span>
+      }
+      size="md"
+      footer={
+        <>
+          <Button variant="outline" size="sm" onClick={onClose} disabled={isSubmitting}>
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
             form="transfer-form"
+            variant="primary"
+            size="sm"
+            isLoading={isSubmitting}
             disabled={!targetBatchId || isSubmitting}
-            className="rounded-[10px] bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:opacity-50"
           >
-            {isSubmitting ? 'Transferring...' : 'Execute Transfer'}
-          </button>
+            Execute Transfer
+          </Button>
+        </>
+      }
+    >
+      <form
+        id="transfer-form"
+        onSubmit={(e) => {
+          void handleSubmit(e);
+        }}
+        className="space-y-4"
+        noValidate
+      >
+        {error ? (
+          <div
+            role="alert"
+            className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700"
+          >
+            <P>{error}</P>
+          </div>
+        ) : null}
+
+        <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-xs">
+          <div>
+            <Span className="block text-[10px] font-bold text-slate-400 uppercase">
+              Current Batch
+            </Span>
+            <Span className="font-semibold text-slate-800">{mentee.currentBatchName}</Span>
+          </div>
+          <Span className="rounded bg-blue-100 px-2 py-0.5 font-mono text-[10px] font-bold text-blue-800">
+            ONE-BATCH RULE
+          </Span>
         </div>
-      </div>
-    </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="target-batch" required>
+            Select Destination Batch
+          </Label>
+          <select
+            id="target-batch"
+            value={targetBatchId}
+            onChange={(e) => setTargetBatchId(e.target.value)}
+            className="h-11 w-full cursor-pointer rounded-[12px] border border-slate-200 bg-white px-3 text-sm font-medium text-slate-900 transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none"
+          >
+            {eligibleBatches.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name} ({b.code}) — {b.status}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Transfer Policy Box (BAT-10) */}
+        <div className="space-y-1 rounded-[12px] border border-amber-200 bg-amber-50 p-3.5 text-xs leading-relaxed text-amber-900">
+          <P className="font-bold">⚠️ Transfer Impact (PRD Section 5.4 / BAT-10):</P>
+          <ul className="list-disc space-y-1 pl-4 text-slate-700">
+            <li>
+              <Span>Membership in {mentee.currentBatchName} ends (status: BATCH_TRANSFER).</Span>
+            </li>
+            <li>
+              <Span>Active mentor mapping in the old batch ends.</Span>
+            </li>
+            <li>
+              <Span>
+                Open allocations in the previous batch close as CLOSED_BATCH_CHANGE (read-only).
+              </Span>
+            </li>
+            <li>
+              <Span>New batch open courses are allocated with fresh 0% progress.</Span>
+            </li>
+          </ul>
+        </div>
+
+        <div className="space-y-1">
+          <Label htmlFor="transfer-reason">
+            Transfer Reason <Span className="text-xs font-normal text-slate-400">(optional)</Span>
+          </Label>
+          <textarea
+            id="transfer-reason"
+            rows={2}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="e.g. Schedule realignment or curriculum track adjustment..."
+            className="w-full rounded-[12px] border border-slate-200 bg-white p-3 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none"
+          />
+        </div>
+      </form>
+    </Modal>
   );
 }

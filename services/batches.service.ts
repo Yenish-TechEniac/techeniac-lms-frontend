@@ -222,4 +222,20 @@ export const batchesService = {
       body: JSON.stringify(data),
     });
   },
+
+  async addMembers(
+    batchId: string,
+    data: { userIds: string[]; memberRole: 'MENTOR' | 'MENTEE' },
+  ): Promise<void> {
+    await apiClient<ApiResponse<unknown>>(`/batches/${batchId}/members`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async removeMember(batchId: string, userId: string): Promise<void> {
+    await apiClient<ApiResponse<unknown>>(`/batches/${batchId}/members/${userId}`, {
+      method: 'DELETE',
+    });
+  },
 };

@@ -94,25 +94,33 @@ export default function AdminPage() {
           </Link>
 
           {/* Module 2: Batches */}
-          <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
+          <Link
+            href="/admin/batches"
+            className="group flex flex-col justify-between rounded-xl border border-blue-200 bg-blue-50/50 p-5 shadow-xs transition-all hover:border-blue-300 hover:bg-blue-50 hover:shadow-sm"
+          >
             <div>
               <div className="flex items-center justify-between">
-                <Span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                <Span className="text-[10px] font-bold tracking-wider text-blue-700 uppercase">
                   Module 2
                 </Span>
-                <Span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
-                  Upcoming
+                <Span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-800">
+                  Operational
                 </Span>
               </div>
-              <H3 className="mt-2 text-base font-bold text-slate-900">Batches & Cohorts</H3>
+              <H3 className="mt-2 text-base font-bold text-slate-900 transition-colors group-hover:text-blue-700">
+                Batches & Cohorts
+              </H3>
               <P className="mt-1 text-xs leading-relaxed text-slate-600">
                 Batch creation (DRAFT, LIVE, COMPLETED), mentor-mentee mapping, and batch transfers.
               </P>
             </div>
-            <div className="mt-4 border-t border-slate-100 pt-3">
-              <Span className="text-[11px] text-slate-400">Scheduled next</Span>
+            <div className="mt-4 flex items-center justify-between border-t border-blue-100 pt-3">
+              <Span className="text-[11px] font-semibold text-blue-700 group-hover:underline">
+                Manage Batches &rarr;
+              </Span>
+              <Span className="text-[10px] font-medium text-blue-600">Live & Cached</Span>
             </div>
-          </div>
+          </Link>
 
           {/* Module 3: Curriculum */}
           <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs">

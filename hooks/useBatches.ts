@@ -90,3 +90,32 @@ export function useTransferMenteeMutation() {
     },
   });
 }
+
+export function useAddBatchMembersMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (variables: {
+      batchId: string;
+      userIds: string[];
+      memberRole: 'MENTOR' | 'MENTEE';
+    }) =>
+      batchesService.addMembers(variables.batchId, {
+        userIds: variables.userIds,
+        memberRole: variables.memberRole,
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: batchKeys.all });
+    },
+  });
+}
+
+export function useRemoveBatchMemberMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (variables: { batchId: string; userId: string }) =>
+      batchesService.removeMember(variables.batchId, variables.userId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: batchKeys.all });
+    },
+  });
+}

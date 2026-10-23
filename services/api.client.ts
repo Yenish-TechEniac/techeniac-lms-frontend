@@ -39,7 +39,7 @@ function parseRetryAfter(header: string | null): number | undefined {
 }
 
 function isAuthBypassEndpoint(endpoint: string): boolean {
-  const clean = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+  const clean = endpoint.replace(/^\/?(api\/v1\/)?/, '');
   return (
     clean.startsWith('auth/login') ||
     clean.startsWith('auth/refresh') ||
