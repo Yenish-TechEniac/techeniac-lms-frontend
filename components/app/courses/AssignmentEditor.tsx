@@ -248,22 +248,24 @@ export function AssignmentEditor({
   const hasSubmissions = impact?.hasSubmissions ?? false;
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto p-4 sm:p-6">
-      {/* Top Header Bar */}
-      <div className="flex flex-col gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex h-full flex-col overflow-y-auto bg-slate-50/50 p-4 sm:p-8">
+      {/* Top Header Command Bar */}
+      <div className="flex flex-col gap-3 rounded-2xl border-b border-slate-200 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <span className="rounded bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-800 uppercase">
+            <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-bold tracking-wide text-purple-800 uppercase">
               {assignment.scope} Task
             </span>
             <span className="font-mono text-xs text-slate-400">#{assignment.id.slice(0, 8)}</span>
           </div>
-          <H2 className="mt-1 text-2xl font-bold text-slate-900">{assignment.title}</H2>
+          <H2 className="mt-1.5 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+            {assignment.title}
+          </H2>
         </div>
 
         <div className="flex items-center gap-3">
           {saveSuccess && (
-            <span className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-600">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
               <span className="h-2 w-2 rounded-full bg-emerald-500" />
               Saved Live
             </span>
@@ -276,7 +278,7 @@ export function AssignmentEditor({
             onClick={() => {
               void handleSave();
             }}
-            className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-slate-800 focus-visible:ring-slate-800 active:bg-slate-950 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-slate-800 focus-visible:ring-slate-800 active:bg-slate-950 disabled:opacity-50"
           >
             {isSaving ? 'Saving...' : 'Save Changes'}
           </Button>
@@ -285,12 +287,12 @@ export function AssignmentEditor({
 
       {/* Submission modification warning if submissions exist */}
       {hasSubmissions && (
-        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs text-amber-900">
-          <div className="flex items-center gap-2 font-bold">
+        <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-900 shadow-xs">
+          <div className="flex items-center gap-2 text-sm font-bold">
             <span className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
             Existing Submissions Notice
           </div>
-          <P className="mt-1 leading-relaxed">
+          <P className="mt-1 text-xs leading-relaxed text-amber-800">
             Mentees have already submitted responses to this assignment. Changing submission modes
             or marks will apply to subsequent submissions; existing submissions will remain valid.
           </P>
@@ -300,7 +302,7 @@ export function AssignmentEditor({
       {errorMsg && (
         <FieldError
           error={errorMsg}
-          className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700"
+          className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 shadow-xs"
         />
       )}
 
@@ -310,52 +312,62 @@ export function AssignmentEditor({
         onSubmit={(e) => {
           void handleSave(e);
         }}
-        className="mt-6 grid max-w-5xl grid-cols-1 gap-6 lg:grid-cols-12"
+        className="mt-6 grid w-full max-w-6xl grid-cols-1 gap-6 lg:grid-cols-12"
       >
         <div className="space-y-6 lg:col-span-7">
-          {/* Assignment Title */}
-          <div>
-            <Label
-              required={true}
-              className="block text-sm font-bold tracking-wide text-slate-800 uppercase"
-            >
-              Assignment Title
-            </Label>
-            <Input
-              type="text"
-              value={title}
-              hasError={Boolean(errorMsg && !title.trim())}
-              onChange={(e) => handleChange(() => setTitle(e.target.value))}
-              placeholder="e.g. Build a Raft Distributed Consensus Node"
-              className="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-base text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
-            />
-          </div>
-
-          {/* Instructions */}
-          <div>
-            <Label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
-              Instructions & Problem Statement (Rich Text)
-            </Label>
-            <textarea
-              rows={6}
-              value={instructions}
-              onChange={(e) => handleChange(() => setInstructions(e.target.value))}
-              placeholder="State the technical specifications, requirements, and constraints for cadets..."
-              className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white p-3.5 font-mono text-xs leading-relaxed text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
-            />
-          </div>
-
-          {/* Time, Marks, Late Submission Controls */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {/* Card 1: Core Specifications */}
+          <div className="space-y-5 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
             <div>
               <Label
                 required={true}
-                className="block text-xs font-bold tracking-wide text-slate-700 uppercase"
+                className="block text-sm font-semibold tracking-wide text-slate-800"
               >
-                Est. Duration
+                Assignment Title
               </Label>
-              <div className="mt-1.5 grid grid-cols-2 gap-2">
-                <div>
+              <Input
+                type="text"
+                value={title}
+                hasError={Boolean(errorMsg && !title.trim())}
+                onChange={(e) => handleChange(() => setTitle(e.target.value))}
+                placeholder="e.g. Build a Raft Distributed Consensus Node"
+                className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
+              />
+            </div>
+
+            <div>
+              <Label className="block text-sm font-semibold tracking-wide text-slate-800">
+                Instructions & Problem Statement (Rich Text)
+              </Label>
+              <textarea
+                rows={6}
+                value={instructions}
+                onChange={(e) => handleChange(() => setInstructions(e.target.value))}
+                placeholder="State the technical specifications, requirements, and constraints for cadets..."
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white p-4 font-mono text-sm leading-relaxed text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
+              />
+            </div>
+          </div>
+
+          {/* Card 2: Time, Marks & Late Submissions */}
+          <div className="space-y-5 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+            <div>
+              <Label className="block text-sm font-semibold tracking-wide text-slate-800">
+                Grading & Duration Calibration
+              </Label>
+              <P className="mt-0.5 text-xs text-slate-500">
+                Configure evaluation thresholds and expected completion time.
+              </P>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div>
+                <Label
+                  required={true}
+                  className="block text-xs font-semibold tracking-wider text-slate-600 uppercase"
+                >
+                  Est. Duration
+                </Label>
+                <div className="mt-1.5 grid grid-cols-2 gap-2">
                   <div className="relative">
                     <Input
                       type="number"
@@ -366,14 +378,12 @@ export function AssignmentEditor({
                         handleChange(() => setDurationHours(val));
                       }}
                       placeholder="0"
-                      className="h-9 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 pr-10 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                      className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 pr-10 text-sm text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden sm:text-base"
                     />
                     <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
                       hrs
                     </span>
                   </div>
-                </div>
-                <div>
                   <div className="relative">
                     <Input
                       type="number"
@@ -389,105 +399,112 @@ export function AssignmentEditor({
                         handleChange(() => setDurationMinutes(sanitized));
                       }}
                       placeholder="0"
-                      className="h-9 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 pr-10 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                      className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 pr-11 text-sm text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden sm:text-base"
                     />
                     <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
                       mins
                     </span>
                   </div>
                 </div>
+                <span className="mt-1.5 block text-xs text-slate-500">
+                  {totalDurationMinutes > 0
+                    ? `${totalDurationMinutes} minutes total`
+                    : 'Required (hrs/mins)'}
+                </span>
               </div>
-              <span className="mt-1 block text-[10px] text-slate-500">
-                {totalDurationMinutes > 0
-                  ? `${totalDurationMinutes} minutes total`
-                  : 'Required (hrs/mins)'}
-              </span>
+
+              <div>
+                <Label
+                  required={true}
+                  className="block text-xs font-semibold tracking-wider text-slate-600 uppercase"
+                >
+                  Max Marks
+                </Label>
+                <div className="mt-1.5">
+                  <Input
+                    type="number"
+                    value={maxMarks || ''}
+                    onChange={(e) => handleChange(() => setMaxMarks(Number(e.target.value)))}
+                    className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-base text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                  />
+                </div>
+                <span className="mt-1.5 block text-xs text-slate-500">Max score (e.g. 100)</span>
+              </div>
+
+              <div>
+                <Label
+                  required={true}
+                  className="block text-xs font-semibold tracking-wider text-slate-600 uppercase"
+                >
+                  Pass Marks
+                </Label>
+                <div className="mt-1.5">
+                  <Input
+                    type="number"
+                    value={passMarks || ''}
+                    onChange={(e) => handleChange(() => setPassMarks(Number(e.target.value)))}
+                    className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-base text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                  />
+                </div>
+                <span className="mt-1.5 block text-xs text-slate-500">Must be &le; Max Marks</span>
+              </div>
             </div>
 
-            <div>
-              <Label
-                required={true}
-                className="block text-xs font-bold tracking-wide text-slate-700 uppercase"
-              >
-                Max Marks
-              </Label>
-              <Input
-                type="number"
-                value={maxMarks || ''}
-                onChange={(e) => handleChange(() => setMaxMarks(Number(e.target.value)))}
-                className="mt-1.5 h-9 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
-              />
-            </div>
+            {/* Late Submission Flag */}
+            <div className="flex items-center justify-between rounded-xl border border-slate-200/80 bg-slate-50 p-4">
+              <div>
+                <span className="block text-sm font-semibold text-slate-900">
+                  Late Submissions Allowed
+                </span>
+                <span className="mt-0.5 block text-xs text-slate-500">
+                  Allow cadets to turn in assignments after the scheduled allocation due date.
+                </span>
+              </div>
 
-            <div>
-              <Label
-                required={true}
-                className="block text-xs font-bold tracking-wide text-slate-700 uppercase"
-              >
-                Pass Marks
-              </Label>
-              <Input
-                type="number"
-                value={passMarks || ''}
-                onChange={(e) => handleChange(() => setPassMarks(Number(e.target.value)))}
-                className="mt-1.5 h-9 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
-              />
-              <span className="mt-1 block text-[10px] text-slate-500">Must be &le; Max Marks</span>
-            </div>
-          </div>
-
-          {/* Late Submission Flag */}
-          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-4">
-            <div>
-              <span className="block text-xs font-bold text-slate-900">
-                Late Submissions Allowed
-              </span>
-              <span className="text-[11px] text-slate-500">
-                Allow cadets to turn in assignments after the scheduled allocation due date.
-              </span>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => handleChange(() => setAllowLate(!allowLate))}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
-                allowLate ? 'bg-purple-600' : 'bg-slate-300'
-              }`}
-            >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                  allowLate ? 'translate-x-5' : 'translate-x-0'
+              <button
+                type="button"
+                onClick={() => handleChange(() => setAllowLate(!allowLate))}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
+                  allowLate ? 'bg-purple-600' : 'bg-slate-300'
                 }`}
-              />
-            </button>
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                    allowLate ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
           </div>
 
-          {/* Submission Modes Chooser */}
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-            <H3 className="text-sm font-bold text-slate-900">Mentee Submission Modes</H3>
-            <P className="text-[11px] text-slate-500">
-              Configure accepted submission deliverables. At least one field must not be
-              &apos;Off&apos;.
-            </P>
+          {/* Card 3: Submission Modes Chooser */}
+          <div className="space-y-4 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+            <div>
+              <H3 className="text-base font-bold text-slate-900">Mentee Submission Deliverables</H3>
+              <P className="mt-0.5 text-xs text-slate-500">
+                Configure accepted deliverable formats. At least one deliverable must not be
+                &apos;OFF&apos;.
+              </P>
+            </div>
 
-            <div className="mt-4 space-y-3">
+            <div className="space-y-3">
               {/* PDF Mode */}
-              <div className="flex flex-col gap-2 rounded-lg border border-slate-100 bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-3 rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <span className="block text-xs font-bold text-slate-800">PDF Upload</span>
-                  <span className="text-[10px] text-slate-500">
-                    Technical reports, architecture diagrams
+                  <span className="block text-sm font-semibold text-slate-900">PDF Document</span>
+                  <span className="text-xs text-slate-500">
+                    Design reports, architectural writeups, and diagrams
                   </span>
                 </div>
-                <div className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5 text-xs">
+                <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 text-xs">
                   {(['OFF', 'OPTIONAL', 'REQUIRED'] as SubmissionMode[]).map((mode) => (
                     <button
                       key={mode}
                       type="button"
                       onClick={() => handleChange(() => setPdfMode(mode))}
-                      className={`rounded px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
                         pdfMode === mode
-                          ? 'bg-slate-900 text-white'
+                          ? 'bg-slate-900 text-white shadow-xs'
                           : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
@@ -498,22 +515,22 @@ export function AssignmentEditor({
               </div>
 
               {/* ZIP Mode */}
-              <div className="flex flex-col gap-2 rounded-lg border border-slate-100 bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-3 rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <span className="block text-xs font-bold text-slate-800">ZIP Archive</span>
-                  <span className="text-[10px] text-slate-500">
-                    Source code bundles, project repos
+                  <span className="block text-sm font-semibold text-slate-900">ZIP Archive</span>
+                  <span className="text-xs text-slate-500">
+                    Source code bundles, compressed repositories, binaries
                   </span>
                 </div>
-                <div className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5 text-xs">
+                <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 text-xs">
                   {(['OFF', 'OPTIONAL', 'REQUIRED'] as SubmissionMode[]).map((mode) => (
                     <button
                       key={mode}
                       type="button"
                       onClick={() => handleChange(() => setZipMode(mode))}
-                      className={`rounded px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
                         zipMode === mode
-                          ? 'bg-slate-900 text-white'
+                          ? 'bg-slate-900 text-white shadow-xs'
                           : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
@@ -524,22 +541,24 @@ export function AssignmentEditor({
               </div>
 
               {/* URL Mode */}
-              <div className="flex flex-col gap-2 rounded-lg border border-slate-100 bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-3 rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <span className="block text-xs font-bold text-slate-800">URL Text Box</span>
-                  <span className="text-[10px] text-slate-500">
-                    GitHub repo link, live deployment preview
+                  <span className="block text-sm font-semibold text-slate-900">
+                    Repository / Demo URL
+                  </span>
+                  <span className="text-xs text-slate-500">
+                    GitHub / GitLab pull request link or deployed site
                   </span>
                 </div>
-                <div className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5 text-xs">
+                <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 text-xs">
                   {(['OFF', 'OPTIONAL', 'REQUIRED'] as SubmissionMode[]).map((mode) => (
                     <button
                       key={mode}
                       type="button"
                       onClick={() => handleChange(() => setUrlMode(mode))}
-                      className={`rounded px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
                         urlMode === mode
-                          ? 'bg-slate-900 text-white'
+                          ? 'bg-slate-900 text-white shadow-xs'
                           : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
@@ -551,26 +570,28 @@ export function AssignmentEditor({
             </div>
           </div>
 
-          {/* Resources Manager */}
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
+          {/* Card 4: Resources Manager */}
+          <div className="space-y-4 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Assignment Resources</h3>
-                <p className="text-[11px] text-slate-500">Starter kits, rubrics, and references</p>
+                <H3 className="text-base font-bold text-slate-900">Task Resources & References</H3>
+                <P className="mt-0.5 text-xs text-slate-500">
+                  Starter code repositories, rubrics, and reference assets
+                </P>
               </div>
-              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-600">
-                {resources.length}
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
+                {resources.length} {resources.length === 1 ? 'Resource' : 'Resources'}
               </span>
             </div>
 
-            <div className="mt-3 space-y-2">
+            <div className="space-y-2.5">
               {resources.map((item, idx) => (
                 <div
                   key={item.id || idx}
-                  className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs"
+                  className="flex items-center justify-between rounded-xl border border-slate-200/80 bg-slate-50/70 p-3.5 text-sm transition-all hover:bg-slate-50"
                 >
-                  <div className="flex items-center gap-2 truncate">
-                    <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[9px] font-bold text-purple-800 uppercase">
+                  <div className="flex items-center gap-3 truncate">
+                    <span className="rounded-lg bg-purple-100 px-2 py-0.5 text-[10px] font-bold tracking-wide text-purple-800 uppercase">
                       {item.type}
                     </span>
                     <span className="truncate font-semibold text-slate-900">{item.title}</span>
@@ -578,7 +599,7 @@ export function AssignmentEditor({
                       href={item.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="truncate text-[11px] text-slate-400 hover:text-blue-600"
+                      className="truncate text-xs text-slate-400 hover:text-blue-600 hover:underline"
                     >
                       {item.url}
                     </a>
@@ -587,12 +608,19 @@ export function AssignmentEditor({
                     type="button"
                     variant="ghost"
                     onClick={() => handleRemoveResource(idx)}
-                    className="h-auto rounded p-1 text-slate-400 hover:bg-slate-200 hover:text-rose-600 focus-visible:ring-slate-400 active:bg-slate-300"
+                    className="h-8 w-8 rounded-lg p-0 text-slate-400 hover:bg-slate-200/70 hover:text-rose-600 focus-visible:ring-slate-400 active:bg-slate-200"
+                    title="Remove resource"
                   >
                     &times;
                   </Button>
                 </div>
               ))}
+
+              {resources.length === 0 && (
+                <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-400 italic">
+                  No task resources attached yet. Add one below.
+                </div>
+              )}
             </div>
 
             {errorMsg && (
@@ -602,7 +630,7 @@ export function AssignmentEditor({
               />
             )}
 
-            <div className="mt-4 grid grid-cols-1 gap-2 border-t border-slate-100 pt-3 sm:grid-cols-12">
+            <div className="mt-5 grid grid-cols-1 gap-3 border-t border-slate-100 pt-4 sm:grid-cols-12">
               <div className="sm:col-span-4">
                 <Input
                   type="text"
@@ -612,7 +640,7 @@ export function AssignmentEditor({
                     setNewResourceTitle(e.target.value);
                     if (errorMsg) setErrorMsg(null);
                   }}
-                  className="h-8 w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                  className="h-10 w-full rounded-xl border border-slate-300 px-3.5 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
                 />
               </div>
               <div className="sm:col-span-5">
@@ -624,14 +652,14 @@ export function AssignmentEditor({
                     setNewResourceUrl(e.target.value);
                     if (errorMsg) setErrorMsg(null);
                   }}
-                  className="h-8 w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                  className="h-10 w-full rounded-xl border border-slate-300 px-3.5 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
                 />
               </div>
               <div className="sm:col-span-2">
                 <select
                   value={newResourceType}
                   onChange={(e) => setNewResourceType(e.target.value as 'LINK' | 'ATTACHMENT')}
-                  className="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-xs text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                  className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
                 >
                   <option value="LINK">LINK</option>
                   <option value="ATTACHMENT">FILE</option>
@@ -641,9 +669,9 @@ export function AssignmentEditor({
                 <Button
                   type="button"
                   onClick={handleAddResource}
-                  className="h-auto w-full rounded-lg bg-blue-600 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-blue-700"
+                  className="h-10 w-full rounded-xl bg-purple-600 px-3 text-sm font-semibold text-white shadow-xs hover:bg-purple-700 focus-visible:ring-purple-500 active:bg-purple-800"
                 >
-                  <span className="sm:hidden">+ Add Resource</span>
+                  <span className="sm:hidden">+ Add</span>
                   <span className="hidden sm:inline">+</span>
                 </Button>
               </div>
@@ -653,38 +681,38 @@ export function AssignmentEditor({
 
         {/* Right Column: Live Mentee Submission Form Preview */}
         <div className="lg:col-span-5">
-          <div className="sticky top-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+          <div className="sticky top-6 space-y-5 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
+              <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
                 Mentee Form Preview
               </span>
-              <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">
+              <span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-700">
                 Live Rendering
               </span>
             </div>
 
-            <div className="mt-4 space-y-4 text-xs">
+            <div className="space-y-4 text-sm">
               <div>
-                <H4 className="text-sm font-bold text-slate-900">
+                <H4 className="text-base font-bold text-slate-900">
                   {title || 'Untitled Assignment'}
                 </H4>
-                <P className="mt-1 text-[11px] text-slate-500">
+                <P className="mt-1 text-xs font-medium text-slate-500">
                   Est. {totalDurationMinutes > 0 ? `${totalDurationMinutes}m` : '0m'} • Max{' '}
                   {maxMarks} marks (Pass: {passMarks})
                 </P>
               </div>
 
               {instructions && (
-                <div className="max-h-32 overflow-y-auto rounded-lg bg-slate-50 p-3 text-[11px] leading-relaxed text-slate-700">
+                <div className="max-h-40 overflow-y-auto rounded-xl border border-slate-100 bg-slate-50 p-4 font-mono text-xs leading-relaxed text-slate-700">
                   {instructions}
                 </div>
               )}
 
               {/* Mentee Deliverables Fields */}
-              <div className="space-y-3 pt-2">
+              <div className="space-y-3.5 pt-1">
                 {pdfMode !== SubmissionMode.OFF && (
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700">
+                    <label className="block text-xs font-semibold text-slate-700">
                       Upload PDF Document{' '}
                       {pdfMode === SubmissionMode.REQUIRED ? (
                         <span className="text-rose-600">*</span>
@@ -692,15 +720,15 @@ export function AssignmentEditor({
                         <span className="font-normal text-slate-400">(Optional)</span>
                       )}
                     </label>
-                    <div className="mt-1 flex items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50/50 p-3 text-center">
-                      <span className="text-[11px] text-slate-400">Choose .pdf file</span>
+                    <div className="mt-1.5 flex items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50/50 p-4 text-center">
+                      <span className="text-xs text-slate-400">Choose .pdf file to upload</span>
                     </div>
                   </div>
                 )}
 
                 {zipMode !== SubmissionMode.OFF && (
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700">
+                    <label className="block text-xs font-semibold text-slate-700">
                       Upload ZIP Archive{' '}
                       {zipMode === SubmissionMode.REQUIRED ? (
                         <span className="text-rose-600">*</span>
@@ -708,15 +736,15 @@ export function AssignmentEditor({
                         <span className="font-normal text-slate-400">(Optional)</span>
                       )}
                     </label>
-                    <div className="mt-1 flex items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50/50 p-3 text-center">
-                      <span className="text-[11px] text-slate-400">Choose .zip archive</span>
+                    <div className="mt-1.5 flex items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50/50 p-4 text-center">
+                      <span className="text-xs text-slate-400">Choose .zip archive to upload</span>
                     </div>
                   </div>
                 )}
 
                 {urlMode !== SubmissionMode.OFF && (
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700">
+                    <label className="block text-xs font-semibold text-slate-700">
                       Submission Repository URL{' '}
                       {urlMode === SubmissionMode.REQUIRED ? (
                         <span className="text-rose-600">*</span>
@@ -728,25 +756,25 @@ export function AssignmentEditor({
                       type="url"
                       disabled
                       placeholder="https://github.com/mentee/submission"
-                      className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-400"
+                      className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-xs text-slate-400"
                     />
                   </div>
                 )}
               </div>
 
               {/* Mandatory Mentee Completion Checkbox (FR-6.5) */}
-              <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50/60 p-3">
-                <label className="flex cursor-not-allowed items-start gap-2.5">
+              <div className="mt-5 rounded-xl border border-blue-200 bg-blue-50/60 p-4">
+                <label className="flex cursor-not-allowed items-start gap-3">
                   <input
                     type="checkbox"
                     disabled
                     checked
                     readOnly
-                    className="mt-0.5 rounded border-slate-300 text-blue-600"
+                    className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600"
                   />
-                  <span className="text-[11px] leading-tight font-semibold text-blue-900">
+                  <span className="text-xs leading-tight font-semibold text-blue-900">
                     &ldquo;I have completed this assignment&rdquo; confirmation
-                    <span className="block text-[10px] font-normal text-blue-700">
+                    <span className="mt-0.5 block text-[11px] font-normal text-blue-700">
                       Mandatory for all cadets (cannot be turned off)
                     </span>
                   </span>
