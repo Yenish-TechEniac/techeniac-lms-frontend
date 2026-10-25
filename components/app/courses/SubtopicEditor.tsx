@@ -254,7 +254,7 @@ export function SubtopicEditor({
             onClick={() => {
               void handleSave();
             }}
-            className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-slate-800 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-slate-800 focus-visible:ring-slate-800 active:bg-slate-950 disabled:opacity-50"
           >
             {isSaving ? 'Saving...' : 'Save Changes'}
           </Button>
@@ -386,22 +386,24 @@ export function SubtopicEditor({
             <div className="inline-flex rounded-lg border border-slate-200 bg-slate-100 p-0.5 text-xs">
               <Button
                 type="button"
+                variant="ghost"
                 onClick={() => setActiveTab('editor')}
                 className={`h-auto rounded-md px-3 py-1.5 font-semibold transition-colors ${
                   activeTab === 'editor'
-                    ? 'bg-white text-slate-900 shadow-xs'
-                    : 'border-transparent bg-transparent text-slate-600 shadow-none hover:bg-transparent hover:text-slate-900'
+                    ? 'bg-white text-slate-900 shadow-xs hover:bg-white active:bg-white'
+                    : 'border-transparent bg-transparent text-slate-600 shadow-none hover:bg-slate-200/60 hover:text-slate-900 active:bg-slate-200'
                 }`}
               >
                 Markdown Editor
               </Button>
               <Button
                 type="button"
+                variant="ghost"
                 onClick={() => setActiveTab('preview')}
                 className={`h-auto rounded-md px-3 py-1.5 font-semibold transition-colors ${
                   activeTab === 'preview'
-                    ? 'bg-white text-slate-900 shadow-xs'
-                    : 'border-transparent bg-transparent text-slate-600 shadow-none hover:bg-transparent hover:text-slate-900'
+                    ? 'bg-white text-slate-900 shadow-xs hover:bg-white active:bg-white'
+                    : 'border-transparent bg-transparent text-slate-600 shadow-none hover:bg-slate-200/60 hover:text-slate-900 active:bg-slate-200'
                 }`}
               >
                 Cadet Preview
@@ -474,8 +476,9 @@ export function SubtopicEditor({
 
                 <Button
                   type="button"
+                  variant="ghost"
                   onClick={() => handleRemoveResource(idx)}
-                  className="h-auto rounded p-1 text-slate-400 hover:bg-slate-200 hover:text-rose-600"
+                  className="h-auto rounded p-1 text-slate-400 hover:bg-slate-200 hover:text-rose-600 focus-visible:ring-slate-400 active:bg-slate-300"
                 >
                   &times;
                 </Button>

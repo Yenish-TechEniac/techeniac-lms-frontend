@@ -276,7 +276,7 @@ export function AssignmentEditor({
             onClick={() => {
               void handleSave();
             }}
-            className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-slate-800 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-slate-800 focus-visible:ring-slate-800 active:bg-slate-950 disabled:opacity-50"
           >
             {isSaving ? 'Saving...' : 'Save Changes'}
           </Button>
@@ -585,8 +585,9 @@ export function AssignmentEditor({
                   </div>
                   <Button
                     type="button"
+                    variant="ghost"
                     onClick={() => handleRemoveResource(idx)}
-                    className="h-auto rounded p-1 text-slate-400 hover:bg-slate-200 hover:text-rose-600"
+                    className="h-auto rounded p-1 text-slate-400 hover:bg-slate-200 hover:text-rose-600 focus-visible:ring-slate-400 active:bg-slate-300"
                   >
                     &times;
                   </Button>

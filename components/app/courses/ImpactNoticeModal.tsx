@@ -95,20 +95,24 @@ export function ImpactNoticeModal({
         <div className="mt-6 flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
           <Button
             type="button"
+            variant="outline"
             disabled={isLoading}
             onClick={onCancel}
-            className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus-visible:ring-slate-400 active:bg-slate-100 disabled:opacity-50"
           >
             {isBlocked ? 'Close' : 'Cancel'}
           </Button>
           {!isBlocked && (
             <Button
               type="button"
+              variant={isDestructive ? 'danger' : 'primary'}
               disabled={isLoading}
               isLoading={isLoading}
               onClick={onConfirm}
               className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold text-white shadow-xs disabled:opacity-50 ${
-                isDestructive ? 'bg-rose-600 hover:bg-rose-700' : 'bg-slate-900 hover:bg-slate-800'
+                isDestructive
+                  ? 'bg-rose-600 hover:bg-rose-700 focus-visible:ring-rose-500 active:bg-rose-800'
+                  : 'bg-slate-900 hover:bg-slate-800 focus-visible:ring-slate-800 active:bg-slate-950'
               }`}
             >
               {isLoading ? loadingLabel : confirmLabel}

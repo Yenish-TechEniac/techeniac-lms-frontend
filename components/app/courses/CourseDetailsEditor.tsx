@@ -145,7 +145,7 @@ export function CourseDetailsEditor({
             onClick={() => {
               void handleSave();
             }}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-slate-800 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-slate-800 focus-visible:ring-slate-800 active:bg-slate-950 disabled:opacity-50"
           >
             {isSaving ? 'Saving...' : 'Save Changes'}
           </Button>

@@ -683,12 +683,13 @@ function CourseBuilderContent() {
               <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
                 <Button
                   type="button"
+                  variant="outline"
                   disabled={isCreatingTopic}
                   onClick={() => {
                     setIsAddTopicOpen(false);
                     setTopicModalError(null);
                   }}
-                  className="h-auto rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 disabled:opacity-50"
+                  className="h-auto rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 active:bg-slate-100 disabled:opacity-50"
                 >
                   Cancel
                 </Button>
@@ -745,12 +746,13 @@ function CourseBuilderContent() {
               <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
                 <Button
                   type="button"
+                  variant="outline"
                   disabled={isCreatingSubtopic}
                   onClick={() => {
                     setIsAddSubtopicOpen(false);
                     setSubtopicModalError(null);
                   }}
-                  className="h-auto rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 disabled:opacity-50"
+                  className="h-auto rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 active:bg-slate-100 disabled:opacity-50"
                 >
                   Cancel
                 </Button>
@@ -900,12 +902,13 @@ function CourseBuilderContent() {
               <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
                 <Button
                   type="button"
+                  variant="outline"
                   disabled={isCreatingAssignment}
                   onClick={() => {
                     setIsAddAssignmentOpen(false);
                     setAssignmentModalError(null);
                   }}
-                  className="h-auto rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 disabled:opacity-50"
+                  className="h-auto rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 active:bg-slate-100 disabled:opacity-50"
                 >
                   Cancel
                 </Button>
@@ -913,7 +916,7 @@ function CourseBuilderContent() {
                   type="submit"
                   disabled={isCreatingAssignment}
                   isLoading={isCreatingAssignment}
-                  className="inline-flex h-auto items-center gap-1.5 rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-purple-700 disabled:opacity-50"
+                  className="inline-flex h-auto items-center gap-1.5 rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-purple-700 focus-visible:ring-purple-500 active:bg-purple-800 disabled:opacity-50"
                 >
                   Create Assignment
                 </Button>

@@ -40,7 +40,7 @@ export function ConflictResolutionModal({ isOpen, onReload }: ConflictResolution
           <Button
             type="button"
             onClick={onReload}
-            className="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-slate-800"
+            className="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-slate-800 focus-visible:ring-slate-800 active:bg-slate-950"
           >
             Reload Latest Version Now
           </Button>

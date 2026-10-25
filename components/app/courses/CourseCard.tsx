@@ -168,6 +168,7 @@ export function CourseCard({
           {/* Assign Button (FR-6.6, CRS-16: Disabled if Inactive) */}
           <Button
             type="button"
+            variant="outline"
             disabled={!course.isActive}
             title={
               course.isActive
@@ -176,7 +177,7 @@ export function CourseCard({
             }
             className={`h-auto rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
               course.isActive
-                ? 'border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100'
+                ? 'border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 focus-visible:ring-blue-400 active:bg-blue-200'
                 : 'cursor-not-allowed border border-slate-200 bg-slate-100 text-slate-400'
             }`}
           >
@@ -188,13 +189,14 @@ export function CourseCard({
           {/* Clone Button (FR-6.7, CRS-21) */}
           <Button
             type="button"
+            variant="outline"
             disabled={isCloning}
             isLoading={isCloning}
             onClick={() => {
               void handleClone();
             }}
             title="Clone Course (Creates Inactive Copy)"
-            className="h-auto rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:border-slate-300 hover:bg-slate-50 disabled:opacity-50"
+            className="h-auto rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:border-slate-300 hover:bg-slate-50 focus-visible:ring-slate-400 active:bg-slate-100 disabled:opacity-50"
           >
             Clone
           </Button>
@@ -202,9 +204,10 @@ export function CourseCard({
           {/* Toggle Active/Inactive (FR-6.11) */}
           <Button
             type="button"
+            variant="outline"
             onClick={() => onRequestToggleStatus(course)}
             title={course.isActive ? 'Deactivate course' : 'Activate course'}
-            className="h-auto rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+            className="h-auto rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:border-slate-300 hover:bg-slate-50 focus-visible:ring-slate-400 active:bg-slate-100"
           >
             {course.isActive ? 'Deactivate' : 'Activate'}
           </Button>
@@ -212,9 +215,10 @@ export function CourseCard({
           {/* Soft Delete (FR-6.7, CRS-20) */}
           <Button
             type="button"
+            variant="outline"
             onClick={() => onRequestDelete(course)}
             title="Delete course"
-            className="h-auto rounded-lg border border-rose-200/80 bg-white px-2.5 py-1.5 text-xs font-medium text-rose-600 hover:border-rose-300 hover:bg-rose-50"
+            className="h-auto rounded-lg border border-rose-200/80 bg-white px-2.5 py-1.5 text-xs font-medium text-rose-600 hover:border-rose-300 hover:bg-rose-50 focus-visible:ring-rose-400 active:bg-rose-100"
           >
             Delete
           </Button>

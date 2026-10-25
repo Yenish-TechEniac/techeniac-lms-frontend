@@ -212,7 +212,7 @@ export default function CourseLibraryPage() {
             <Button
               type="button"
               onClick={() => setIsCreateModalOpen(true)}
-              className="inline-flex h-auto items-center gap-2 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-xs transition-all hover:bg-slate-800 hover:shadow-sm"
+              className="inline-flex h-auto items-center gap-2 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-xs transition-all hover:bg-slate-800 hover:shadow-sm focus-visible:ring-slate-800 active:bg-slate-950"
             >
               <svg
                 className="h-4 w-4"
@@ -341,11 +341,12 @@ export default function CourseLibraryPage() {
                 <Button
                   key={st}
                   type="button"
+                  variant="ghost"
                   onClick={() => setActiveFilter(st)}
                   className={`h-auto rounded-lg px-4 py-1.5 text-xs font-semibold transition-colors ${
                     activeFilter === st
-                      ? 'bg-white text-slate-900 shadow-xs'
-                      : 'border-transparent bg-transparent text-slate-600 shadow-none hover:bg-transparent hover:text-slate-900'
+                      ? 'bg-white text-slate-900 shadow-xs hover:bg-white active:bg-white'
+                      : 'border-transparent bg-transparent text-slate-600 shadow-none hover:bg-slate-200/60 hover:text-slate-900 active:bg-slate-200'
                   }`}
                 >
                   {st === 'all' ? 'All' : st === 'true' ? 'Active' : 'Inactive'}
@@ -523,8 +524,9 @@ export default function CourseLibraryPage() {
               <div className="mt-6 flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
                 <Button
                   type="button"
+                  variant="outline"
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                  className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus-visible:ring-slate-400 active:bg-slate-100"
                 >
                   Cancel
                 </Button>
@@ -532,7 +534,7 @@ export default function CourseLibraryPage() {
                   type="submit"
                   disabled={isSubmittingCreate}
                   isLoading={isSubmittingCreate}
-                  className="rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-slate-800 disabled:opacity-50"
+                  className="rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-slate-800 focus-visible:ring-slate-800 active:bg-slate-950 disabled:opacity-50"
                 >
                   Create & Open Builder
                 </Button>
