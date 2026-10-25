@@ -2,6 +2,8 @@
 
 import React from 'react';
 
+import { Button } from '@/components/ui/Button';
+import { H3, P } from '@/components/ui/Typography';
 import type { CourseImpact } from '@/types/courses';
 
 interface ImpactNoticeModalProps {
@@ -60,10 +62,10 @@ export function ImpactNoticeModal({
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="text-lg font-bold break-words break-all text-slate-900">
+            <H3 className="text-lg font-bold break-words break-all text-slate-900">
               {actionTitle}
-            </h3>
-            <p className="mt-1 text-sm break-words text-slate-600">{actionMessage}</p>
+            </H3>
+            <P className="mt-1 text-sm break-words text-slate-600">{actionMessage}</P>
           </div>
         </div>
 
@@ -74,12 +76,12 @@ export function ImpactNoticeModal({
               <span className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
               Live Impact Notice
             </div>
-            <p className="mt-1 leading-relaxed">
+            <P className="mt-1 leading-relaxed">
               This course is currently allocated to{' '}
               <strong className="font-bold underline">{affectedCount} active mentees</strong> across{' '}
               <strong>{impact?.openAllocationsCount} batches/allocations</strong>. Any modification
               applies live immediately to all affected cadets.
-            </p>
+            </P>
           </div>
         )}
 
@@ -91,28 +93,26 @@ export function ImpactNoticeModal({
         )}
 
         <div className="mt-6 flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
-          <button
+          <Button
             type="button"
             disabled={isLoading}
             onClick={onCancel}
             className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
           >
             {isBlocked ? 'Close' : 'Cancel'}
-          </button>
+          </Button>
           {!isBlocked && (
-            <button
+            <Button
               type="button"
               disabled={isLoading}
+              isLoading={isLoading}
               onClick={onConfirm}
               className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold text-white shadow-xs disabled:opacity-50 ${
                 isDestructive ? 'bg-rose-600 hover:bg-rose-700' : 'bg-slate-900 hover:bg-slate-800'
               }`}
             >
-              {isLoading && (
-                <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              )}
               {isLoading ? loadingLabel : confirmLabel}
-            </button>
+            </Button>
           )}
         </div>
       </div>

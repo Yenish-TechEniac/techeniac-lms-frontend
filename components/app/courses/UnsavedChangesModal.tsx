@@ -2,6 +2,9 @@
 
 import React from 'react';
 
+import { Button } from '@/components/ui/Button';
+import { H3, P } from '@/components/ui/Typography';
+
 interface UnsavedChangesModalProps {
   isOpen: boolean;
   onStay: () => void;
@@ -19,29 +22,29 @@ export function UnsavedChangesModal({ isOpen, onStay, onDiscard }: UnsavedChange
             <span className="text-xl font-bold">!</span>
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-bold text-slate-900">Unsaved Changes Guard</h3>
-            <p className="mt-1 text-sm text-slate-600">
+            <H3 className="text-lg font-bold text-slate-900">Unsaved Changes Guard</H3>
+            <P className="mt-1 text-sm text-slate-600">
               You have unsaved changes in this form. If you navigate away or switch nodes now, your
               edits will be discarded.
-            </p>
+            </P>
           </div>
         </div>
 
         <div className="mt-6 flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
-          <button
+          <Button
             type="button"
             onClick={onStay}
             className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
           >
             Stay & Keep Editing
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={onDiscard}
             className="rounded-lg bg-rose-600 px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-rose-700"
           >
             Discard Changes
-          </button>
+          </Button>
         </div>
       </div>
     </div>

@@ -21,6 +21,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import React, { useEffect, useState } from 'react';
 
+import { H2 } from '@/components/ui/Typography';
 import type { Assignment, Course, Subtopic, Topic } from '@/types/courses';
 
 import { ActiveNodeSelection } from './types';
@@ -465,9 +466,6 @@ function SortableAssignmentItem({
           className="group/name relative flex flex-1 items-center gap-1.5 truncate"
           title={assignment.title}
         >
-          <span className="shrink-0 rounded bg-purple-100 px-1 py-0.5 text-[10px] font-bold text-purple-700 uppercase">
-            Task
-          </span>
           <span className="truncate text-sm font-medium">{assignment.title}</span>
           <span className="pointer-events-none absolute bottom-full left-0 z-50 mb-1 hidden max-w-xs rounded-md bg-slate-900/95 px-2 py-1 text-xs font-normal break-words whitespace-normal text-white shadow-xl ring-1 ring-white/10 group-hover/name:block">
             {assignment.title}
@@ -714,7 +712,7 @@ export function CourseOutlineTree({
             <span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
               Curriculum Structure
             </span>
-            <h2 className="text-sm font-bold text-slate-900">Course Outline</h2>
+            <H2 className="text-sm font-bold text-slate-900">Course Outline</H2>
           </div>
           {hasActiveReorder && (
             <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600">

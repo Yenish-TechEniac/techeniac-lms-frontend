@@ -2,6 +2,11 @@
 
 import React, { useState } from 'react';
 
+import { Button } from '@/components/ui/Button';
+import { FieldError } from '@/components/ui/FieldError';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { H2, P } from '@/components/ui/Typography';
 import { formatErrorMessage } from '@/lib/errors';
 import type { Course, CourseImpact, UpdateCourseInput } from '@/types/courses';
 
@@ -122,7 +127,7 @@ export function CourseDetailsEditor({
           <span className="block text-[10px] font-bold tracking-wider text-slate-400 uppercase">
             Course Root Settings
           </span>
-          <h2 className="text-xl font-bold text-slate-900">{course.title}</h2>
+          <H2 className="text-xl font-bold text-slate-900">{course.title}</H2>
         </div>
 
         <div className="flex items-center gap-3">
@@ -133,16 +138,17 @@ export function CourseDetailsEditor({
             </span>
           )}
 
-          <button
+          <Button
             type="button"
             disabled={isSaving}
+            isLoading={isSaving}
             onClick={() => {
               void handleSave();
             }}
             className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-slate-800 disabled:opacity-50"
           >
             {isSaving ? 'Saving...' : 'Save Changes'}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -153,18 +159,19 @@ export function CourseDetailsEditor({
             <span className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
             Live Impact Notice
           </div>
-          <p className="mt-1 leading-relaxed">
+          <P className="mt-1 leading-relaxed">
             This course is allocated to <strong>{affectedMentees} active mentees</strong>. Changes
             saved here take effect live immediately across all enrolled cadet dashboards with an
             audit log record.
-          </p>
+          </P>
         </div>
       )}
 
       {errorMsg && (
-        <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
-          {errorMsg}
-        </div>
+        <FieldError
+          error={errorMsg}
+          className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700"
+        />
       )}
 
       {/* Form Fields */}
@@ -176,22 +183,26 @@ export function CourseDetailsEditor({
         className="mt-6 max-w-2xl space-y-5"
       >
         <div>
-          <label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
-            Course Title *
-          </label>
-          <input
+          <Label
+            required={true}
+            className="block text-xs font-bold tracking-wide text-slate-700 uppercase"
+          >
+            Course Title
+          </Label>
+          <Input
             type="text"
             value={title}
+            hasError={Boolean(errorMsg && !title.trim())}
             onChange={(e) => handleChange(() => setTitle(e.target.value))}
             placeholder="e.g. Distributed Systems Engineering"
-            className="mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+            className="mt-1.5 h-10 w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
+          <Label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
             Description
-          </label>
+          </Label>
           <textarea
             rows={4}
             value={description}
@@ -202,22 +213,22 @@ export function CourseDetailsEditor({
         </div>
 
         <div>
-          <label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
+          <Label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
             Total Estimated Duration
-          </label>
+          </Label>
           <div className="mt-1.5 grid max-w-xs grid-cols-2 gap-3">
             <div>
-              <label className="block text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
+              <Label className="block text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
                 Hours
-              </label>
+              </Label>
               <div className="relative mt-1">
-                <input
+                <Input
                   type="number"
                   min={0}
                   value={durationHours}
                   onChange={(e) => handleChange(() => setDurationHours(e.target.value))}
                   placeholder="0"
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 pr-10 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                  className="h-9 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 pr-10 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
                 />
                 <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
                   hrs
@@ -225,11 +236,11 @@ export function CourseDetailsEditor({
               </div>
             </div>
             <div>
-              <label className="block text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
+              <Label className="block text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
                 Minutes
-              </label>
+              </Label>
               <div className="relative mt-1">
-                <input
+                <Input
                   type="number"
                   min={0}
                   max={59}
@@ -243,7 +254,7 @@ export function CourseDetailsEditor({
                     handleChange(() => setDurationMinutes(sanitized));
                   }}
                   placeholder="0"
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 pr-10 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                  className="h-9 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 pr-10 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
                 />
                 <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
                   mins

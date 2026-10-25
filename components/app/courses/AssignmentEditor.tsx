@@ -2,6 +2,11 @@
 
 import React, { useState } from 'react';
 
+import { Button } from '@/components/ui/Button';
+import { FieldError } from '@/components/ui/FieldError';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { H2, H3, H4, P } from '@/components/ui/Typography';
 import { formatErrorMessage } from '@/lib/errors';
 import {
   Assignment,
@@ -253,7 +258,7 @@ export function AssignmentEditor({
             </span>
             <span className="font-mono text-xs text-slate-400">#{assignment.id.slice(0, 8)}</span>
           </div>
-          <h2 className="mt-1 text-2xl font-bold text-slate-900">{assignment.title}</h2>
+          <H2 className="mt-1 text-2xl font-bold text-slate-900">{assignment.title}</H2>
         </div>
 
         <div className="flex items-center gap-3">
@@ -264,16 +269,17 @@ export function AssignmentEditor({
             </span>
           )}
 
-          <button
+          <Button
             type="button"
             disabled={isSaving}
+            isLoading={isSaving}
             onClick={() => {
               void handleSave();
             }}
             className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-slate-800 disabled:opacity-50"
           >
             {isSaving ? 'Saving...' : 'Save Changes'}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -284,17 +290,18 @@ export function AssignmentEditor({
             <span className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
             Existing Submissions Notice
           </div>
-          <p className="mt-1 leading-relaxed">
+          <P className="mt-1 leading-relaxed">
             Mentees have already submitted responses to this assignment. Changing submission modes
             or marks will apply to subsequent submissions; existing submissions will remain valid.
-          </p>
+          </P>
         </div>
       )}
 
       {errorMsg && (
-        <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-          {errorMsg}
-        </div>
+        <FieldError
+          error={errorMsg}
+          className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700"
+        />
       )}
 
       {/* Main Form Fields */}
@@ -308,23 +315,27 @@ export function AssignmentEditor({
         <div className="space-y-6 lg:col-span-7">
           {/* Assignment Title */}
           <div>
-            <label className="block text-sm font-bold tracking-wide text-slate-800 uppercase">
-              Assignment Title *
-            </label>
-            <input
+            <Label
+              required={true}
+              className="block text-sm font-bold tracking-wide text-slate-800 uppercase"
+            >
+              Assignment Title
+            </Label>
+            <Input
               type="text"
               value={title}
+              hasError={Boolean(errorMsg && !title.trim())}
               onChange={(e) => handleChange(() => setTitle(e.target.value))}
               placeholder="e.g. Build a Raft Distributed Consensus Node"
-              className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-base text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+              className="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-base text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
             />
           </div>
 
           {/* Instructions */}
           <div>
-            <label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
+            <Label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
               Instructions & Problem Statement (Rich Text)
-            </label>
+            </Label>
             <textarea
               rows={6}
               value={instructions}
@@ -337,13 +348,16 @@ export function AssignmentEditor({
           {/* Time, Marks, Late Submission Controls */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>
-              <label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
-                Est. Duration *
-              </label>
+              <Label
+                required={true}
+                className="block text-xs font-bold tracking-wide text-slate-700 uppercase"
+              >
+                Est. Duration
+              </Label>
               <div className="mt-1.5 grid grid-cols-2 gap-2">
                 <div>
                   <div className="relative">
-                    <input
+                    <Input
                       type="number"
                       min={0}
                       value={durationHours}
@@ -352,7 +366,7 @@ export function AssignmentEditor({
                         handleChange(() => setDurationHours(val));
                       }}
                       placeholder="0"
-                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 pr-10 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                      className="h-9 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 pr-10 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
                     />
                     <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
                       hrs
@@ -361,7 +375,7 @@ export function AssignmentEditor({
                 </div>
                 <div>
                   <div className="relative">
-                    <input
+                    <Input
                       type="number"
                       min={0}
                       max={59}
@@ -375,7 +389,7 @@ export function AssignmentEditor({
                         handleChange(() => setDurationMinutes(sanitized));
                       }}
                       placeholder="0"
-                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 pr-10 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                      className="h-9 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 pr-10 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
                     />
                     <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
                       mins
@@ -391,26 +405,32 @@ export function AssignmentEditor({
             </div>
 
             <div>
-              <label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
-                Max Marks *
-              </label>
-              <input
+              <Label
+                required={true}
+                className="block text-xs font-bold tracking-wide text-slate-700 uppercase"
+              >
+                Max Marks
+              </Label>
+              <Input
                 type="number"
                 value={maxMarks || ''}
                 onChange={(e) => handleChange(() => setMaxMarks(Number(e.target.value)))}
-                className="mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                className="mt-1.5 h-9 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
-                Pass Marks *
-              </label>
-              <input
+              <Label
+                required={true}
+                className="block text-xs font-bold tracking-wide text-slate-700 uppercase"
+              >
+                Pass Marks
+              </Label>
+              <Input
                 type="number"
                 value={passMarks || ''}
                 onChange={(e) => handleChange(() => setPassMarks(Number(e.target.value)))}
-                className="mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                className="mt-1.5 h-9 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
               />
               <span className="mt-1 block text-[10px] text-slate-500">Must be &le; Max Marks</span>
             </div>
@@ -444,11 +464,11 @@ export function AssignmentEditor({
 
           {/* Submission Modes Chooser */}
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-            <h3 className="text-sm font-bold text-slate-900">Mentee Submission Modes</h3>
-            <p className="text-[11px] text-slate-500">
+            <H3 className="text-sm font-bold text-slate-900">Mentee Submission Modes</H3>
+            <P className="text-[11px] text-slate-500">
               Configure accepted submission deliverables. At least one field must not be
               &apos;Off&apos;.
-            </p>
+            </P>
 
             <div className="mt-4 space-y-3">
               {/* PDF Mode */}
@@ -563,26 +583,27 @@ export function AssignmentEditor({
                       {item.url}
                     </a>
                   </div>
-                  <button
+                  <Button
                     type="button"
                     onClick={() => handleRemoveResource(idx)}
-                    className="rounded p-1 text-slate-400 hover:bg-slate-200 hover:text-rose-600"
+                    className="h-auto rounded p-1 text-slate-400 hover:bg-slate-200 hover:text-rose-600"
                   >
                     &times;
-                  </button>
+                  </Button>
                 </div>
               ))}
             </div>
 
             {errorMsg && (
-              <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
-                {errorMsg}
-              </div>
+              <FieldError
+                error={errorMsg}
+                className="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700"
+              />
             )}
 
             <div className="mt-4 grid grid-cols-1 gap-2 border-t border-slate-100 pt-3 sm:grid-cols-12">
               <div className="sm:col-span-4">
-                <input
+                <Input
                   type="text"
                   placeholder="Resource title"
                   value={newResourceTitle}
@@ -590,11 +611,11 @@ export function AssignmentEditor({
                     setNewResourceTitle(e.target.value);
                     if (errorMsg) setErrorMsg(null);
                   }}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                  className="h-8 w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
                 />
               </div>
               <div className="sm:col-span-5">
-                <input
+                <Input
                   type="url"
                   placeholder="https://github.com/..."
                   value={newResourceUrl}
@@ -602,7 +623,7 @@ export function AssignmentEditor({
                     setNewResourceUrl(e.target.value);
                     if (errorMsg) setErrorMsg(null);
                   }}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                  className="h-8 w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
                 />
               </div>
               <div className="sm:col-span-2">
@@ -616,14 +637,14 @@ export function AssignmentEditor({
                 </select>
               </div>
               <div className="sm:col-span-1">
-                <button
+                <Button
                   type="button"
                   onClick={handleAddResource}
-                  className="w-full rounded-lg bg-blue-600 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-blue-700"
+                  className="h-auto w-full rounded-lg bg-blue-600 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-blue-700"
                 >
                   <span className="sm:hidden">+ Add Resource</span>
                   <span className="hidden sm:inline">+</span>
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -643,13 +664,13 @@ export function AssignmentEditor({
 
             <div className="mt-4 space-y-4 text-xs">
               <div>
-                <h4 className="text-sm font-bold text-slate-900">
+                <H4 className="text-sm font-bold text-slate-900">
                   {title || 'Untitled Assignment'}
-                </h4>
-                <p className="mt-1 text-[11px] text-slate-500">
+                </H4>
+                <P className="mt-1 text-[11px] text-slate-500">
                   Est. {totalDurationMinutes > 0 ? `${totalDurationMinutes}m` : '0m'} • Max{' '}
                   {maxMarks} marks (Pass: {passMarks})
-                </p>
+                </P>
               </div>
 
               {instructions && (

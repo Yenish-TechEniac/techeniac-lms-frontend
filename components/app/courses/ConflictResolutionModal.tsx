@@ -2,6 +2,9 @@
 
 import React from 'react';
 
+import { Button } from '@/components/ui/Button';
+import { H3, P } from '@/components/ui/Typography';
+
 interface ConflictResolutionModalProps {
   isOpen: boolean;
   onReload: () => void;
@@ -18,29 +21,29 @@ export function ConflictResolutionModal({ isOpen, onReload }: ConflictResolution
             <span className="text-xl font-bold">&times;</span>
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-bold text-slate-900">Concurrent Edit Conflict (409)</h3>
-            <p className="mt-1 text-sm text-slate-600">
+            <H3 className="text-lg font-bold text-slate-900">Concurrent Edit Conflict (409)</H3>
+            <P className="mt-1 text-sm text-slate-600">
               Another mentor or administrator has modified this item while you were editing. Your
               current version is out of date.
-            </p>
+            </P>
           </div>
         </div>
 
         <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3.5 text-xs text-rose-900">
-          <p className="leading-relaxed">
+          <P className="leading-relaxed">
             To protect against accidental overwrites, please reload the latest version from the
             server and reapply your changes.
-          </p>
+          </P>
         </div>
 
         <div className="mt-6 flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
-          <button
+          <Button
             type="button"
             onClick={onReload}
             className="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-slate-800"
           >
             Reload Latest Version Now
-          </button>
+          </Button>
         </div>
       </div>
     </div>

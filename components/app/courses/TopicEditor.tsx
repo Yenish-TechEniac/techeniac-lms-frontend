@@ -2,6 +2,11 @@
 
 import React, { useState } from 'react';
 
+import { Button } from '@/components/ui/Button';
+import { FieldError } from '@/components/ui/FieldError';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { H2, H3, P } from '@/components/ui/Typography';
 import { formatErrorMessage } from '@/lib/errors';
 import type { CourseImpact, ResourceItem, Topic, UpdateTopicInput } from '@/types/courses';
 
@@ -240,7 +245,7 @@ export function TopicEditor({
           <span className="block text-xs font-bold tracking-wider text-slate-500 uppercase">
             Topic Parameters
           </span>
-          <h2 className="text-2xl font-bold text-slate-900">{topic.title}</h2>
+          <H2 className="text-2xl font-bold text-slate-900">{topic.title}</H2>
         </div>
 
         <div className="flex items-center gap-3">
@@ -251,16 +256,17 @@ export function TopicEditor({
             </span>
           )}
 
-          <button
+          <Button
             type="button"
             disabled={isSaving}
+            isLoading={isSaving}
             onClick={() => {
               void handleSave();
             }}
             className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-slate-800 disabled:opacity-50"
           >
             {isSaving ? 'Saving...' : 'Save Changes'}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -270,18 +276,19 @@ export function TopicEditor({
             <span className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
             Impact Notice
           </div>
-          <p className="mt-1 leading-relaxed">
+          <P className="mt-1 leading-relaxed">
             Editing or deactivating this topic affects{' '}
             <strong>{affectedMentees} active mentees</strong>. Adding, deactivating, or reactivating
             triggers an automatic progress recalculation event.
-          </p>
+          </P>
         </div>
       )}
 
       {errorMsg && (
-        <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-          {errorMsg}
-        </div>
+        <FieldError
+          error={errorMsg}
+          className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700"
+        />
       )}
 
       <form
@@ -292,22 +299,26 @@ export function TopicEditor({
         className="mt-6 max-w-2xl space-y-6"
       >
         <div>
-          <label className="block text-sm font-bold tracking-wide text-slate-800 uppercase">
-            Topic Title *
-          </label>
-          <input
+          <Label
+            required={true}
+            className="block text-sm font-bold tracking-wide text-slate-800 uppercase"
+          >
+            Topic Title
+          </Label>
+          <Input
             type="text"
             value={title}
+            hasError={Boolean(errorMsg && !title.trim())}
             onChange={(e) => handleChange(() => setTitle(e.target.value))}
             placeholder="e.g. Branching & Trunk Strategies"
-            className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-base text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+            className="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-base text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-bold tracking-wide text-slate-800 uppercase">
+          <Label className="block text-sm font-bold tracking-wide text-slate-800 uppercase">
             Description
-          </label>
+          </Label>
           <textarea
             rows={3}
             value={description}
@@ -318,22 +329,22 @@ export function TopicEditor({
         </div>
 
         <div>
-          <label className="block text-sm font-bold tracking-wide text-slate-800 uppercase">
+          <Label className="block text-sm font-bold tracking-wide text-slate-800 uppercase">
             Estimated Duration
-          </label>
+          </Label>
           <div className="mt-2 grid max-w-xs grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold tracking-wider text-slate-600 uppercase">
+              <Label className="block text-xs font-bold tracking-wider text-slate-600 uppercase">
                 Hours
-              </label>
+              </Label>
               <div className="relative mt-1">
-                <input
+                <Input
                   type="number"
                   min={0}
                   value={durationHours}
                   onChange={(e) => handleChange(() => setDurationHours(e.target.value))}
                   placeholder="0"
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 pr-10 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                  className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 pr-10 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
                 />
                 <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
                   hrs
@@ -341,11 +352,11 @@ export function TopicEditor({
               </div>
             </div>
             <div>
-              <label className="block text-xs font-bold tracking-wider text-slate-600 uppercase">
+              <Label className="block text-xs font-bold tracking-wider text-slate-600 uppercase">
                 Minutes
-              </label>
+              </Label>
               <div className="relative mt-1">
-                <input
+                <Input
                   type="number"
                   min={0}
                   max={59}
@@ -359,7 +370,7 @@ export function TopicEditor({
                     handleChange(() => setDurationMinutes(sanitized));
                   }}
                   placeholder="0"
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 pr-10 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                  className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 pr-10 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
                 />
                 <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
                   mins
@@ -402,10 +413,10 @@ export function TopicEditor({
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-slate-900">Resource Links & Attachments</h3>
-              <p className="text-[11px] text-slate-500">
+              <H3 className="text-sm font-bold text-slate-900">Resource Links & Attachments</H3>
+              <P className="text-[11px] text-slate-500">
                 Supplementary links, documentation references, and download URLs.
-              </p>
+              </P>
             </div>
             <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-600">
               {resources.length}
@@ -439,13 +450,13 @@ export function TopicEditor({
                   </a>
                 </div>
 
-                <button
+                <Button
                   type="button"
                   onClick={() => handleRemoveResource(idx)}
-                  className="rounded p-1 text-slate-400 hover:bg-slate-200 hover:text-rose-600"
+                  className="h-auto rounded p-1 text-slate-400 hover:bg-slate-200 hover:text-rose-600"
                 >
                   &times;
-                </button>
+                </Button>
               </div>
             ))}
 
@@ -457,14 +468,15 @@ export function TopicEditor({
           </div>
 
           {errorMsg && (
-            <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
-              {errorMsg}
-            </div>
+            <FieldError
+              error={errorMsg}
+              className="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700"
+            />
           )}
 
           <div className="mt-4 grid grid-cols-1 gap-2 border-t border-slate-100 pt-3 sm:grid-cols-12">
             <div className="sm:col-span-4">
-              <input
+              <Input
                 type="text"
                 placeholder="Resource title"
                 value={newResourceTitle}
@@ -472,11 +484,11 @@ export function TopicEditor({
                   setNewResourceTitle(e.target.value);
                   if (errorMsg) setErrorMsg(null);
                 }}
-                className="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                className="h-8 w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
               />
             </div>
             <div className="sm:col-span-5">
-              <input
+              <Input
                 type="url"
                 placeholder="https://example.com/spec.pdf"
                 value={newResourceUrl}
@@ -484,7 +496,7 @@ export function TopicEditor({
                   setNewResourceUrl(e.target.value);
                   if (errorMsg) setErrorMsg(null);
                 }}
-                className="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                className="h-8 w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
               />
             </div>
             <div className="sm:col-span-2">
@@ -498,14 +510,14 @@ export function TopicEditor({
               </select>
             </div>
             <div className="sm:col-span-1">
-              <button
+              <Button
                 type="button"
                 onClick={handleAddResource}
-                className="w-full rounded-lg bg-slate-900 py-1.5 text-xs font-bold text-white hover:bg-slate-800"
+                className="h-auto w-full rounded-lg bg-slate-900 py-1.5 text-xs font-bold text-white hover:bg-slate-800"
               >
                 <span className="sm:hidden">+ Add Resource</span>
                 <span className="hidden sm:inline">+</span>
-              </button>
+              </Button>
             </div>
           </div>
         </div>

@@ -14,6 +14,11 @@ import { TopicEditor } from '@/components/app/courses/TopicEditor';
 import { ActiveNodeSelection } from '@/components/app/courses/types';
 import { UnsavedChangesModal } from '@/components/app/courses/UnsavedChangesModal';
 import { Header } from '@/components/layout/Header';
+import { Button } from '@/components/ui/Button';
+import { FieldError } from '@/components/ui/FieldError';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { H3 } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { useCourseBuilder } from '@/hooks/useCourses';
 import { formatErrorMessage } from '@/lib/errors';
@@ -538,7 +543,7 @@ function CourseBuilderContent() {
       <div className="flex flex-1 overflow-hidden">
         {/* Left Pane: Outline Tree */}
         <div
-          className={`w-full lg:flex lg:w-[350px] lg:flex-none lg:flex-col ${
+          className={`w-full lg:flex lg:w-[400px] lg:flex-none lg:flex-col ${
             mobileTab === 'outline' ? 'flex flex-1 flex-col overflow-hidden' : 'hidden'
           }`}
         >
@@ -643,12 +648,13 @@ function CourseBuilderContent() {
       {isAddTopicOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
           <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-            <h3 className="text-base font-bold text-slate-900">Add New Topic</h3>
+            <H3 className="text-base font-bold text-slate-900">Add New Topic</H3>
 
             {topicModalError && (
-              <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
-                {topicModalError}
-              </div>
+              <FieldError
+                error={topicModalError}
+                className="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700"
+              />
             )}
 
             <form
@@ -659,42 +665,41 @@ function CourseBuilderContent() {
               className="mt-4 space-y-4"
             >
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase">
-                  Topic Title <span className="text-rose-500">*</span>
-                </label>
-                <input
+                <Label required={true} className="block text-xs font-bold text-slate-700 uppercase">
+                  Topic Title
+                </Label>
+                <Input
                   type="text"
                   value={newTopicTitle}
+                  hasError={Boolean(topicModalError)}
                   onChange={(e) => {
                     setNewTopicTitle(e.target.value);
                     if (topicModalError) setTopicModalError(null);
                   }}
                   placeholder="e.g. Distributed Consensus"
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs focus:border-blue-600 focus:outline-hidden"
+                  className="mt-1 h-8 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs focus:border-blue-600 focus:outline-hidden"
                 />
               </div>
               <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
-                <button
+                <Button
                   type="button"
                   disabled={isCreatingTopic}
                   onClick={() => {
                     setIsAddTopicOpen(false);
                     setTopicModalError(null);
                   }}
-                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 disabled:opacity-50"
+                  className="h-auto rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 disabled:opacity-50"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
                   disabled={isCreatingTopic}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+                  isLoading={isCreatingTopic}
+                  className="inline-flex h-auto items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
                 >
-                  {isCreatingTopic && (
-                    <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  )}
-                  {isCreatingTopic ? 'Creating...' : 'Create Topic'}
-                </button>
+                  Create Topic
+                </Button>
               </div>
             </form>
           </div>
@@ -705,12 +710,13 @@ function CourseBuilderContent() {
       {isAddSubtopicOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
           <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-            <h3 className="text-base font-bold text-slate-900">Add New Subtopic Lesson</h3>
+            <H3 className="text-base font-bold text-slate-900">Add New Subtopic Lesson</H3>
 
             {subtopicModalError && (
-              <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
-                {subtopicModalError}
-              </div>
+              <FieldError
+                error={subtopicModalError}
+                className="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700"
+              />
             )}
 
             <form
@@ -721,42 +727,41 @@ function CourseBuilderContent() {
               className="mt-4 space-y-4"
             >
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase">
-                  Subtopic Title <span className="text-rose-500">*</span>
-                </label>
-                <input
+                <Label required={true} className="block text-xs font-bold text-slate-700 uppercase">
+                  Subtopic Title
+                </Label>
+                <Input
                   type="text"
                   value={newSubtopicTitle}
+                  hasError={Boolean(subtopicModalError)}
                   onChange={(e) => {
                     setNewSubtopicTitle(e.target.value);
                     if (subtopicModalError) setSubtopicModalError(null);
                   }}
                   placeholder="e.g. Raft Leader Election Protocol"
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs focus:border-blue-600 focus:outline-hidden"
+                  className="mt-1 h-8 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs focus:border-blue-600 focus:outline-hidden"
                 />
               </div>
               <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
-                <button
+                <Button
                   type="button"
                   disabled={isCreatingSubtopic}
                   onClick={() => {
                     setIsAddSubtopicOpen(false);
                     setSubtopicModalError(null);
                   }}
-                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 disabled:opacity-50"
+                  className="h-auto rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 disabled:opacity-50"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
                   disabled={isCreatingSubtopic}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+                  isLoading={isCreatingSubtopic}
+                  className="inline-flex h-auto items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
                 >
-                  {isCreatingSubtopic && (
-                    <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  )}
-                  {isCreatingSubtopic ? 'Creating...' : 'Create Subtopic'}
-                </button>
+                  Create Subtopic
+                </Button>
               </div>
             </form>
           </div>
@@ -767,12 +772,13 @@ function CourseBuilderContent() {
       {isAddAssignmentOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
           <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-            <h3 className="text-base font-bold text-slate-900">Add {assignmentScope} Assignment</h3>
+            <H3 className="text-base font-bold text-slate-900">Add {assignmentScope} Assignment</H3>
 
             {assignmentModalError && (
-              <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
-                {assignmentModalError}
-              </div>
+              <FieldError
+                error={assignmentModalError}
+                className="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700"
+              />
             )}
 
             <form
@@ -783,28 +789,32 @@ function CourseBuilderContent() {
               className="mt-4 space-y-4"
             >
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase">
-                  Assignment Title <span className="text-rose-500">*</span>
-                </label>
-                <input
+                <Label required={true} className="block text-xs font-bold text-slate-700 uppercase">
+                  Assignment Title
+                </Label>
+                <Input
                   type="text"
                   value={newAssignmentTitle}
+                  hasError={Boolean(assignmentModalError)}
                   onChange={(e) => {
                     setNewAssignmentTitle(e.target.value);
                     if (assignmentModalError) setAssignmentModalError(null);
                   }}
                   placeholder="e.g. Implement Raft Log Compaction"
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs focus:border-blue-600 focus:outline-hidden"
+                  className="mt-1 h-8 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs focus:border-blue-600 focus:outline-hidden"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-700 uppercase">
-                    Est. Hours <span className="text-rose-500">*</span>
-                  </label>
+                  <Label
+                    required={true}
+                    className="block text-[11px] font-bold text-slate-700 uppercase"
+                  >
+                    Est. Hours
+                  </Label>
                   <div className="relative mt-1">
-                    <input
+                    <Input
                       type="number"
                       min={0}
                       value={newAssignmentHours}
@@ -812,7 +822,7 @@ function CourseBuilderContent() {
                         setNewAssignmentHours(e.target.value);
                         if (assignmentModalError) setAssignmentModalError(null);
                       }}
-                      className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 pr-8 text-xs focus:border-blue-600 focus:outline-hidden"
+                      className="h-8 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 pr-8 text-xs focus:border-blue-600 focus:outline-hidden"
                     />
                     <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-[10px] font-medium text-slate-400">
                       hrs
@@ -820,11 +830,11 @@ function CourseBuilderContent() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-700 uppercase">
+                  <Label className="block text-[11px] font-bold text-slate-700 uppercase">
                     Est. Minutes
-                  </label>
+                  </Label>
                   <div className="relative mt-1">
-                    <input
+                    <Input
                       type="number"
                       min={0}
                       max={59}
@@ -838,7 +848,7 @@ function CourseBuilderContent() {
                         setNewAssignmentMinutes(sanitized);
                         if (assignmentModalError) setAssignmentModalError(null);
                       }}
-                      className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 pr-8 text-xs focus:border-blue-600 focus:outline-hidden"
+                      className="h-8 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 pr-8 text-xs focus:border-blue-600 focus:outline-hidden"
                     />
                     <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-[10px] font-medium text-slate-400">
                       mins
@@ -849,10 +859,13 @@ function CourseBuilderContent() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-700 uppercase">
-                    Max Marks <span className="text-rose-500">*</span>
-                  </label>
-                  <input
+                  <Label
+                    required={true}
+                    className="block text-[11px] font-bold text-slate-700 uppercase"
+                  >
+                    Max Marks
+                  </Label>
+                  <Input
                     type="number"
                     min={1}
                     max={1000}
@@ -861,14 +874,17 @@ function CourseBuilderContent() {
                       setNewAssignmentMaxMarks(Number(e.target.value));
                       if (assignmentModalError) setAssignmentModalError(null);
                     }}
-                    className="mt-1 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs focus:border-blue-600 focus:outline-hidden"
+                    className="mt-1 h-8 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs focus:border-blue-600 focus:outline-hidden"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-700 uppercase">
-                    Pass Marks <span className="text-rose-500">*</span>
-                  </label>
-                  <input
+                  <Label
+                    required={true}
+                    className="block text-[11px] font-bold text-slate-700 uppercase"
+                  >
+                    Pass Marks
+                  </Label>
+                  <Input
                     type="number"
                     min={1}
                     value={newAssignmentPassMarks || ''}
@@ -876,33 +892,31 @@ function CourseBuilderContent() {
                       setNewAssignmentPassMarks(Number(e.target.value));
                       if (assignmentModalError) setAssignmentModalError(null);
                     }}
-                    className="mt-1 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs focus:border-blue-600 focus:outline-hidden"
+                    className="mt-1 h-8 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs focus:border-blue-600 focus:outline-hidden"
                   />
                 </div>
               </div>
 
               <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
-                <button
+                <Button
                   type="button"
                   disabled={isCreatingAssignment}
                   onClick={() => {
                     setIsAddAssignmentOpen(false);
                     setAssignmentModalError(null);
                   }}
-                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 disabled:opacity-50"
+                  className="h-auto rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 disabled:opacity-50"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
                   disabled={isCreatingAssignment}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-purple-700 disabled:opacity-50"
+                  isLoading={isCreatingAssignment}
+                  className="inline-flex h-auto items-center gap-1.5 rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-purple-700 disabled:opacity-50"
                 >
-                  {isCreatingAssignment && (
-                    <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  )}
-                  {isCreatingAssignment ? 'Creating...' : 'Create Assignment'}
-                </button>
+                  Create Assignment
+                </Button>
               </div>
             </form>
           </div>
