@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 
 import { coursesService } from '@/services/courses.service';
 import type {
@@ -22,66 +23,37 @@ import type {
 } from '@/types/courses';
 
 export function useCourses(initialQuery?: ListCoursesQuery) {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [total, setTotal] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchCourses = useCallback(async (query?: ListCoursesQuery) => {
-    setIsLoading(true);
-    try {
-      const data = await coursesService.listCourses(query);
-      setCourses(data.courses);
-      setTotal(data.pagination.total);
-      setError(null);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to fetch courses';
-      setError(msg);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const {
+    data,
+    isLoading,
+    error: queryError,
+  } = useQuery({
+    queryKey: ['courses', initialQuery],
+    queryFn: () => coursesService.listCourses(initialQuery),
+  });
 
-  const queryKey = JSON.stringify(initialQuery ?? {});
+  const courses = data?.courses ?? [];
+  const total = data?.pagination.total ?? 0;
+  const error = queryError instanceof Error ? queryError.message : null;
 
-  useEffect(() => {
-    let ignore = false;
-    async function load() {
-      setIsLoading(true);
-      try {
-        const query = JSON.parse(queryKey) as ListCoursesQuery;
-        const data = await coursesService.listCourses(query);
-        if (!ignore) {
-          setCourses(data.courses);
-          setTotal(data.pagination.total);
-          setError(null);
-        }
-      } catch (err: unknown) {
-        if (!ignore) {
-          const msg = err instanceof Error ? err.message : 'Failed to fetch courses';
-          setError(msg);
-        }
-      } finally {
-        if (!ignore) {
-          setIsLoading(false);
-        }
-      }
-    }
-    void load();
-    return () => {
-      ignore = true;
-    };
-  }, [queryKey]);
+  const fetchCourses = useCallback(
+    async (query?: ListCoursesQuery) => {
+      await queryClient.invalidateQueries({ queryKey: ['courses', query ?? initialQuery] });
+    },
+    [queryClient, initialQuery],
+  );
 
   const createCourse = async (payload: CreateCourseInput): Promise<Course> => {
     const created = await coursesService.createCourse(payload);
-    await fetchCourses(initialQuery);
+    await queryClient.invalidateQueries({ queryKey: ['courses'] });
     return created;
   };
 
   const deleteCourse = async (id: string): Promise<void> => {
     await coursesService.deleteCourse(id);
-    await fetchCourses(initialQuery);
+    await queryClient.invalidateQueries({ queryKey: ['courses'] });
   };
 
   const toggleCourseStatus = async (
@@ -90,13 +62,13 @@ export function useCourses(initialQuery?: ListCoursesQuery) {
     expectedUpdatedAt?: string,
   ): Promise<Course> => {
     const updated = await coursesService.toggleCourseStatus(id, isActive, expectedUpdatedAt);
-    await fetchCourses(initialQuery);
+    await queryClient.invalidateQueries({ queryKey: ['courses'] });
     return updated;
   };
 
   const cloneCourse = async (id: string): Promise<Course> => {
     const cloned = await coursesService.cloneCourse(id);
-    await fetchCourses(initialQuery);
+    await queryClient.invalidateQueries({ queryKey: ['courses'] });
     return cloned;
   };
 
@@ -119,56 +91,44 @@ export function useCourses(initialQuery?: ListCoursesQuery) {
 }
 
 export function useCourseBuilder(courseId: string) {
-  const [course, setCourse] = useState<Course | null>(null);
-  const [impact, setImpact] = useState<CourseImpact | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  const {
+    data: course = null,
+    isLoading: isCourseLoading,
+    error: courseError,
+  } = useQuery<Course | null>({
+    queryKey: ['course', courseId],
+    queryFn: () => coursesService.getCourseById(courseId, true),
+    enabled: Boolean(courseId),
+  });
+
+  const {
+    data: impact = null,
+    isLoading: isImpactLoading,
+    error: impactError,
+  } = useQuery<CourseImpact | null>({
+    queryKey: ['course-impact', courseId],
+    queryFn: () => coursesService.getCourseImpact(courseId),
+    enabled: Boolean(courseId),
+  });
+
+  const isLoading = isCourseLoading || isImpactLoading;
+  const activeError = courseError ?? impactError;
+  const error = activeError instanceof Error ? activeError.message : null;
 
   const reloadCourse = useCallback(async () => {
-    try {
-      const data = await coursesService.getCourseById(courseId, true);
-      setCourse(data);
-      const impactData = await coursesService.getCourseImpact(courseId);
-      setImpact(impactData);
-      setError(null);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to load course';
-      setError(msg);
-    }
-  }, [courseId]);
-
-  useEffect(() => {
-    let ignore = false;
-    async function load() {
-      setIsLoading(true);
-      try {
-        const data = await coursesService.getCourseById(courseId, true);
-        const impactData = await coursesService.getCourseImpact(courseId);
-        if (!ignore) {
-          setCourse(data);
-          setImpact(impactData);
-          setError(null);
-        }
-      } catch (err: unknown) {
-        if (!ignore) {
-          const msg = err instanceof Error ? err.message : 'Failed to load course';
-          setError(msg);
-        }
-      } finally {
-        if (!ignore) {
-          setIsLoading(false);
-        }
-      }
-    }
-    void load();
-    return () => {
-      ignore = true;
-    };
-  }, [courseId]);
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['course', courseId] }),
+      queryClient.invalidateQueries({ queryKey: ['course-impact', courseId] }),
+    ]);
+  }, [queryClient, courseId]);
 
   const updateCourse = async (payload: UpdateCourseInput): Promise<Course> => {
     const updated = await coursesService.updateCourse(courseId, payload);
-    setCourse((prev) => (prev ? { ...prev, ...updated } : updated));
+    queryClient.setQueryData<Course | null>(['course', courseId], (prev) =>
+      prev ? { ...prev, ...updated } : updated,
+    );
     return updated;
   };
 
@@ -180,7 +140,7 @@ export function useCourseBuilder(courseId: string) {
 
   const updateTopic = async (id: string, payload: UpdateTopicInput): Promise<Topic> => {
     const updated = await coursesService.updateTopic(id, payload);
-    setCourse((prev) => {
+    queryClient.setQueryData<Course | null>(['course', courseId], (prev) => {
       if (!prev) return prev;
       return {
         ...prev,
@@ -196,7 +156,7 @@ export function useCourseBuilder(courseId: string) {
   };
 
   const reorderTopics = async (items: ReorderItemInput[]): Promise<void> => {
-    setCourse((prev) => {
+    queryClient.setQueryData<Course | null>(['course', courseId], (prev) => {
       if (!prev || !prev.topics) return prev;
       const orderMap = new Map(items.map((it) => [it.id, it.displayOrder]));
       const sortedTopics = [...prev.topics]
@@ -219,7 +179,7 @@ export function useCourseBuilder(courseId: string) {
 
   const updateSubtopic = async (id: string, payload: UpdateSubtopicInput): Promise<Subtopic> => {
     const updated = await coursesService.updateSubtopic(id, payload);
-    setCourse((prev) => {
+    queryClient.setQueryData<Course | null>(['course', courseId], (prev) => {
       if (!prev) return prev;
       return {
         ...prev,
@@ -238,7 +198,7 @@ export function useCourseBuilder(courseId: string) {
   };
 
   const reorderSubtopics = async (topicId: string, items: ReorderItemInput[]): Promise<void> => {
-    setCourse((prev) => {
+    queryClient.setQueryData<Course | null>(['course', courseId], (prev) => {
       if (!prev || !prev.topics) return prev;
       const orderMap = new Map(items.map((it) => [it.id, it.displayOrder]));
       const updatedTopics = prev.topics.map((t) => {
@@ -265,7 +225,7 @@ export function useCourseBuilder(courseId: string) {
     payload: UpdateAssignmentInput,
   ): Promise<Assignment> => {
     const updated = await coursesService.updateAssignment(id, payload);
-    setCourse((prev) => {
+    queryClient.setQueryData<Course | null>(['course', courseId], (prev) => {
       if (!prev) return prev;
       const updatedCourseAssignments = (prev.courseAssignments || prev.assignments)?.map((a) =>
         a.id === updated.id ? { ...a, ...updated } : a,
@@ -290,7 +250,7 @@ export function useCourseBuilder(courseId: string) {
   };
 
   const reorderAssignments = async (items: ReorderItemInput[]): Promise<void> => {
-    setCourse((prev) => {
+    queryClient.setQueryData<Course | null>(['course', courseId], (prev) => {
       if (!prev) return prev;
       const orderMap = new Map(items.map((it) => [it.id, it.displayOrder]));
       const currentCourseAssigns = prev.courseAssignments || prev.assignments || [];
