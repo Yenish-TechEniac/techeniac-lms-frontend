@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import React, { useState } from 'react';
 
+import { Button } from '@/components/ui/Button';
+import { H3, P } from '@/components/ui/Typography';
 import type { Course } from '@/types/courses';
 
 import { formatDurationMinutes } from './types';
@@ -44,27 +46,32 @@ export function CourseCard({
       (course.topics?.reduce((acc, t) => acc + (t.assignments?.length ?? 0), 0) ?? 0);
 
   return (
-    <div className="group relative flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs transition-all hover:border-slate-300 hover:shadow-sm">
+    <div className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs transition-all duration-200 hover:border-slate-300 hover:shadow-md">
       <div>
         {/* Top Header: Badges & Duration */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span
-              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide ${
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold tracking-wide ${
                 course.isActive
                   ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
                   : 'border border-slate-200 bg-slate-100 text-slate-600'
               }`}
             >
               <span
-                className={`h-1.5 w-1.5 rounded-full ${course.isActive ? 'bg-emerald-500' : 'bg-slate-400'}`}
+                className={`h-2 w-2 rounded-full ${course.isActive ? 'bg-emerald-500' : 'bg-slate-400'}`}
               />
               {course.isActive ? 'Active' : 'Inactive'}
             </span>
           </div>
 
-          <div className="inline-flex items-center gap-1 text-xs font-medium text-slate-500">
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-slate-100 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-500">
+            <svg
+              className="h-3.5 w-3.5 text-slate-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -77,34 +84,60 @@ export function CourseCard({
         </div>
 
         {/* Course Title & Description */}
-        <h3 className="mt-3 text-base font-bold text-slate-900 transition-colors group-hover:text-blue-600">
+        <H3 className="mt-3.5 line-clamp-1 text-lg font-bold text-slate-900 transition-colors group-hover:text-blue-600">
           {course.title}
-        </h3>
-        <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-500">
+        </H3>
+        <P className="mt-1.5 line-clamp-2 min-h-[2.5rem] text-sm leading-relaxed text-slate-600">
           {course.description || 'No description provided.'}
-        </p>
+        </P>
 
-        {/* Telemetry Stats: Topics, Assignments, Allocations */}
-        <div className="mt-4 grid grid-cols-3 gap-2 border-y border-slate-100 py-2.5 text-center text-xs">
-          <div>
-            <span className="block font-bold text-slate-800">{topicCount}</span>
-            <span className="text-[10px] text-slate-400 uppercase">Topics</span>
-          </div>
-          <div>
-            <span className="block font-bold text-slate-800">{assignmentCount}</span>
-            <span className="text-[10px] text-slate-400 uppercase">Tasks</span>
-          </div>
-          <div>
-            <span className="block font-bold text-slate-800">{course.allocationCount ?? 0}</span>
-            <span className="text-[10px] text-slate-400 uppercase">Mentees</span>
+        {/* Telemetry Stats Box: Topics, Tasks, Allocations */}
+        <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50/80 p-3">
+          <div className="grid grid-cols-3 divide-x divide-slate-200/80 text-center">
+            <div className="px-2">
+              <span className="block text-base font-bold text-slate-900">{topicCount}</span>
+              <span className="mt-0.5 block text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                Topics
+              </span>
+            </div>
+            <div className="px-2">
+              <span className="block text-base font-bold text-slate-900">{assignmentCount}</span>
+              <span className="mt-0.5 block text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                Tasks
+              </span>
+            </div>
+            <div className="px-2">
+              <span className="block text-base font-bold text-slate-900">
+                {course.allocationCount ?? 0}
+              </span>
+              <span className="mt-0.5 block text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                Mentees
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Usage Telemetry Info (FR-6.6) */}
-        <div className="mt-2.5 text-[11px] text-slate-500">
+        <div className="mt-3 flex items-center gap-1.5 text-xs text-slate-500">
+          <svg
+            className="h-4 w-4 shrink-0 text-slate-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.75}
+              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+            />
+          </svg>
           {course.allocationCount && course.allocationCount > 0 ? (
-            <span>
-              Assigned to <strong>{course.allocationCount} mentees</strong>
+            <span className="truncate">
+              Assigned to{' '}
+              <strong className="font-semibold text-slate-700">
+                {course.allocationCount} mentees
+              </strong>
               {course.lastAssignedAt
                 ? ` • Last: ${new Date(course.lastAssignedAt).toLocaleDateString()}`
                 : ''}
@@ -115,22 +148,25 @@ export function CourseCard({
         </div>
 
         {errorMsg && (
-          <div className="mt-2 rounded-md bg-rose-50 p-2 text-xs text-rose-700">{errorMsg}</div>
+          <div className="mt-3 rounded-lg border border-rose-200 bg-rose-50 p-2.5 text-xs font-medium text-rose-700">
+            {errorMsg}
+          </div>
         )}
       </div>
 
       {/* Action Footer */}
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3">
-        <div className="flex items-center gap-1.5">
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-4">
+        <div className="flex items-center gap-2">
           <Link
             href={`/admin/courses/${course.id}/builder`}
-            className="inline-flex items-center gap-1 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-slate-800"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-slate-800"
           >
-            Builder &rarr;
+            <span>Builder</span>
+            <span aria-hidden="true">&rarr;</span>
           </Link>
 
           {/* Assign Button (FR-6.6, CRS-16: Disabled if Inactive) */}
-          <button
+          <Button
             type="button"
             disabled={!course.isActive}
             title={
@@ -138,49 +174,50 @@ export function CourseCard({
                 ? 'Allocate this course to a batch or mentees'
                 : 'Inactive courses cannot be newly allocated'
             }
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+            className={`h-auto rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
               course.isActive
                 ? 'border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100'
                 : 'cursor-not-allowed border border-slate-200 bg-slate-100 text-slate-400'
             }`}
           >
             Assign
-          </button>
+          </Button>
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           {/* Clone Button (FR-6.7, CRS-21) */}
-          <button
+          <Button
             type="button"
             disabled={isCloning}
+            isLoading={isCloning}
             onClick={() => {
               void handleClone();
             }}
             title="Clone Course (Creates Inactive Copy)"
-            className="rounded-lg border border-slate-200 bg-white p-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+            className="h-auto rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:border-slate-300 hover:bg-slate-50 disabled:opacity-50"
           >
-            {isCloning ? '...' : 'Clone'}
-          </button>
+            Clone
+          </Button>
 
           {/* Toggle Active/Inactive (FR-6.11) */}
-          <button
+          <Button
             type="button"
             onClick={() => onRequestToggleStatus(course)}
             title={course.isActive ? 'Deactivate course' : 'Activate course'}
-            className="rounded-lg border border-slate-200 bg-white p-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50"
+            className="h-auto rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:border-slate-300 hover:bg-slate-50"
           >
             {course.isActive ? 'Deactivate' : 'Activate'}
-          </button>
+          </Button>
 
           {/* Soft Delete (FR-6.7, CRS-20) */}
-          <button
+          <Button
             type="button"
             onClick={() => onRequestDelete(course)}
             title="Delete course"
-            className="rounded-lg border border-slate-200 bg-white p-1.5 text-xs font-medium text-rose-600 hover:bg-rose-50"
+            className="h-auto rounded-lg border border-rose-200/80 bg-white px-2.5 py-1.5 text-xs font-medium text-rose-600 hover:border-rose-300 hover:bg-rose-50"
           >
             Delete
-          </button>
+          </Button>
         </div>
       </div>
     </div>

@@ -7,6 +7,11 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { CourseCard } from '@/components/app/courses/CourseCard';
 import { ImpactNoticeModal } from '@/components/app/courses/ImpactNoticeModal';
 import { Header } from '@/components/layout/Header';
+import { Button } from '@/components/ui/Button';
+import { FieldError } from '@/components/ui/FieldError';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { H1, H3, P } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { useCourses } from '@/hooks/useCourses';
 import { formatErrorMessage } from '@/lib/errors';
@@ -188,82 +193,163 @@ export default function CourseLibraryPage() {
         {/* Top Breadcrumb & Actions */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-              <Link href="/admin" className="hover:text-slate-900">
+            <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+              <Link href="/admin" className="transition-colors hover:text-slate-900">
                 Admin
               </Link>
-              <span>/</span>
-              <span className="text-slate-900">Curriculum & Course Library</span>
+              <span className="text-slate-300">/</span>
+              <span className="font-semibold text-slate-900">Curriculum & Course Library</span>
             </div>
-            <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+            <H1 className="mt-1.5 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
               Course Library
-            </h1>
-            <p className="mt-1 text-xs text-slate-500">
+            </H1>
+            <P className="mt-1.5 max-w-2xl text-sm text-slate-500">
               Manage enterprise learning tracks, syllabus outlines, and live assignments.
-            </p>
+            </P>
           </div>
 
           <div className="flex items-center gap-3">
-            <button
+            <Button
               type="button"
               onClick={() => setIsCreateModalOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-slate-800"
+              className="inline-flex h-auto items-center gap-2 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-xs transition-all hover:bg-slate-800 hover:shadow-sm"
             >
-              + Create New Course
-            </button>
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              <span>Create New Course</span>
+            </Button>
           </div>
         </div>
 
         {/* Telemetry Stat Cards */}
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
-            <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
-              Total Courses
-            </span>
-            <div className="mt-1 text-2xl font-bold text-slate-900">{total}</div>
+          <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all hover:border-slate-300 hover:shadow-sm">
+            <div>
+              <span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
+                Total Courses
+              </span>
+              <div className="mt-1.5 text-3xl font-extrabold tracking-tight text-slate-900">
+                {total}
+              </div>
+            </div>
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                />
+              </svg>
+            </div>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
-            <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
-              Active Tracks
-            </span>
-            <div className="mt-1 text-2xl font-bold text-emerald-600">{activeCount}</div>
+          <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all hover:border-slate-300 hover:shadow-sm">
+            <div>
+              <span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
+                Active Tracks
+              </span>
+              <div className="mt-1.5 text-3xl font-extrabold tracking-tight text-emerald-600">
+                {activeCount}
+              </div>
+            </div>
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
-            <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
-              Mentees Enrolled
-            </span>
-            <div className="mt-1 text-2xl font-bold text-blue-600">{totalMenteesReached}</div>
+          <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all hover:border-slate-300 hover:shadow-sm">
+            <div>
+              <span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
+                Mentees Enrolled
+              </span>
+              <div className="mt-1.5 text-3xl font-extrabold tracking-tight text-blue-600">
+                {totalMenteesReached}
+              </div>
+            </div>
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                />
+              </svg>
+            </div>
           </div>
         </div>
 
         {/* Search & Filter Toolbar */}
-        <div className="mt-6 flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-6 flex flex-col gap-4 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between">
           <div className="relative max-w-md flex-1">
-            <input
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+            <Input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search courses by title or topic..."
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-blue-600 focus:bg-white focus:outline-hidden"
+              className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/70 pr-3.5 pl-10 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:border-blue-600 focus:bg-white focus:outline-hidden"
             />
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
             {/* Status Segmented Filter */}
-            <div className="inline-flex rounded-lg border border-slate-200 bg-slate-100 p-0.5 text-xs">
+            <div className="inline-flex rounded-xl border border-slate-200/80 bg-slate-100/80 p-1 text-sm">
               {(['all', 'true', 'false'] as const).map((st) => (
-                <button
+                <Button
                   key={st}
                   type="button"
                   onClick={() => setActiveFilter(st)}
-                  className={`rounded-md px-3 py-1 font-semibold transition-colors ${
+                  className={`h-auto rounded-lg px-4 py-1.5 text-xs font-semibold transition-colors ${
                     activeFilter === st
                       ? 'bg-white text-slate-900 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
+                      : 'border-transparent bg-transparent text-slate-600 shadow-none hover:bg-transparent hover:text-slate-900'
                   }`}
                 >
                   {st === 'all' ? 'All' : st === 'true' ? 'Active' : 'Inactive'}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -277,14 +363,14 @@ export default function CourseLibraryPage() {
             </div>
           ) : courses.length === 0 ? (
             <div className="flex h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
-              <h3 className="text-sm font-bold text-slate-800">No courses found</h3>
-              <p className="mt-1 text-xs text-slate-500">
+              <H3 className="text-base font-bold text-slate-800">No courses found</H3>
+              <P className="mt-1 text-sm text-slate-500">
                 Try modifying your search or filter settings, or click &quot;Create New
                 Course&quot;.
-              </p>
+              </P>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {courses.map((c) => (
                 <CourseCard
                   key={c.id}
@@ -312,16 +398,17 @@ export default function CourseLibraryPage() {
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
           <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-bold text-slate-900">Create New Course</h3>
-            <p className="mt-1 text-xs text-slate-500">
+            <H3 className="text-lg font-bold text-slate-900">Create New Course</H3>
+            <P className="mt-1 text-xs text-slate-500">
               Initialize a curriculum standard. You will be redirected to the Course Builder to add
               topics and assignments.
-            </p>
+            </P>
 
             {createError && (
-              <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
-                {createError}
-              </div>
+              <FieldError
+                error={createError}
+                className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700"
+              />
             )}
 
             <form
@@ -332,25 +419,29 @@ export default function CourseLibraryPage() {
               className="mt-5 space-y-4"
             >
               <div>
-                <label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
-                  Course Title <span className="text-rose-500">*</span>
-                </label>
-                <input
+                <Label
+                  required={true}
+                  className="block text-xs font-bold tracking-wide text-slate-700 uppercase"
+                >
+                  Course Title
+                </Label>
+                <Input
                   type="text"
                   value={newTitle}
+                  hasError={Boolean(createError)}
                   onChange={(e) => {
                     setNewTitle(e.target.value);
                     if (createError) setCreateError(null);
                   }}
                   placeholder="e.g. Git & GitHub Mastery"
-                  className="mt-1.5 w-full rounded-lg border border-slate-300 px-3.5 py-2 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                  className="mt-1.5 h-10 w-full rounded-lg border border-slate-300 px-3.5 py-2 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
+                <Label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
                   Description
-                </label>
+                </Label>
                 <textarea
                   rows={3}
                   value={newDescription}
@@ -361,22 +452,22 @@ export default function CourseLibraryPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
+                <Label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
                   Estimated Duration
-                </label>
+                </Label>
                 <div className="mt-1.5 grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
+                    <Label className="block text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
                       Hours
-                    </label>
+                    </Label>
                     <div className="relative mt-1">
-                      <input
+                      <Input
                         type="number"
                         min={0}
                         value={durationHours}
                         onChange={(e) => setDurationHours(e.target.value)}
                         placeholder="0"
-                        className="w-full rounded-lg border border-slate-300 px-3 py-2 pr-10 text-xs text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                        className="h-9 w-full rounded-lg border border-slate-300 px-3 py-2 pr-10 text-xs text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
                       />
                       <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
                         hrs
@@ -384,11 +475,11 @@ export default function CourseLibraryPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
+                    <Label className="block text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
                       Minutes
-                    </label>
+                    </Label>
                     <div className="relative mt-1">
-                      <input
+                      <Input
                         type="number"
                         min={0}
                         max={59}
@@ -402,7 +493,7 @@ export default function CourseLibraryPage() {
                           setDurationMinutes(sanitized);
                         }}
                         placeholder="0"
-                        className="w-full rounded-lg border border-slate-300 px-3 py-2 pr-10 text-xs text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                        className="h-9 w-full rounded-lg border border-slate-300 px-3 py-2 pr-10 text-xs text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
                       />
                       <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
                         mins
@@ -430,20 +521,21 @@ export default function CourseLibraryPage() {
               </div>
 
               <div className="mt-6 flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
-                <button
+                <Button
                   type="button"
                   onClick={() => setIsCreateModalOpen(false)}
                   className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
                   disabled={isSubmittingCreate}
+                  isLoading={isSubmittingCreate}
                   className="rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-slate-800 disabled:opacity-50"
                 >
-                  {isSubmittingCreate ? 'Creating...' : 'Create & Open Builder'}
-                </button>
+                  Create & Open Builder
+                </Button>
               </div>
             </form>
           </div>
