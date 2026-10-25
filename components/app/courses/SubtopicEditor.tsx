@@ -25,6 +25,7 @@ function isValidWebUrl(urlString: string): boolean {
 interface SubtopicEditorProps {
   subtopic: Subtopic;
   impact?: CourseImpact | null | undefined;
+  courseEstimatedMinutes?: number | null | undefined;
   parentTopicTitle?: string | undefined;
   parentTopicEstimatedMinutes?: number | null | undefined;
   otherSubtopicsMinutes?: number | undefined;
@@ -36,6 +37,7 @@ interface SubtopicEditorProps {
 export function SubtopicEditor({
   subtopic,
   impact,
+  courseEstimatedMinutes = null,
   parentTopicTitle,
   parentTopicEstimatedMinutes = null,
   otherSubtopicsMinutes = 0,
@@ -126,26 +128,47 @@ export function SubtopicEditor({
       return;
     }
 
-    if (totalEstimatedMins !== null && totalEstimatedMins <= 0) {
-      setErrorMsg('Please enter a valid positive duration greater than 0 minutes.');
+    const parsedHours = durationHours !== '' ? parseInt(durationHours, 10) : 0;
+    const parsedMins = durationMinutes !== '' ? parseInt(durationMinutes, 10) : 0;
+
+    if (isNaN(parsedHours) || parsedHours < 0) {
+      setErrorMsg('Hours cannot be negative.');
       return;
     }
 
     if (durationMinutes !== '') {
-      const parsedMins = parseInt(durationMinutes, 10);
       if (isNaN(parsedMins) || parsedMins < 0 || parsedMins > 59) {
         setErrorMsg('Minutes must be between 0 and 59.');
         return;
       }
     }
 
+    const calculatedMins =
+      durationHours !== '' || durationMinutes !== '' ? parsedHours * 60 + parsedMins : null;
+
+    const finalEstimatedMinutes =
+      calculatedMins !== null && calculatedMins > 0 ? calculatedMins : null;
+
     if (
-      remainingBudget !== null &&
-      totalEstimatedMins !== null &&
-      totalEstimatedMins > remainingBudget
+      finalEstimatedMinutes !== null &&
+      courseEstimatedMinutes !== null &&
+      courseEstimatedMinutes !== undefined &&
+      courseEstimatedMinutes > 0 &&
+      finalEstimatedMinutes > courseEstimatedMinutes
     ) {
       setErrorMsg(
-        `Subtopic duration (${Math.floor(totalEstimatedMins / 60)}h ${totalEstimatedMins % 60}m) exceeds parent topic "${parentTopicTitle || 'Topic'}" remaining duration budget (${Math.floor(remainingBudget / 60)}h ${remainingBudget % 60}m remaining out of ${Math.floor(parentTopicEstimatedMinutes! / 60)}h ${parentTopicEstimatedMinutes! % 60}m total).`,
+        `Subtopic duration (${Math.floor(finalEstimatedMinutes / 60)}h ${finalEstimatedMinutes % 60}m) cannot exceed the total course duration (${Math.floor(courseEstimatedMinutes / 60)}h ${courseEstimatedMinutes % 60}m).`,
+      );
+      return;
+    }
+
+    if (
+      remainingBudget !== null &&
+      finalEstimatedMinutes !== null &&
+      finalEstimatedMinutes > remainingBudget
+    ) {
+      setErrorMsg(
+        `Subtopic duration (${Math.floor(finalEstimatedMinutes / 60)}h ${finalEstimatedMinutes % 60}m) exceeds parent topic "${parentTopicTitle || 'Topic'}" remaining duration budget (${Math.floor(remainingBudget / 60)}h ${remainingBudget % 60}m remaining out of ${Math.floor(parentTopicEstimatedMinutes! / 60)}h ${parentTopicEstimatedMinutes! % 60}m total).`,
       );
       return;
     }
@@ -196,7 +219,7 @@ export function SubtopicEditor({
         title: title.trim(),
         content: content.trim() || null,
         resources: updatedResources.length > 0 ? updatedResources : null,
-        estimatedMinutes: totalEstimatedMins,
+        estimatedMinutes: finalEstimatedMinutes,
         isActive,
         expectedUpdatedAt: subtopic.updatedAt,
       });
@@ -361,7 +384,7 @@ export function SubtopicEditor({
               ? `${totalEstimatedMins} minutes total (${Math.floor(totalEstimatedMins / 60)}h ${totalEstimatedMins % 60}m)`
               : 'Optional'}
           </span>
-          {remainingBudget !== null && (
+          {remainingBudget !== null ? (
             <div className="mt-2 flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-medium text-blue-700">
               <span>
                 Available budget:{' '}
@@ -374,7 +397,16 @@ export function SubtopicEditor({
                 {(otherSubtopicsMinutes || 0) % 60}m)
               </span>
             </div>
-          )}
+          ) : courseEstimatedMinutes && courseEstimatedMinutes > 0 ? (
+            <div className="mt-2 flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-medium text-blue-700">
+              <span>
+                Course duration limit:{' '}
+                <strong>
+                  {Math.floor(courseEstimatedMinutes / 60)}h {courseEstimatedMinutes % 60}m total
+                </strong>
+              </span>
+            </div>
+          ) : null}
         </div>
 
         {/* Content Area with Editor / Preview Tabs */}

@@ -15,7 +15,7 @@ export const ADMIN_PORTAL_NAV: PortalNavConfig = {
     { label: 'Overview', href: '/admin', active: true },
     { label: 'Users', href: '/admin/users', active: false },
     { label: 'Batches', href: '#', active: false },
-    { label: 'Curriculum', href: '#', active: false },
+    { label: 'Curriculum', href: '/admin/courses', active: false },
   ],
 };
 
@@ -27,7 +27,19 @@ export const ADMIN_USERS_NAV: PortalNavConfig = {
     { label: 'Overview', href: '/admin', active: false },
     { label: 'Users', href: '/admin/users', active: true },
     { label: 'Batches', href: '#', active: false },
-    { label: 'Curriculum', href: '#', active: false },
+    { label: 'Curriculum', href: '/admin/courses', active: false },
+  ],
+};
+
+export const ADMIN_COURSES_NAV: PortalNavConfig = {
+  subtitle: 'Admin Console',
+  homeUrl: '/admin',
+  badgeColor: 'bg-purple-100 text-purple-800',
+  nav: [
+    { label: 'Overview', href: '/admin', active: false },
+    { label: 'Users', href: '/admin/users', active: false },
+    { label: 'Batches', href: '#', active: false },
+    { label: 'Curriculum', href: '/admin/courses', active: true },
   ],
 };
 
@@ -39,7 +51,19 @@ export const MENTOR_PORTAL_NAV: PortalNavConfig = {
     { label: 'Dashboard', href: '/mentor', active: true },
     { label: 'My Mentees', href: '#', active: false },
     { label: 'Reviews', href: '#', active: false },
-    { label: 'Courses', href: '#', active: false },
+    { label: 'Courses', href: '/mentor/courses', active: false },
+  ],
+};
+
+export const MENTOR_COURSES_NAV: PortalNavConfig = {
+  subtitle: 'Mentor Portal',
+  homeUrl: '/mentor',
+  badgeColor: 'bg-emerald-100 text-emerald-800',
+  nav: [
+    { label: 'Dashboard', href: '/mentor', active: false },
+    { label: 'My Mentees', href: '#', active: false },
+    { label: 'Reviews', href: '#', active: false },
+    { label: 'Courses', href: '/mentor/courses', active: true },
   ],
 };
 

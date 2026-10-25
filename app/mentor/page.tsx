@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React from 'react';
 
 import { MENTOR_PORTAL_NAV } from '@/components/app/navigation/portal-nav.config';
@@ -104,27 +105,35 @@ export default function MentorPage() {
             </div>
           </div>
 
-          {/* Card 3: Curriculum Guide */}
-          <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
+          {/* Card 3: Curriculum & Course Library */}
+          <Link
+            href="/mentor/courses"
+            className="group flex flex-col justify-between rounded-xl border border-emerald-200 bg-emerald-50/50 p-5 shadow-xs transition-all hover:border-emerald-300 hover:bg-emerald-50 hover:shadow-sm"
+          >
             <div>
               <div className="flex items-center justify-between">
-                <Span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
-                  Syllabus
+                <Span className="text-[10px] font-bold tracking-wider text-emerald-700 uppercase">
+                  Courses
                 </Span>
-                <Span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
-                  Module 3
+                <Span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
+                  Active
                 </Span>
               </div>
-              <H3 className="mt-2 text-base font-bold text-slate-900">Course Materials</H3>
+              <H3 className="mt-2 text-base font-bold text-slate-900 transition-colors group-hover:text-emerald-700">
+                Course Library & Builder
+              </H3>
               <P className="mt-1 text-xs leading-relaxed text-slate-600">
-                Course syllabi, reference architectures, assignment rubrics, and recommended
-                solutions.
+                Course syllabi, outline builder, subtopic lessons, embedded assignments, and live
+                saves.
               </P>
             </div>
-            <div className="mt-4 border-t border-slate-100 pt-3">
-              <Span className="text-[11px] text-slate-400">Curriculum catalog upcoming</Span>
+            <div className="mt-4 flex items-center justify-between border-t border-emerald-100 pt-3">
+              <Span className="text-[11px] font-semibold text-emerald-700 group-hover:underline">
+                Manage Courses &rarr;
+              </Span>
+              <Span className="text-[10px] font-medium text-emerald-600">Syllabus Builder</Span>
             </div>
-          </div>
+          </Link>
         </div>
       </main>
     </div>

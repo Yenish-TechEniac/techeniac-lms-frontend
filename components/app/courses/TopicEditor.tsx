@@ -125,37 +125,52 @@ export function TopicEditor({
       return;
     }
 
-    if (totalEstimatedMins !== null && totalEstimatedMins <= 0) {
-      setErrorMsg('Please enter a valid positive duration greater than 0 minutes.');
+    const parsedHours = durationHours !== '' ? parseInt(durationHours, 10) : 0;
+    const parsedMins = durationMinutes !== '' ? parseInt(durationMinutes, 10) : 0;
+
+    if (isNaN(parsedHours) || parsedHours < 0) {
+      setErrorMsg('Hours cannot be negative.');
       return;
     }
 
     if (durationMinutes !== '') {
-      const parsedMins = parseInt(durationMinutes, 10);
       if (isNaN(parsedMins) || parsedMins < 0 || parsedMins > 59) {
         setErrorMsg('Minutes must be between 0 and 59.');
         return;
       }
     }
 
+    const calculatedMins =
+      durationHours !== '' || durationMinutes !== '' ? parsedHours * 60 + parsedMins : null;
+
+    const finalEstimatedMinutes =
+      calculatedMins !== null && calculatedMins > 0 ? calculatedMins : null;
+
     if (
       remainingBudget !== null &&
-      totalEstimatedMins !== null &&
-      totalEstimatedMins > remainingBudget
+      finalEstimatedMinutes !== null &&
+      finalEstimatedMinutes > remainingBudget
     ) {
       setErrorMsg(
-        `Topic duration (${Math.floor(totalEstimatedMins / 60)}h ${totalEstimatedMins % 60}m) exceeds the course's remaining duration budget (${Math.floor(remainingBudget / 60)}h ${remainingBudget % 60}m remaining out of ${Math.floor(courseEstimatedMinutes! / 60)}h ${courseEstimatedMinutes! % 60}m total).`,
+        `Topic duration (${Math.floor(finalEstimatedMinutes / 60)}h ${finalEstimatedMinutes % 60}m) exceeds the course's remaining duration budget (${Math.floor(remainingBudget / 60)}h ${remainingBudget % 60}m remaining out of ${Math.floor(courseEstimatedMinutes! / 60)}h ${courseEstimatedMinutes! % 60}m total).`,
       );
       return;
     }
 
     if (
       subtopicsTotalMinutes > 0 &&
-      totalEstimatedMins !== null &&
-      totalEstimatedMins < subtopicsTotalMinutes
+      finalEstimatedMinutes !== null &&
+      finalEstimatedMinutes < subtopicsTotalMinutes
     ) {
       setErrorMsg(
-        `Topic duration (${Math.floor(totalEstimatedMins / 60)}h ${totalEstimatedMins % 60}m) cannot be less than the total allocated duration of its subtopics (${Math.floor(subtopicsTotalMinutes / 60)}h ${subtopicsTotalMinutes % 60}m).`,
+        `Topic duration (${Math.floor(finalEstimatedMinutes / 60)}h ${finalEstimatedMinutes % 60}m) cannot be less than the total allocated duration of its subtopics (${Math.floor(subtopicsTotalMinutes / 60)}h ${subtopicsTotalMinutes % 60}m).`,
+      );
+      return;
+    }
+
+    if (subtopicsTotalMinutes > 0 && finalEstimatedMinutes === null) {
+      setErrorMsg(
+        `Topic duration cannot be set to 0 because its subtopics have an allocated duration of ${Math.floor(subtopicsTotalMinutes / 60)}h ${subtopicsTotalMinutes % 60}m.`,
       );
       return;
     }
@@ -206,7 +221,7 @@ export function TopicEditor({
         title: title.trim(),
         description: description.trim() || null,
         resources: updatedResources.length > 0 ? updatedResources : null,
-        estimatedMinutes: totalEstimatedMins,
+        estimatedMinutes: finalEstimatedMinutes,
         isActive,
         expectedUpdatedAt: topic.updatedAt,
       });

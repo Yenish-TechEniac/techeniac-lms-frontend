@@ -11,6 +11,7 @@ import { formatDurationMinutes } from './types';
 
 interface CourseCardProps {
   course: Course;
+  basePath?: string;
   onRefresh: () => void;
   onCloneCourse: (course: Course) => Promise<void>;
   onRequestDelete: (course: Course) => void;
@@ -19,6 +20,7 @@ interface CourseCardProps {
 
 export function CourseCard({
   course,
+  basePath = '/admin/courses',
   onCloneCourse,
   onRequestDelete,
   onRequestToggleStatus,
@@ -158,7 +160,7 @@ export function CourseCard({
       <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-4">
         <div className="flex items-center gap-2">
           <Link
-            href={`/admin/courses/${course.id}/builder`}
+            href={`${basePath}/${course.id}/builder`}
             className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-slate-800"
           >
             <span>Builder</span>

@@ -56,26 +56,41 @@ export function CourseDetailsEditor({
       return;
     }
 
-    if (totalEstimatedMins !== null && totalEstimatedMins <= 0) {
-      setErrorMsg('Please enter a valid positive duration greater than 0 minutes.');
+    const parsedHours = durationHours !== '' ? parseInt(durationHours, 10) : 0;
+    const parsedMins = durationMinutes !== '' ? parseInt(durationMinutes, 10) : 0;
+
+    if (isNaN(parsedHours) || parsedHours < 0) {
+      setErrorMsg('Hours cannot be negative.');
       return;
     }
 
     if (durationMinutes !== '') {
-      const parsedMins = parseInt(durationMinutes, 10);
       if (isNaN(parsedMins) || parsedMins < 0 || parsedMins > 59) {
         setErrorMsg('Minutes must be between 0 and 59.');
         return;
       }
     }
 
+    const calculatedMins =
+      durationHours !== '' || durationMinutes !== '' ? parsedHours * 60 + parsedMins : null;
+
+    const finalEstimatedMinutes =
+      calculatedMins !== null && calculatedMins > 0 ? calculatedMins : null;
+
     if (
       topicsTotalMinutes > 0 &&
-      totalEstimatedMins !== null &&
-      totalEstimatedMins < topicsTotalMinutes
+      finalEstimatedMinutes !== null &&
+      finalEstimatedMinutes < topicsTotalMinutes
     ) {
       setErrorMsg(
-        `Course duration (${Math.floor(totalEstimatedMins / 60)}h ${totalEstimatedMins % 60}m) cannot be less than the total duration allocated to its topics (${Math.floor(topicsTotalMinutes / 60)}h ${topicsTotalMinutes % 60}m).`,
+        `Course duration (${Math.floor(finalEstimatedMinutes / 60)}h ${finalEstimatedMinutes % 60}m) cannot be less than the total duration allocated to its topics (${Math.floor(topicsTotalMinutes / 60)}h ${topicsTotalMinutes % 60}m).`,
+      );
+      return;
+    }
+
+    if (topicsTotalMinutes > 0 && finalEstimatedMinutes === null) {
+      setErrorMsg(
+        `Course duration cannot be set to 0 because its topics have an allocated duration of ${Math.floor(topicsTotalMinutes / 60)}h ${topicsTotalMinutes % 60}m.`,
       );
       return;
     }
@@ -88,7 +103,7 @@ export function CourseDetailsEditor({
       await onSaveCourse({
         title: title.trim(),
         description: description.trim() || null,
-        estimatedMinutes: totalEstimatedMins,
+        estimatedMinutes: finalEstimatedMinutes,
         isActive,
         expectedUpdatedAt: course.updatedAt,
       });
