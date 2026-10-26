@@ -24,7 +24,7 @@ export function CourseCard({
   onCloneCourse,
   onRequestDelete,
   onRequestToggleStatus,
-}: CourseCardProps) {
+}: Readonly<CourseCardProps>) {
   const [isCloning, setIsCloning] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -73,6 +73,7 @@ export function CourseCard({
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
@@ -126,6 +127,7 @@ export function CourseCard({
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
+            aria-hidden="true"
           >
             <path
               strokeLinecap="round"

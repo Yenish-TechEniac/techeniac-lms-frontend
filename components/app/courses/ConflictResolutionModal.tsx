@@ -10,7 +10,10 @@ interface ConflictResolutionModalProps {
   onReload: () => void;
 }
 
-export function ConflictResolutionModal({ isOpen, onReload }: ConflictResolutionModalProps) {
+export function ConflictResolutionModal({
+  isOpen,
+  onReload,
+}: Readonly<ConflictResolutionModalProps>) {
   if (!isOpen) return null;
 
   return (
