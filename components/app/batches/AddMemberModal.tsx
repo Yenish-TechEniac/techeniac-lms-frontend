@@ -12,10 +12,13 @@ import { Label } from '@/components/ui/Label';
 import { P, Span } from '@/components/ui/Typography';
 import { useAddBatchMembersMutation } from '@/hooks/useBatches';
 import { useUsers } from '@/hooks/useUsers';
+import { formatErrorMessage } from '@/lib/errors';
+import type { BatchStatus } from '@/lib/validation';
 
 export interface AddMemberModalProps {
   batchId: string;
   batchName: string;
+  batchStatus?: BatchStatus | undefined;
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
@@ -95,11 +98,13 @@ function AddMemberCandidateList({
 export function AddMemberModal({
   batchId,
   batchName,
+  batchStatus,
   isOpen,
   onClose,
   onSuccess,
   existingMemberUserIds,
 }: Readonly<AddMemberModalProps>) {
+  const isArchived = batchStatus === 'ARCHIVED';
   const [role, setRole] = useState<'MENTEE' | 'MENTOR'>('MENTEE');
   const [search, setSearch] = useState('');
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
@@ -141,6 +146,10 @@ export function AddMemberModal({
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (isArchived) {
+      setSubmitError('Cannot add members to an archived batch.');
+      return;
+    }
     if (selectedUserIds.length === 0) {
       setSubmitError('Please select at least one user to add.');
       return;
@@ -159,7 +168,7 @@ export function AddMemberModal({
       onSuccess();
       onClose();
     } catch (err: unknown) {
-      setSubmitError(err instanceof Error ? err.message : 'Failed to add members to batch.');
+      setSubmitError(formatErrorMessage(err, 'Failed to add members to batch.'));
     }
   };
 
@@ -201,10 +210,10 @@ export function AddMemberModal({
               form="add-member-form"
               variant="primary"
               size="sm"
-              disabled={isSubmitting || selectedUserIds.length === 0}
+              disabled={isSubmitting || selectedUserIds.length === 0 || isArchived}
               isLoading={isSubmitting}
             >
-              Add Selected ({selectedUserIds.length})
+              {isArchived ? "Can't Add (Archived)" : `Add Selected (${selectedUserIds.length})`}
             </Button>
           </div>
         </div>
@@ -217,6 +226,14 @@ export function AddMemberModal({
         }}
         className="space-y-4"
       >
+        {isArchived ? (
+          <Alert
+            variant="warning"
+            title="Batch Archived"
+            message="This batch is archived. You cannot add new members to an archived batch."
+          />
+        ) : null}
+
         {submitError ? (
           <Alert variant="error" title="Enrollment Failed" message={submitError} />
         ) : null}

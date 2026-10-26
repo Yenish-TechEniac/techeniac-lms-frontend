@@ -242,6 +242,8 @@ export function BatchDashboardView({
     return mentors.map((m) => ({ id: m.id, name: m.name, email: m.email }));
   }, [mentors]);
 
+  const isArchived = batch?.status === 'ARCHIVED';
+
   const handleStatusSuccess = () => {
     // TanStack Query invalidation automatically synchronizes batch state
   };
@@ -449,7 +451,7 @@ export function BatchDashboardView({
               </P>
             </div>
             <div className="flex items-center gap-2">
-              {mentors.length > 0 && unmappedMentees.length > 0 ? (
+              {mentors.length > 0 && unmappedMentees.length > 0 && !isArchived ? (
                 <Button
                   type="button"
                   variant="outline"
@@ -465,11 +467,13 @@ export function BatchDashboardView({
                 type="button"
                 variant="outline"
                 size="sm"
+                disabled={isArchived}
+                title={isArchived ? "Can't add in archived batch" : undefined}
                 onClick={() => setIsAddMemberOpen(true)}
-                className="flex items-center gap-1.5"
+                className={`flex items-center gap-1.5 ${isArchived ? 'cursor-not-allowed opacity-60' : ''}`}
               >
-                <Span>+</Span>
-                <Span>Add Members</Span>
+                <Span>{isArchived ? '🚫' : '+'}</Span>
+                <Span>{isArchived ? "Can't add in archived batch" : 'Add Members'}</Span>
               </Button>
             </div>
           </div>
@@ -479,8 +483,9 @@ export function BatchDashboardView({
               <Span className="text-3xl">👥</Span>
               <H3 className="mt-3 text-sm font-bold text-slate-800">No Members Enrolled Yet</H3>
               <P className="mx-auto mt-1 max-w-sm text-xs text-slate-500">
-                This batch has no mentors or mentees assigned. Use the &ldquo;Add Members&rdquo;
-                button above to enroll users.
+                {isArchived
+                  ? 'This batch is archived. Members cannot be added to an archived cohort.'
+                  : 'This batch has no mentors or mentees assigned. Use the “Add Members” button above to enroll users.'}
               </P>
             </div>
           ) : (
@@ -536,7 +541,7 @@ export function BatchDashboardView({
                       </td>
                       <td className="px-6 py-3.5 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          {m.memberRole === 'MENTEE' ? (
+                          {m.memberRole === 'MENTEE' && !isArchived ? (
                             <Button
                               type="button"
                               variant="ghost"
@@ -558,7 +563,8 @@ export function BatchDashboardView({
                             type="button"
                             variant="ghost"
                             size="sm"
-                            disabled={removeMemberMutation.isPending}
+                            disabled={removeMemberMutation.isPending || isArchived}
+                            title={isArchived ? "Can't remove from archived batch" : undefined}
                             onClick={() => {
                               setMemberToRemove({ id: m.id, name: m.name, role: m.memberRole });
                             }}
@@ -704,6 +710,7 @@ export function BatchDashboardView({
         key={`add-member-${batch.id}-${isAddMemberOpen ? 'open' : 'closed'}`}
         batchId={batch.id}
         batchName={batch.name}
+        batchStatus={batch.status}
         isOpen={isAddMemberOpen}
         onClose={() => setIsAddMemberOpen(false)}
         onSuccess={() => {}}
