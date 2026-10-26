@@ -689,11 +689,7 @@ export function UsersTable() {
                         variant="primary"
                         size="sm"
                         onClick={() => {
-                          void fetchUsers({
-                            role: selectedRole !== 'ALL' ? selectedRole : undefined,
-                            status: selectedStatus !== 'ALL' ? selectedStatus : undefined,
-                            search: search.trim() || undefined,
-                          });
+                          handleFilterUpdate();
                         }}
                       >
                         Retry Fetch
