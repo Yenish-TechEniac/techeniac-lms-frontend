@@ -31,6 +31,18 @@ export const ADMIN_USERS_NAV: PortalNavConfig = {
   ],
 };
 
+export const ADMIN_BATCHES_NAV: PortalNavConfig = {
+  subtitle: 'Admin Console',
+  homeUrl: '/admin',
+  badgeColor: 'bg-purple-100 text-purple-800',
+  nav: [
+    { label: 'Overview', href: '/admin', active: false },
+    { label: 'Users', href: '/admin/users', active: false },
+    { label: 'Batches', href: '/admin/batches', active: true },
+    { label: 'Curriculum', href: '/admin/courses', active: false },
+  ],
+};
+
 export const ADMIN_COURSES_NAV: PortalNavConfig = {
   subtitle: 'Admin Console',
   homeUrl: '/admin',
