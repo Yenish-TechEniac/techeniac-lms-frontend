@@ -60,6 +60,7 @@ export function useCreateBatchMutation() {
     mutationFn: (data: CreateBatchFormData) => batchesService.createBatch(data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: batchKeys.all });
+      void queryClient.invalidateQueries({ queryKey: ['users', 'role-impact'] });
     },
   });
 }
@@ -78,6 +79,7 @@ export function useUpdateBatchStatusMutation() {
       }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: batchKeys.all });
+      void queryClient.invalidateQueries({ queryKey: ['users', 'role-impact'] });
     },
   });
 }
@@ -98,6 +100,7 @@ export function useTransferMenteeMutation() {
       }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: batchKeys.all });
+      void queryClient.invalidateQueries({ queryKey: ['users', 'role-impact'] });
     },
   });
 }
@@ -116,6 +119,7 @@ export function useAddBatchMembersMutation() {
       }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: batchKeys.all });
+      void queryClient.invalidateQueries({ queryKey: ['users', 'role-impact'] });
     },
   });
 }
@@ -127,6 +131,7 @@ export function useRemoveBatchMemberMutation() {
       batchesService.removeMember(variables.batchId, variables.userId),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: batchKeys.all });
+      void queryClient.invalidateQueries({ queryKey: ['users', 'role-impact'] });
     },
   });
 }
@@ -149,6 +154,7 @@ export function useMapMenteesMutation() {
       }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: batchKeys.all });
+      void queryClient.invalidateQueries({ queryKey: ['users', 'role-impact'] });
     },
   });
 }
@@ -169,6 +175,7 @@ export function useReassignMenteeMutation() {
       }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: batchKeys.all });
+      void queryClient.invalidateQueries({ queryKey: ['users', 'role-impact'] });
     },
   });
 }
@@ -201,20 +208,16 @@ export function useBatchesMentors(batchIds: string[]) {
     queryFn: async () => {
       const results = await Promise.all(
         uniqueBatchIds.map(async (batchId) => {
-          try {
-            const detail = await batchesService.getBatchById(batchId);
-            return detail.members
-              .filter((m) => m.memberRole === 'MENTOR')
-              .map((m) => ({
-                id: m.id,
-                name: m.name,
-                email: m.email,
-                batchId,
-                batchName: detail.name,
-              }));
-          } catch {
-            return [];
-          }
+          const detail = await batchesService.getBatchById(batchId);
+          return detail.members
+            .filter((m) => m.memberRole === 'MENTOR')
+            .map((m) => ({
+              id: m.id,
+              name: m.name,
+              email: m.email,
+              batchId,
+              batchName: detail.name,
+            }));
         }),
       );
       const map = new Map<

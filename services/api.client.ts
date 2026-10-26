@@ -96,12 +96,15 @@ function parseErrorPayload(response: Response, data: unknown): ApiError {
   const errData = isApiErrorResponse(data) ? data : null;
   const retryAfter = parseRetryAfter(response.headers.get('Retry-After'));
 
+  // Never leak internal backend details or unhandled exceptions on 5xx responses
   if (response.status >= 500) {
-    const serverMessage =
-      errData?.error?.message && errData.error.message !== 'Something went wrong'
-        ? errData.error.message
-        : 'A server error occurred. Please try again later.';
-    return new ApiError(response.status, serverMessage, 'SERVER_ERROR', undefined, retryAfter);
+    return new ApiError(
+      response.status,
+      'A server error occurred. Please try again later.',
+      'SERVER_ERROR',
+      undefined,
+      retryAfter,
+    );
   }
 
   // Fallback chain uses || intentionally so empty strings fall through to the default message

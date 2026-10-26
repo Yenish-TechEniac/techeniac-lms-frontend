@@ -26,11 +26,17 @@ export interface ReassignWizardModalProps {
 
 function MentorSelectionList({
   isLoading,
+  isError,
+  errorMessage,
+  onRetry,
   mentors,
   selectedMentorId,
   onSelectMentor,
 }: Readonly<{
   isLoading: boolean;
+  isError: boolean;
+  errorMessage?: string | undefined;
+  onRetry: () => void;
   mentors: Array<{ id: string; name: string; email: string; batchName: string }>;
   selectedMentorId: string | null;
   onSelectMentor: (id: string) => void;
@@ -40,6 +46,28 @@ function MentorSelectionList({
       <P className="py-6 text-center text-xs text-slate-400">
         Loading available mentors in batch...
       </P>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="space-y-2 rounded-xl border border-red-200 bg-red-50 p-4 text-center">
+        <P className="text-xs font-semibold text-red-800">
+          Failed to load available mentors in cohort
+        </P>
+        <P className="text-[11px] text-red-600">
+          {errorMessage || 'A network error occurred while loading mentors.'}
+        </P>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onRetry}
+          className="mx-auto mt-2"
+        >
+          Retry Fetch
+        </Button>
+      </div>
     );
   }
 
@@ -107,7 +135,13 @@ export function ReassignWizardModal({
   const [error, setError] = useState<string | null>(null);
 
   const batchIds = useMemo(() => activeMentees.map((m) => m.batchId), [activeMentees]);
-  const { data: rawMentors = [], isLoading: isLoadingMentors } = useBatchesMentors(batchIds);
+  const {
+    data: rawMentors = [],
+    isLoading: isLoadingMentors,
+    isError: isErrorMentors,
+    error: mentorsError,
+    refetch: refetchMentors,
+  } = useBatchesMentors(batchIds);
 
   const availableMentors = useMemo(
     () => rawMentors.filter((m) => m.id !== sourceMentor.id),
@@ -349,6 +383,11 @@ export function ReassignWizardModal({
 
             <MentorSelectionList
               isLoading={isLoadingMentors}
+              isError={isErrorMentors}
+              errorMessage={mentorsError instanceof Error ? mentorsError.message : undefined}
+              onRetry={() => {
+                void refetchMentors();
+              }}
               mentors={filteredMentors}
               selectedMentorId={selectedMentorId}
               onSelectMentor={setSelectedMentorId}
