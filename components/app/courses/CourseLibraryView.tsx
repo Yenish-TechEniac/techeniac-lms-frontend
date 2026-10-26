@@ -46,7 +46,6 @@ export function CourseLibraryView({ portal }: CourseLibraryViewProps) {
     courses,
     total,
     isLoading: loadingCourses,
-    fetchCourses,
     createCourse,
     deleteCourse,
     toggleCourseStatus,
@@ -391,9 +390,6 @@ export function CourseLibraryView({ portal }: CourseLibraryViewProps) {
                   key={c.id}
                   course={c}
                   basePath={`/${portal}/courses`}
-                  onRefresh={() => {
-                    void fetchCourses();
-                  }}
                   onCloneCourse={async (targetCourse) => {
                     await cloneCourse(targetCourse.id);
                   }}

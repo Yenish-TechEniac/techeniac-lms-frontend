@@ -21,10 +21,9 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import React, { useEffect, useState } from 'react';
 
+import { ActiveNodeSelection } from '@/components/app/courses/types';
 import { H2 } from '@/components/ui/Typography';
 import type { Assignment, Course, Subtopic, Topic } from '@/types/courses';
-
-import { ActiveNodeSelection } from './types';
 
 interface CourseOutlineTreeProps {
   course: Course;

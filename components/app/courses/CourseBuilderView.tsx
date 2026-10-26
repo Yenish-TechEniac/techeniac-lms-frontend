@@ -92,7 +92,7 @@ function CourseActiveEditor({
 
     return (
       <CourseDetailsEditor
-        key={course.id}
+        key={`${course.id}-${course.updatedAt}`}
         course={course}
         impact={impact}
         topicsTotalMinutes={topicsTotalMinutes}
@@ -114,7 +114,7 @@ function CourseActiveEditor({
 
     return (
       <TopicEditor
-        key={topic.id}
+        key={`${topic.id}-${topic.updatedAt}`}
         topic={topic}
         impact={impact}
         courseEstimatedMinutes={course.estimatedMinutes}
@@ -137,7 +137,7 @@ function CourseActiveEditor({
 
     return (
       <SubtopicEditor
-        key={subtopic.id}
+        key={`${subtopic.id}-${subtopic.updatedAt}`}
         subtopic={subtopic}
         impact={impact}
         courseEstimatedMinutes={course.estimatedMinutes}
@@ -157,7 +157,7 @@ function CourseActiveEditor({
 
     return (
       <AssignmentEditor
-        key={assignment.id}
+        key={`${assignment.id}-${assignment.updatedAt}`}
         assignment={assignment}
         impact={impact}
         onSaveAssignment={(payload) => updateAssignment(assignment.id, payload)}
@@ -630,7 +630,8 @@ function AddAssignmentModal({
 function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
   const params = useParams();
   const router = useRouter();
-  const courseId = params.id as string;
+  const rawId = params.id;
+  const courseId = (Array.isArray(rawId) ? rawId[0] : rawId) ?? '';
   const { user, isAuthenticated, isLoading } = useAuth();
 
   const {
@@ -658,12 +659,26 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
     id: courseId,
   });
   const [pendingSelection, setPendingSelection] = useState<ActiveNodeSelection | null>(null);
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   const [mobileTab, setMobileTab] = useState<'outline' | 'editor'>('outline');
 
   // Form states
   const [isDirty, setIsDirty] = useState(false);
   const [isUnsavedModalOpen, setIsUnsavedModalOpen] = useState(false);
   const [isConflictModalOpen, setIsConflictModalOpen] = useState(false);
+
+  // Intercept browser back/refresh/close when form is dirty
+  useEffect(() => {
+    if (!isDirty) return;
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isDirty]);
 
   // Add Item Modals State
   const [isAddTopicOpen, setIsAddTopicOpen] = useState(false);
@@ -717,9 +732,23 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
     setMobileTab('editor');
   };
 
+  const handleNavigateLibrary = (e: React.MouseEvent) => {
+    if (isDirty) {
+      e.preventDefault();
+      setPendingNavigation(`/${portal}/courses`);
+      setIsUnsavedModalOpen(true);
+    }
+  };
+
   const confirmDiscardChanges = () => {
     setIsDirty(false);
     setIsUnsavedModalOpen(false);
+    if (pendingNavigation) {
+      const target = pendingNavigation;
+      setPendingNavigation(null);
+      router.push(target);
+      return;
+    }
     if (pendingSelection) {
       setSelectedNode(pendingSelection);
       setPendingSelection(null);
@@ -863,6 +892,7 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
         <div className="flex items-center gap-2 truncate sm:gap-3">
           <Link
             href={`/${portal}/courses`}
+            onClick={handleNavigateLibrary}
             className="rounded-lg p-1 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900"
             title="Return to Course Library"
           >
@@ -1002,6 +1032,7 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
         onStay={() => {
           setIsUnsavedModalOpen(false);
           setPendingSelection(null);
+          setPendingNavigation(null);
         }}
         onDiscard={confirmDiscardChanges}
       />

@@ -3,16 +3,14 @@
 import Link from 'next/link';
 import React, { useState } from 'react';
 
+import { formatDurationMinutes } from '@/components/app/courses/types';
 import { Button } from '@/components/ui/Button';
 import { H3, P } from '@/components/ui/Typography';
 import type { Course } from '@/types/courses';
 
-import { formatDurationMinutes } from './types';
-
 interface CourseCardProps {
   course: Course;
   basePath?: string;
-  onRefresh: () => void;
   onCloneCourse: (course: Course) => Promise<void>;
   onRequestDelete: (course: Course) => void;
   onRequestToggleStatus: (course: Course) => void;
@@ -169,23 +167,15 @@ export function CourseCard({
             <span aria-hidden="true">&rarr;</span>
           </Link>
 
-          {/* Assign Button (FR-6.6, CRS-16: Disabled if Inactive) */}
+          {/* Assign Button (Scheduled with Module 2: Batches & Cohorts) */}
           <Button
             type="button"
             variant="outline"
-            disabled={!course.isActive}
-            title={
-              course.isActive
-                ? 'Allocate this course to a batch or mentees'
-                : 'Inactive courses cannot be newly allocated'
-            }
-            className={`h-auto rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
-              course.isActive
-                ? 'border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 focus-visible:ring-blue-400 active:bg-blue-200'
-                : 'cursor-not-allowed border border-slate-200 bg-slate-100 text-slate-400'
-            }`}
+            disabled
+            title="Course allocation to batches will be available in Module 2 (Batches & Cohorts)"
+            className="h-auto cursor-not-allowed rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-xs font-medium text-slate-400"
           >
-            Assign
+            Assign (Soon)
           </Button>
         </div>
 
