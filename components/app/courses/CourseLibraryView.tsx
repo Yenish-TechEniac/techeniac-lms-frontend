@@ -204,7 +204,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
   }
 
   const activeCount = courses.filter((c) => c.isActive).length;
-  const totalMenteesReached = courses.reduce((acc, c) => acc + (c.allocationCount ?? 0), 0);
+  const draftCount = courses.filter((c) => !c.isActive).length;
 
   const navConfig = portal === 'mentor' ? MENTOR_COURSES_NAV : ADMIN_COURSES_NAV;
   const breadcrumbRoot = portal === 'mentor' ? 'Mentor' : 'Admin';
@@ -307,13 +307,13 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
           <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all hover:border-slate-300 hover:shadow-sm">
             <div>
               <span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
-                Mentees Enrolled
+                Draft / Inactive
               </span>
-              <div className="mt-1.5 text-3xl font-extrabold tracking-tight text-blue-600">
-                {totalMenteesReached}
+              <div className="mt-1.5 text-3xl font-extrabold tracking-tight text-slate-700">
+                {draftCount}
               </div>
             </div>
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
               <svg
                 className="h-5 w-5"
                 fill="none"
@@ -324,7 +324,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                 />
               </svg>
             </div>

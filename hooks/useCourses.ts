@@ -117,6 +117,10 @@ export function useCourseBuilder(courseId: string) {
   const activeError = courseError ?? impactError;
   const error = activeError instanceof Error ? activeError.message : null;
 
+  const reloadCourseOnly = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ['course', courseId] });
+  }, [queryClient, courseId]);
+
   const reloadCourse = useCallback(async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['course', courseId] }),
@@ -134,7 +138,7 @@ export function useCourseBuilder(courseId: string) {
 
   const createTopic = async (payload: CreateTopicInput): Promise<Topic> => {
     const created = await coursesService.createTopic(courseId, payload);
-    await reloadCourse();
+    await reloadCourseOnly();
     return created;
   };
 
@@ -152,10 +156,11 @@ export function useCourseBuilder(courseId: string) {
 
   const deleteTopic = async (id: string): Promise<void> => {
     await coursesService.deleteTopic(id);
-    await reloadCourse();
+    await reloadCourseOnly();
   };
 
   const reorderTopics = async (items: ReorderItemInput[]): Promise<void> => {
+    const previous = queryClient.getQueryData<Course | null>(['course', courseId]);
     queryClient.setQueryData<Course | null>(['course', courseId], (prev) => {
       if (!prev || !prev.topics) return prev;
       const orderMap = new Map(items.map((it) => [it.id, it.displayOrder]));
@@ -164,8 +169,15 @@ export function useCourseBuilder(courseId: string) {
         .sort((a, b) => a.displayOrder - b.displayOrder);
       return { ...prev, topics: sortedTopics };
     });
-    await coursesService.reorderTopics(courseId, items);
-    await reloadCourse();
+    try {
+      await coursesService.reorderTopics(courseId, items);
+      await reloadCourseOnly();
+    } catch (err: unknown) {
+      if (previous) {
+        queryClient.setQueryData(['course', courseId], previous);
+      }
+      throw err;
+    }
   };
 
   const createSubtopic = async (
@@ -173,7 +185,7 @@ export function useCourseBuilder(courseId: string) {
     payload: CreateSubtopicInput,
   ): Promise<Subtopic> => {
     const created = await coursesService.createSubtopic(topicId, payload);
-    await reloadCourse();
+    await reloadCourseOnly();
     return created;
   };
 
@@ -194,10 +206,11 @@ export function useCourseBuilder(courseId: string) {
 
   const deleteSubtopic = async (id: string): Promise<void> => {
     await coursesService.deleteSubtopic(id);
-    await reloadCourse();
+    await reloadCourseOnly();
   };
 
   const reorderSubtopics = async (topicId: string, items: ReorderItemInput[]): Promise<void> => {
+    const previous = queryClient.getQueryData<Course | null>(['course', courseId]);
     queryClient.setQueryData<Course | null>(['course', courseId], (prev) => {
       if (!prev || !prev.topics) return prev;
       const orderMap = new Map(items.map((it) => [it.id, it.displayOrder]));
@@ -210,13 +223,20 @@ export function useCourseBuilder(courseId: string) {
       });
       return { ...prev, topics: updatedTopics };
     });
-    await coursesService.reorderSubtopics(topicId, items);
-    await reloadCourse();
+    try {
+      await coursesService.reorderSubtopics(topicId, items);
+      await reloadCourseOnly();
+    } catch (err: unknown) {
+      if (previous) {
+        queryClient.setQueryData(['course', courseId], previous);
+      }
+      throw err;
+    }
   };
 
   const createAssignment = async (payload: CreateAssignmentInput): Promise<Assignment> => {
     const created = await coursesService.createAssignment(courseId, payload);
-    await reloadCourse();
+    await reloadCourseOnly();
     return created;
   };
 
@@ -246,33 +266,43 @@ export function useCourseBuilder(courseId: string) {
 
   const deleteAssignment = async (id: string): Promise<void> => {
     await coursesService.deleteAssignment(id);
-    await reloadCourse();
+    await reloadCourseOnly();
   };
 
-  const reorderAssignments = async (items: ReorderItemInput[]): Promise<void> => {
+  const reorderAssignments = async (items: ReorderItemInput[], topicId?: string): Promise<void> => {
+    const previous = queryClient.getQueryData<Course | null>(['course', courseId]);
     queryClient.setQueryData<Course | null>(['course', courseId], (prev) => {
       if (!prev) return prev;
       const orderMap = new Map(items.map((it) => [it.id, it.displayOrder]));
+      if (topicId) {
+        const updatedTopics = prev.topics?.map((t) => {
+          if (t.id !== topicId || !t.assignments) return t;
+          const sortedTopicAssigns = [...t.assignments]
+            .map((a) => ({ ...a, displayOrder: orderMap.get(a.id) ?? a.displayOrder }))
+            .sort((a, b) => a.displayOrder - b.displayOrder);
+          return { ...t, assignments: sortedTopicAssigns };
+        });
+        return { ...prev, topics: updatedTopics };
+      }
       const currentCourseAssigns = prev.courseAssignments || prev.assignments || [];
       const updatedCourseAssigns = currentCourseAssigns
         .map((a) => ({ ...a, displayOrder: orderMap.get(a.id) ?? a.displayOrder }))
         .sort((a, b) => a.displayOrder - b.displayOrder);
-      const updatedTopics = prev.topics?.map((t) => {
-        if (!t.assignments) return t;
-        const sortedTopicAssigns = [...t.assignments]
-          .map((a) => ({ ...a, displayOrder: orderMap.get(a.id) ?? a.displayOrder }))
-          .sort((a, b) => a.displayOrder - b.displayOrder);
-        return { ...t, assignments: sortedTopicAssigns };
-      });
       return {
         ...prev,
         assignments: updatedCourseAssigns,
         courseAssignments: updatedCourseAssigns,
-        topics: updatedTopics,
       };
     });
-    await coursesService.reorderAssignments(courseId, items);
-    await reloadCourse();
+    try {
+      await coursesService.reorderAssignments(courseId, items);
+      await reloadCourseOnly();
+    } catch (err: unknown) {
+      if (previous) {
+        queryClient.setQueryData(['course', courseId], previous);
+      }
+      throw err;
+    }
   };
 
   return {

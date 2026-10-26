@@ -71,14 +71,11 @@ export interface Course {
   estimatedMinutes?: number | null | undefined;
   isActive: boolean;
   createdById: string;
-  creatorName?: string | undefined;
   topics?: Topic[] | undefined;
   assignments?: Assignment[] | undefined;
   courseAssignments?: Assignment[] | undefined;
   topicCount?: number | undefined;
   assignmentCount?: number | undefined;
-  allocationCount?: number | undefined;
-  lastAssignedAt?: string | null | undefined;
   createdAt: string;
   updatedAt: string;
 }
@@ -192,6 +189,4 @@ export interface CourseImpact {
   courseId: string;
   openAllocationsCount: number;
   affectedMenteesCount: number;
-  hasSubmissions: boolean;
-  completedAllocationsCount: number;
 }

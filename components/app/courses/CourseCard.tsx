@@ -92,9 +92,9 @@ export function CourseCard({
           {course.description || 'No description provided.'}
         </P>
 
-        {/* Telemetry Stats Box: Topics, Tasks, Allocations */}
+        {/* Outline Stats Box: Topics, Tasks */}
         <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50/80 p-3">
-          <div className="grid grid-cols-3 divide-x divide-slate-200/80 text-center">
+          <div className="grid grid-cols-2 divide-x divide-slate-200/80 text-center">
             <div className="px-2">
               <span className="block text-base font-bold text-slate-900">{topicCount}</span>
               <span className="mt-0.5 block text-xs font-semibold tracking-wide text-slate-500 uppercase">
@@ -107,18 +107,10 @@ export function CourseCard({
                 Tasks
               </span>
             </div>
-            <div className="px-2">
-              <span className="block text-base font-bold text-slate-900">
-                {course.allocationCount ?? 0}
-              </span>
-              <span className="mt-0.5 block text-xs font-semibold tracking-wide text-slate-500 uppercase">
-                Mentees
-              </span>
-            </div>
           </div>
         </div>
 
-        {/* Usage Telemetry Info (FR-6.6) */}
+        {/* Course Recency / Updated info */}
         <div className="mt-3 flex items-center gap-1.5 text-xs text-slate-500">
           <svg
             className="h-4 w-4 shrink-0 text-slate-400"
@@ -131,22 +123,12 @@ export function CourseCard({
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={1.75}
-              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          {course.allocationCount && course.allocationCount > 0 ? (
-            <span className="truncate">
-              Assigned to{' '}
-              <strong className="font-semibold text-slate-700">
-                {course.allocationCount} mentees
-              </strong>
-              {course.lastAssignedAt
-                ? ` • Last: ${new Date(course.lastAssignedAt).toLocaleDateString()}`
-                : ''}
-            </span>
-          ) : (
-            <span className="text-slate-400 italic">Not yet allocated to any mentees</span>
-          )}
+          <span className="truncate">
+            Updated {new Date(course.updatedAt).toLocaleDateString()}
+          </span>
         </div>
 
         {errorMsg && (

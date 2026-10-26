@@ -9,13 +9,7 @@ import { Label } from '@/components/ui/Label';
 import { H2, H3, H4, P } from '@/components/ui/Typography';
 import { useDurationInput } from '@/hooks/useDurationInput';
 import { formatErrorMessage, isConflictError } from '@/lib/errors';
-import {
-  Assignment,
-  CourseImpact,
-  ResourceItem,
-  SubmissionMode,
-  UpdateAssignmentInput,
-} from '@/types/courses';
+import { Assignment, ResourceItem, SubmissionMode, UpdateAssignmentInput } from '@/types/courses';
 
 function isValidWebUrl(urlString: string): boolean {
   try {
@@ -30,7 +24,6 @@ function isValidWebUrl(urlString: string): boolean {
 
 interface AssignmentEditorProps {
   assignment: Assignment;
-  impact?: CourseImpact | null | undefined;
   onSaveAssignment: (payload: UpdateAssignmentInput) => Promise<Assignment>;
   onConflict: () => void;
   onDirtyChange: (dirty: boolean) => void;
@@ -38,7 +31,6 @@ interface AssignmentEditorProps {
 
 export function AssignmentEditor({
   assignment,
-  impact,
   onSaveAssignment,
   onConflict,
   onDirtyChange,
@@ -236,8 +228,6 @@ export function AssignmentEditor({
     onDirtyChange(true);
   };
 
-  const hasSubmissions = impact?.hasSubmissions ?? false;
-
   return (
     <div className="flex h-full flex-col overflow-y-auto bg-slate-50/50 p-4 sm:p-8">
       {/* Top Header Command Bar */}
@@ -275,20 +265,6 @@ export function AssignmentEditor({
           </Button>
         </div>
       </div>
-
-      {/* Submission modification warning if submissions exist */}
-      {hasSubmissions && (
-        <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-900 shadow-xs">
-          <div className="flex items-center gap-2 text-sm font-bold">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
-            Existing Submissions Notice
-          </div>
-          <P className="mt-1 text-xs leading-relaxed text-amber-800">
-            Mentees have already submitted responses to this assignment. Changing submission modes
-            or marks will apply to subsequent submissions; existing submissions will remain valid.
-          </P>
-        </div>
-      )}
 
       {errorMsg && (
         <FieldError

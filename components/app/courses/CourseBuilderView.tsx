@@ -159,7 +159,6 @@ function CourseActiveEditor({
       <AssignmentEditor
         key={`${assignment.id}-${assignment.updatedAt}`}
         assignment={assignment}
-        impact={impact}
         onSaveAssignment={(payload) => updateAssignment(assignment.id, payload)}
         onConflict={onConflict}
         onDirtyChange={onDirtyChange}
@@ -816,7 +815,7 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
     setReorderingIds((prev) => (prev.includes(targetId) ? prev : [...prev, targetId]));
     const items = orderedIds.map((id, index) => ({ id, displayOrder: index }));
     try {
-      await reorderAssignments(items);
+      await reorderAssignments(items, topicId);
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : 'Failed to reorder assignments');
     } finally {
