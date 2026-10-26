@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 
 import { Button, getButtonClassName } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
+import { Form } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { H3, P } from '@/components/ui/Typography';
@@ -23,6 +24,23 @@ type ResetState = 'verifying' | 'valid' | 'invalid' | 'done';
 export const INVALID_OR_EXPIRED_MESSAGE =
   'This password reset link is invalid or has expired. Please request a new link to reset your password.';
 
+function resolveResetState(
+  submissionState: 'done' | 'invalid' | null,
+  isVerifying: boolean,
+  status: string | null,
+): ResetState {
+  if (submissionState) {
+    return submissionState;
+  }
+  if (isVerifying) {
+    return 'verifying';
+  }
+  if (status === 'invalid') {
+    return 'invalid';
+  }
+  return 'valid';
+}
+
 export function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
@@ -39,8 +57,7 @@ export function ResetPasswordForm() {
 
   // Fail-open: when verification is unable to determine validity (e.g. network/500/404/429),
   // fall back to 'valid' so the user is never blocked from submitting at the real authorization gate.
-  const state: ResetState =
-    submissionState ?? (isVerifying ? 'verifying' : status === 'invalid' ? 'invalid' : 'valid');
+  const state: ResetState = resolveResetState(submissionState, isVerifying, status);
 
   const criteria = usePasswordCriteria(password);
 
@@ -159,12 +176,11 @@ export function ResetPasswordForm() {
   }
 
   return (
-    <form
+    <Form
       className="space-y-5"
       onSubmit={(e) => {
         void handleSubmit(e);
       }}
-      noValidate
     >
       {errors.general ? (
         <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -240,6 +256,6 @@ export function ResetPasswordForm() {
           Cancel and return to sign in
         </Link>
       </div>
-    </form>
+    </Form>
   );
 }

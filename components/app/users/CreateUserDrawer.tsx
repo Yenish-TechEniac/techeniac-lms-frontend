@@ -4,6 +4,7 @@ import React, { useCallback, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
+import { Form } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { H2, P, Span } from '@/components/ui/Typography';
@@ -118,13 +119,12 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
             </div>
           ) : null}
 
-          <form
+          <Form
             id="create-user-form"
             onSubmit={(e) => {
               void handleSubmit(e);
             }}
             className="space-y-5 pt-6"
-            noValidate
           >
             {/* Full Name */}
             <div className="space-y-1.5">
@@ -184,7 +184,7 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
               Only name, email, and initial role are collected. A temporary password will be
               generated and dispatched via the queued invite email.
             </div>
-          </form>
+          </Form>
         </div>
 
         <div className="flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50 p-6">

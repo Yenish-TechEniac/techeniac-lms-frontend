@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback, useMemo, useState } from 'react';
 
 import type { ChangeRoleFormData, CreateUserFormData, EditUserFormData } from '@/lib/validation';
 import {
@@ -40,102 +41,95 @@ export interface UseUsersReturn {
   resendInvite: (id: string) => Promise<{ message: string }>;
 }
 
+export const userKeys = {
+  all: ['users'] as const,
+  lists: () => [...userKeys.all, 'list'] as const,
+  list: (filters: UserQueryFilters) => [...userKeys.lists(), filters] as const,
+};
+
 const DEFAULT_FILTERS: UserQueryFilters = {};
 
 export function useUsers(initialFilters: UserQueryFilters = DEFAULT_FILTERS): UseUsersReturn {
-  const [users, setUsers] = useState<ApiUser[]>([]);
-  const [total, setTotal] = useState(0);
-  const [counts, setCounts] = useState<UserDirectoryCounts>({
-    total: 0,
-    active: 0,
-    inactive: 0,
-  });
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const [overrideFilters, setOverrideFilters] = useState<UserQueryFilters | null>(null);
 
-  // Active filters and request sequencing guards
-  const activeFiltersRef = useRef<UserQueryFilters>(initialFilters);
-  const requestSeqRef = useRef<number>(0);
-
-  const fetchUsers = useCallback(async (filters?: UserQueryFilters) => {
-    const currentSeq = ++requestSeqRef.current;
-    setIsLoading(true);
-    try {
-      const targetFilters = filters ?? activeFiltersRef.current;
-      activeFiltersRef.current = targetFilters;
-      const data = await usersService.listUsers(targetFilters);
-      if (currentSeq !== requestSeqRef.current) return;
-      setUsers(data.users);
-      setTotal(data.total);
-      if (data.counts) {
-        setCounts(data.counts);
-      } else {
-        setCounts((prev) =>
-          prev.total > 0
-            ? prev
-            : {
-                total: data.total,
-                active: data.users.filter((u) => u.isActive).length,
-                inactive: data.users.filter((u) => !u.isActive).length,
-              },
-        );
-      }
-      setError(null);
-    } catch (err: unknown) {
-      if (currentSeq !== requestSeqRef.current) return;
-      const message = err instanceof Error ? err.message : 'Failed to fetch users';
-      setError(message);
-    } finally {
-      if (currentSeq === requestSeqRef.current) {
-        setIsLoading(false);
-      }
-    }
-  }, []);
-
-  const filterKey = `${initialFilters.page ?? ''}-${initialFilters.limit ?? ''}-${initialFilters.role ?? ''}-${initialFilters.status ?? ''}-${initialFilters.search ?? ''}`;
-
-  useEffect(() => {
-    let ignore = false;
-    async function load() {
-      try {
-        const data = await usersService.listUsers(initialFilters);
-        if (!ignore) {
-          setUsers(data.users);
-          setTotal(data.total);
-          if (data.counts) {
-            setCounts(data.counts);
-          } else {
-            setCounts({
-              total: data.total,
-              active: data.users.filter((u) => u.isActive).length,
-              inactive: data.users.filter((u) => !u.isActive).length,
-            });
-          }
-          setError(null);
-        }
-      } catch (err: unknown) {
-        if (!ignore) {
-          const message = err instanceof Error ? err.message : 'Failed to fetch users';
-          setError(message);
-        }
-      } finally {
-        if (!ignore) {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    void load();
-    return () => {
-      ignore = true;
-    };
+  const serializedInitial = JSON.stringify(initialFilters);
+  const activeFilters = useMemo(() => {
+    return overrideFilters ?? initialFilters;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterKey]);
+  }, [overrideFilters, serializedInitial]);
 
-  const createUser = async (data: CreateUserFormData): Promise<ApiUser> => {
-    const newUser = await usersService.createUser(data);
-    await fetchUsers(activeFiltersRef.current);
-    return newUser;
+  const {
+    data,
+    isLoading,
+    error: queryError,
+    refetch,
+  } = useQuery({
+    queryKey: userKeys.list(activeFilters),
+    queryFn: () => usersService.listUsers(activeFilters),
+    staleTime: 30_000,
+  });
+
+  const fetchUsers = useCallback(
+    async (filters?: UserQueryFilters) => {
+      if (filters) {
+        setOverrideFilters(filters);
+      } else {
+        await refetch();
+      }
+    },
+    [refetch],
+  );
+
+  const createUserMutation = useMutation({
+    mutationFn: (newUserData: CreateUserFormData) => usersService.createUser(newUserData),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: userKeys.all });
+    },
+  });
+
+  const updateUserMutation = useMutation({
+    mutationFn: (variables: { id: string; data: Partial<EditUserFormData> }) =>
+      usersService.updateUser(variables.id, variables.data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: userKeys.all });
+    },
+  });
+
+  const changeRoleMutation = useMutation({
+    mutationFn: (variables: { id: string; data: ChangeRoleFormData }) =>
+      usersService.changeRole(variables.id, variables.data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: userKeys.all });
+    },
+  });
+
+  const toggleStatusMutation = useMutation({
+    mutationFn: (variables: { id: string; activate: boolean }) =>
+      usersService.toggleStatus(variables.id, variables.activate),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: userKeys.all });
+    },
+  });
+
+  const createUser = async (formData: CreateUserFormData): Promise<ApiUser> => {
+    return await createUserMutation.mutateAsync(formData);
+  };
+
+  const updateUser = async (id: string, editData: Partial<EditUserFormData>): Promise<ApiUser> => {
+    return await updateUserMutation.mutateAsync({ id, data: editData });
+  };
+
+  const changeRole = async (id: string, roleData: ChangeRoleFormData): Promise<ApiUser> => {
+    return await changeRoleMutation.mutateAsync({ id, data: roleData });
+  };
+
+  const toggleStatus = async (id: string, activate: boolean): Promise<ApiUser> => {
+    return await toggleStatusMutation.mutateAsync({ id, activate });
+  };
+
+  const resendInvite = async (id: string): Promise<{ message: string }> => {
+    return await usersService.resendInvite(id);
   };
 
   const createUsersBulk = async (
@@ -145,44 +139,42 @@ export function useUsers(initialFilters: UserQueryFilters = DEFAULT_FILTERS): Us
     let successCount = 0;
     const failures: BulkImportFailure[] = [];
 
-    for (let i = 0; i < rows.length; i++) {
+    const processIndex = async (i: number): Promise<void> => {
+      if (i >= rows.length) return;
       const r = rows[i];
-      if (!r) continue;
-      onProgress?.({ current: i + 1, total: rows.length });
-      try {
-        await usersService.createUser({ name: r.name, email: r.email, role: r.role });
-        successCount++;
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Failed to create user';
-        failures.push({ row: r, error: message });
+      if (r) {
+        onProgress?.({ current: i + 1, total: rows.length });
+        try {
+          await usersService.createUser({ name: r.name, email: r.email, role: r.role });
+          successCount++;
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : 'Failed to create user';
+          failures.push({ row: r, error: message });
+        }
       }
-    }
+      await processIndex(i + 1);
+    };
 
-    await fetchUsers(activeFiltersRef.current);
+    await processIndex(0);
+
+    void queryClient.invalidateQueries({ queryKey: userKeys.all });
     return { successCount, failures };
   };
 
-  const updateUser = async (id: string, data: Partial<EditUserFormData>): Promise<ApiUser> => {
-    const updated = await usersService.updateUser(id, data);
-    await fetchUsers(activeFiltersRef.current);
-    return updated;
-  };
+  const users = useMemo(() => data?.users ?? [], [data?.users]);
+  const total = data?.total ?? 0;
+  const counts = useMemo<UserDirectoryCounts>(() => {
+    if (data?.counts) {
+      return data.counts;
+    }
+    return {
+      total,
+      active: users.filter((u) => u.isActive).length,
+      inactive: users.filter((u) => !u.isActive).length,
+    };
+  }, [data?.counts, total, users]);
 
-  const changeRole = async (id: string, data: ChangeRoleFormData): Promise<ApiUser> => {
-    const updated = await usersService.changeRole(id, data);
-    await fetchUsers(activeFiltersRef.current);
-    return updated;
-  };
-
-  const toggleStatus = async (id: string, activate: boolean): Promise<ApiUser> => {
-    const updated = await usersService.toggleStatus(id, activate);
-    await fetchUsers(activeFiltersRef.current);
-    return updated;
-  };
-
-  const resendInvite = async (id: string): Promise<{ message: string }> => {
-    return usersService.resendInvite(id);
-  };
+  const error = queryError instanceof Error ? queryError.message : null;
 
   return {
     users,

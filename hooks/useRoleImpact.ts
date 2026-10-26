@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 import { type RoleImpactData, usersService } from '@/services/users.service';
 
@@ -14,45 +14,17 @@ export function useRoleImpact({ userId, newRole, enabled = true }: UseRoleImpact
   roleImpact: RoleImpactData | null;
   isLoadingImpact: boolean;
 } {
-  const [state, setState] = useState<{
-    key: string | null;
-    data: RoleImpactData | null;
-  }>({
-    key: null,
-    data: null,
+  const isQueryEnabled = Boolean(enabled && userId && newRole);
+
+  const { data: roleImpact = null, isLoading } = useQuery<RoleImpactData | null>({
+    queryKey: ['users', 'role-impact', userId ?? '', newRole ?? ''],
+    queryFn: () => usersService.getRoleImpact(userId!, newRole!),
+    enabled: isQueryEnabled,
+    staleTime: 60_000,
   });
 
-  const queryKey = enabled && userId && newRole ? `${userId}:${newRole}` : null;
-
-  useEffect(() => {
-    if (!queryKey || !userId || !newRole) {
-      return;
-    }
-
-    let ignore = false;
-
-    void usersService
-      .getRoleImpact(userId, newRole)
-      .then((data) => {
-        if (!ignore) {
-          setState({ key: queryKey, data });
-        }
-      })
-      .catch(() => {
-        if (!ignore) {
-          setState({ key: queryKey, data: null });
-        }
-      });
-
-    return () => {
-      ignore = true;
-    };
-  }, [queryKey, userId, newRole]);
-
-  const isLoadingImpact = Boolean(queryKey && state.key !== queryKey);
-
   return {
-    roleImpact: state.key === queryKey ? state.data : null,
-    isLoadingImpact,
+    roleImpact,
+    isLoadingImpact: isQueryEnabled && isLoading,
   };
 }

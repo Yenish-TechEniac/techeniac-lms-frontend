@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
+import { Form } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { editUserSchema } from '@/lib/validation';
@@ -93,7 +94,7 @@ function EditUserModalContent({
         </div>
       ) : null}
 
-      <form
+      <Form
         id="edit-user-form"
         onSubmit={(e) => {
           void handleSubmit(e);
@@ -126,7 +127,7 @@ function EditUserModalContent({
             required
           />
         </div>
-      </form>
+      </Form>
     </Modal>
   );
 }
