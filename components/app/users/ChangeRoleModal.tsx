@@ -4,6 +4,7 @@ import React, { useId, useState } from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
+import { Checkbox } from '@/components/ui/Checkbox';
 import { Form } from '@/components/ui/Form';
 import { Label } from '@/components/ui/Label';
 import { Select } from '@/components/ui/Select';
@@ -80,6 +81,7 @@ function ChangeRoleModalContent({
   const isLastSuperAdmin = isBlocked && blockReason === 'LAST_SUPER_ADMIN';
 
   const canSubmit =
+    !isLoadingImpact &&
     !isBlocked &&
     confirmed &&
     reason.trim().length >= 10 &&
@@ -89,6 +91,11 @@ function ChangeRoleModalContent({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
+
+    if (isLoadingImpact) {
+      setError('Please wait while system checks live role impact.');
+      return;
+    }
 
     if (isBlocked) {
       setError(roleImpact?.impactSummary ?? 'Role change cannot proceed in this state.');
@@ -317,21 +324,19 @@ function ChangeRoleModalContent({
 
           {/* Confirmation Checkbox */}
           {!isBlocked && (
-            <label
+            <Label
               htmlFor={confirmCheckboxId}
               className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 bg-white p-2.5 hover:bg-slate-50"
             >
-              <input
+              <Checkbox
                 id={confirmCheckboxId}
-                type="checkbox"
                 checked={confirmed}
                 onChange={(e) => setConfirmed(e.target.checked)}
-                className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500/20"
               />
               <Span className="text-xs font-medium text-slate-700">
                 I understand and confirm this role change and its operational impacts
               </Span>
-            </label>
+            </Label>
           )}
         </Form>
       </Modal>

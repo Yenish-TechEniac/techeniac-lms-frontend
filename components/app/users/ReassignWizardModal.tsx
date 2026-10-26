@@ -3,8 +3,11 @@
 import React, { useMemo, useState } from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
+import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
+import { Checkbox } from '@/components/ui/Checkbox';
 import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
 import { P, Span } from '@/components/ui/Typography';
 import { useBatchesMentors, useReassignMenteeMutation } from '@/hooks/useBatches';
 import type { RoleImpactActiveMentee } from '@/services/users.service';
@@ -53,11 +56,12 @@ function MentorSelectionList({
       {mentors.map((mentor) => {
         const isSelected = selectedMentorId === mentor.id;
         return (
-          <button
+          <Button
             key={mentor.id}
             type="button"
+            variant="ghost"
             onClick={() => onSelectMentor(mentor.id)}
-            className={`flex w-full cursor-pointer items-center justify-between rounded-xl border p-3 text-left transition-all ${
+            className={`flex h-auto w-full cursor-pointer items-center justify-between rounded-xl border p-3 text-left transition-all ${
               isSelected
                 ? 'border-blue-600 bg-blue-50/60 shadow-sm ring-1 ring-blue-600'
                 : 'border-slate-200 bg-white hover:bg-slate-50'
@@ -80,7 +84,7 @@ function MentorSelectionList({
             <Span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
               Batch: {mentor.batchName}
             </Span>
-          </button>
+          </Button>
         );
       })}
     </div>
@@ -130,25 +134,46 @@ export function ReassignWizardModal({
     if (!selectedMentorId || selectedMenteeIds.length === 0) return;
 
     setError(null);
-    try {
-      const selectedMentees = activeMentees.filter((m) => selectedMenteeIds.includes(m.id));
+    const selectedMentees = activeMentees.filter((m) => selectedMenteeIds.includes(m.id));
 
-      await Promise.all(
-        selectedMentees.map((mentee) =>
-          reassignMutation.mutateAsync({
-            batchId: mentee.batchId,
-            menteeId: mentee.id,
-            newMentorId: selectedMentorId,
-            reason: 'Mentor role transition reassignment wizard',
-          }),
-        ),
-      );
+    const results = await Promise.allSettled(
+      selectedMentees.map(async (mentee) => {
+        await reassignMutation.mutateAsync({
+          batchId: mentee.batchId,
+          menteeId: mentee.id,
+          newMentorId: selectedMentorId,
+          reason: 'Mentor role transition reassignment wizard',
+        });
+        return mentee;
+      }),
+    );
 
+    const failedMentees: Array<{ id: string; name: string; error: string }> = [];
+    const succeededMenteeIds: string[] = [];
+
+    results.forEach((res, index) => {
+      const mentee = selectedMentees[index]!;
+      if (res.status === 'fulfilled') {
+        succeededMenteeIds.push(mentee.id);
+      } else {
+        const errorMsg =
+          res.reason instanceof Error ? res.reason.message : 'Unknown reassignment failure';
+        failedMentees.push({ id: mentee.id, name: mentee.name, error: errorMsg });
+      }
+    });
+
+    if (failedMentees.length === 0) {
       onComplete();
       onClose();
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to reassign mentees';
-      setError(message);
+    } else {
+      setSelectedMenteeIds(failedMentees.map((f) => f.id));
+      const failedNames = failedMentees.map((f) => f.name).join(', ');
+      const successCount = succeededMenteeIds.length;
+      const errorSummary =
+        successCount > 0
+          ? `Partially reassigned mentees: ${successCount} succeeded, but ${failedMentees.length} failed (${failedNames}). Click "Confirm Reassignment" to retry failed mentees.`
+          : `Failed to reassign mentees (${failedNames}): ${failedMentees[0]?.error ?? 'Request rejected.'}`;
+      setError(errorSummary);
     }
   };
 
@@ -214,15 +239,7 @@ export function ReassignWizardModal({
       }
     >
       <div className="space-y-4">
-        {error ? (
-          <div
-            role="alert"
-            className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700"
-          >
-            <Span className="font-bold">Error:</Span>
-            <Span>{error}</Span>
-          </div>
-        ) : null}
+        {error ? <Alert variant="error" message={error} /> : null}
 
         {/* Step Indicator Header */}
         <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-3 py-2">
@@ -256,8 +273,10 @@ export function ReassignWizardModal({
               <Span className="text-xs font-semibold text-slate-700">
                 Mentees mapped to {sourceMentor.name}
               </Span>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => {
                   if (selectedMenteeIds.length === activeMentees.length) {
                     setSelectedMenteeIds([]);
@@ -265,16 +284,16 @@ export function ReassignWizardModal({
                     setSelectedMenteeIds(activeMentees.map((m) => m.id));
                   }
                 }}
-                className="text-xs font-semibold text-blue-600 hover:text-blue-800"
+                className="h-auto p-0 text-xs font-semibold text-blue-600 hover:bg-transparent hover:text-blue-800"
               >
                 {selectedMenteeIds.length === activeMentees.length ? 'Deselect All' : 'Select All'}
-              </button>
+              </Button>
             </div>
             <div className="max-h-64 space-y-1.5 overflow-y-auto pr-1">
               {activeMentees.map((mentee) => {
                 const isChecked = selectedMenteeIds.includes(mentee.id);
                 return (
-                  <label
+                  <Label
                     key={mentee.id}
                     htmlFor={`reassign-mentee-${mentee.id}`}
                     className={`flex cursor-pointer items-center justify-between rounded-xl border p-2.5 transition-all ${
@@ -284,12 +303,10 @@ export function ReassignWizardModal({
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <input
+                      <Checkbox
                         id={`reassign-mentee-${mentee.id}`}
-                        type="checkbox"
                         checked={isChecked}
                         onChange={() => toggleMentee(mentee.id)}
-                        className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500/20"
                       />
                       <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-200 text-[11px] font-bold text-slate-700">
                         {mentee.name
@@ -309,7 +326,7 @@ export function ReassignWizardModal({
                     <Span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600">
                       {mentee.batchName}
                     </Span>
-                  </label>
+                  </Label>
                 );
               })}
             </div>
