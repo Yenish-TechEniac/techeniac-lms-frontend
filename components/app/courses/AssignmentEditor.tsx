@@ -1,0 +1,758 @@
+'use client';
+
+import React, { useState } from 'react';
+
+import { Button } from '@/components/ui/Button';
+import { FieldError } from '@/components/ui/FieldError';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { H2, H3, H4, P } from '@/components/ui/Typography';
+import { useDurationInput } from '@/hooks/useDurationInput';
+import { formatErrorMessage, isConflictError } from '@/lib/errors';
+import { Assignment, ResourceItem, SubmissionMode, UpdateAssignmentInput } from '@/types/courses';
+
+function isValidWebUrl(urlString: string): boolean {
+  try {
+    const trimmed = urlString.trim();
+    if (!trimmed) return false;
+    const url = new URL(trimmed);
+    return (url.protocol === 'http:' || url.protocol === 'https:') && url.hostname.length > 0;
+  } catch {
+    return false;
+  }
+}
+
+interface AssignmentEditorProps {
+  assignment: Assignment;
+  onSaveAssignment: (payload: UpdateAssignmentInput) => Promise<Assignment>;
+  onConflict: () => void;
+  onDirtyChange: (dirty: boolean) => void;
+}
+
+export function AssignmentEditor({
+  assignment,
+  onSaveAssignment,
+  onConflict,
+  onDirtyChange,
+}: Readonly<AssignmentEditorProps>) {
+  const [title, setTitle] = useState(assignment.title);
+  const [instructions, setInstructions] = useState(assignment.instructions || '');
+
+  const {
+    durationHours,
+    durationMinutes,
+    handleHoursChange,
+    handleMinutesChange,
+    totalMinutes: totalDurationMinutes,
+  } = useDurationInput({
+    initialMinutes: assignment.estimatedMinutes,
+  });
+  const [maxMarks, setMaxMarks] = useState<number>(Number(assignment.maxMarks) || 0);
+  const [passMarks, setPassMarks] = useState<number>(Number(assignment.passMarks) || 0);
+  const [allowLate, setAllowLate] = useState<boolean>(assignment.allowLate);
+
+  const [pdfMode, setPdfMode] = useState<SubmissionMode>(assignment.pdfMode);
+  const [zipMode, setZipMode] = useState<SubmissionMode>(assignment.zipMode);
+  const [urlMode, setUrlMode] = useState<SubmissionMode>(assignment.urlMode);
+
+  const [resources, setResources] = useState<ResourceItem[]>(assignment.resources || []);
+  const [newResourceTitle, setNewResourceTitle] = useState('');
+  const [newResourceUrl, setNewResourceUrl] = useState('');
+  const [newResourceType, setNewResourceType] = useState<'LINK' | 'ATTACHMENT'>('LINK');
+
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const handleAddResource = () => {
+    const trimmedTitle = newResourceTitle.trim();
+    const trimmedUrl = newResourceUrl.trim();
+
+    if (!trimmedTitle) {
+      setErrorMsg('Resource title is required.');
+      return;
+    }
+    if (!trimmedUrl) {
+      setErrorMsg('Resource URL is required.');
+      return;
+    }
+    if (!isValidWebUrl(trimmedUrl)) {
+      setErrorMsg(
+        'Invalid resource URL format. Please provide a valid web link (e.g. https://github.com/...).',
+      );
+      return;
+    }
+
+    const updated = [
+      ...resources,
+      {
+        id: crypto.randomUUID(),
+        title: trimmedTitle,
+        url: trimmedUrl,
+        type: newResourceType,
+      },
+    ];
+    setResources(updated);
+    setNewResourceTitle('');
+    setNewResourceUrl('');
+    setErrorMsg(null);
+    onDirtyChange(true);
+  };
+
+  const handleRemoveResource = (index: number) => {
+    const updated = resources.filter((_, i) => i !== index);
+    setResources(updated);
+    onDirtyChange(true);
+  };
+
+  const handleSave = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!title.trim()) {
+      setErrorMsg('Assignment title cannot be empty.');
+      return;
+    }
+
+    if (totalDurationMinutes <= 0) {
+      setErrorMsg('Estimated duration must be greater than 0 minutes.');
+      return;
+    }
+
+    if (durationMinutes !== '') {
+      const parsedMins = Number.parseInt(durationMinutes, 10);
+      if (Number.isNaN(parsedMins) || parsedMins < 0 || parsedMins > 59) {
+        setErrorMsg('Minutes must be between 0 and 59.');
+        return;
+      }
+    }
+
+    const numMaxMarks = Number(maxMarks);
+    const numPassMarks = Number(passMarks);
+
+    if (Number.isNaN(numMaxMarks) || numMaxMarks <= 0) {
+      setErrorMsg('Max marks must be greater than 0.');
+      return;
+    }
+    if (Number.isNaN(numPassMarks) || numPassMarks <= 0) {
+      setErrorMsg('Pass marks must be greater than 0.');
+      return;
+    }
+    if (numPassMarks > numMaxMarks) {
+      setErrorMsg('Pass marks cannot be greater than max marks.');
+      return;
+    }
+
+    if (
+      pdfMode === SubmissionMode.OFF &&
+      zipMode === SubmissionMode.OFF &&
+      urlMode === SubmissionMode.OFF
+    ) {
+      setErrorMsg(
+        'Validation error: At least one submission mode (PDF, ZIP, or URL) must not be Off.',
+      );
+      return;
+    }
+
+    // Validate pending resource inputs if user typed in title or URL
+    const updatedResources = [...resources];
+    const pendingTitle = newResourceTitle.trim();
+    const pendingUrl = newResourceUrl.trim();
+
+    if (pendingTitle || pendingUrl) {
+      if (!pendingTitle) {
+        setErrorMsg('Resource title is required (or clear the resource input before saving).');
+        return;
+      }
+      if (!pendingUrl || !isValidWebUrl(pendingUrl)) {
+        setErrorMsg(
+          'Invalid resource URL format. Please provide a valid web link (e.g. https://github.com/...) or clear the pending resource fields.',
+        );
+        return;
+      }
+      updatedResources.push({
+        id: crypto.randomUUID(),
+        title: pendingTitle,
+        url: pendingUrl,
+        type: newResourceType,
+      });
+      setResources(updatedResources);
+      setNewResourceTitle('');
+      setNewResourceUrl('');
+    }
+
+    // Verify all resources in list have valid URL format
+    for (const res of updatedResources) {
+      if (!isValidWebUrl(res.url)) {
+        setErrorMsg(
+          `Resource "${res.title}" has an invalid URL format. Links must start with http:// or https://`,
+        );
+        return;
+      }
+    }
+
+    setIsSaving(true);
+    setErrorMsg(null);
+    setSaveSuccess(false);
+
+    try {
+      await onSaveAssignment({
+        title: title.trim(),
+        instructions: instructions.trim() || null,
+        estimatedMinutes: totalDurationMinutes,
+        maxMarks: numMaxMarks,
+        passMarks: numPassMarks,
+        allowLate,
+        pdfMode,
+        zipMode,
+        urlMode,
+        resources: updatedResources.length > 0 ? updatedResources : null,
+        expectedUpdatedAt: assignment.updatedAt,
+      });
+
+      onDirtyChange(false);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (err: unknown) {
+      if (isConflictError(err)) {
+        onConflict();
+      } else {
+        setErrorMsg(formatErrorMessage(err, 'Failed to save assignment changes'));
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleChange = (updater: () => void) => {
+    updater();
+    if (errorMsg) setErrorMsg(null);
+    onDirtyChange(true);
+  };
+
+  return (
+    <div className="flex h-full flex-col overflow-y-auto bg-slate-50/50 p-4 sm:p-8">
+      {/* Top Header Command Bar */}
+      <div className="flex flex-col gap-3 rounded-2xl border-b border-slate-200 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-bold tracking-wide text-purple-800 uppercase">
+              {assignment.scope} Task
+            </span>
+            <span className="font-mono text-xs text-slate-400">#{assignment.id.slice(0, 8)}</span>
+          </div>
+          <H2 className="mt-1.5 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+            {assignment.title}
+          </H2>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {saveSuccess && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              <span>Saved Live</span>
+            </span>
+          )}
+
+          <Button
+            type="button"
+            disabled={isSaving}
+            isLoading={isSaving}
+            onClick={() => {
+              void handleSave();
+            }}
+            className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-slate-800 focus-visible:ring-slate-800 active:bg-slate-950 disabled:opacity-50"
+          >
+            {isSaving ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
+      </div>
+
+      {errorMsg && (
+        <FieldError
+          error={errorMsg}
+          className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 shadow-xs"
+        />
+      )}
+
+      {/* Main Form Fields */}
+      <form
+        noValidate
+        onSubmit={(e) => {
+          void handleSave(e);
+        }}
+        className="mt-6 grid w-full max-w-6xl grid-cols-1 gap-6 lg:grid-cols-12"
+      >
+        <div className="space-y-6 lg:col-span-7">
+          {/* Card 1: Core Specifications */}
+          <div className="space-y-5 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+            <div>
+              <Label
+                required={true}
+                className="block text-sm font-semibold tracking-wide text-slate-800"
+              >
+                Assignment Title
+              </Label>
+              <Input
+                type="text"
+                value={title}
+                hasError={Boolean(errorMsg && !title.trim())}
+                onChange={(e) => handleChange(() => setTitle(e.target.value))}
+                placeholder="e.g. Build a Raft Distributed Consensus Node"
+                className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
+              />
+            </div>
+
+            <div>
+              <Label className="block text-sm font-semibold tracking-wide text-slate-800">
+                Instructions & Problem Statement (Rich Text)
+              </Label>
+              <textarea
+                rows={6}
+                value={instructions}
+                onChange={(e) => handleChange(() => setInstructions(e.target.value))}
+                placeholder="State the technical specifications, requirements, and constraints for cadets..."
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white p-4 font-mono text-sm leading-relaxed text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
+              />
+            </div>
+          </div>
+
+          {/* Card 2: Time, Marks & Late Submissions */}
+          <div className="space-y-5 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+            <div>
+              <Label className="block text-sm font-semibold tracking-wide text-slate-800">
+                Grading & Duration Calibration
+              </Label>
+              <P className="mt-0.5 text-xs text-slate-500">
+                Configure evaluation thresholds and expected completion time.
+              </P>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div>
+                <Label
+                  required={true}
+                  className="block text-xs font-semibold tracking-wider text-slate-600 uppercase"
+                >
+                  Est. Duration
+                </Label>
+                <div className="mt-1.5 grid grid-cols-2 gap-2">
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      min={0}
+                      value={durationHours}
+                      onChange={(e) => handleChange(() => handleHoursChange(e.target.value))}
+                      placeholder="0"
+                      className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 pr-10 text-sm text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden sm:text-base"
+                    />
+                    <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
+                      hrs
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      min={0}
+                      max={59}
+                      value={durationMinutes}
+                      onChange={(e) => handleChange(() => handleMinutesChange(e.target.value))}
+                      placeholder="0"
+                      className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 pr-11 text-sm text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden sm:text-base"
+                    />
+                    <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
+                      mins
+                    </span>
+                  </div>
+                </div>
+                <span className="mt-1.5 block text-xs text-slate-500">
+                  {totalDurationMinutes > 0
+                    ? `${totalDurationMinutes} minutes total`
+                    : 'Required (hrs/mins)'}
+                </span>
+              </div>
+
+              <div>
+                <Label
+                  required={true}
+                  className="block text-xs font-semibold tracking-wider text-slate-600 uppercase"
+                >
+                  Max Marks
+                </Label>
+                <div className="mt-1.5">
+                  <Input
+                    type="number"
+                    value={maxMarks || ''}
+                    onChange={(e) => handleChange(() => setMaxMarks(Number(e.target.value)))}
+                    className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-base text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                  />
+                </div>
+                <span className="mt-1.5 block text-xs text-slate-500">Max score (e.g. 100)</span>
+              </div>
+
+              <div>
+                <Label
+                  required={true}
+                  className="block text-xs font-semibold tracking-wider text-slate-600 uppercase"
+                >
+                  Pass Marks
+                </Label>
+                <div className="mt-1.5">
+                  <Input
+                    type="number"
+                    value={passMarks || ''}
+                    onChange={(e) => handleChange(() => setPassMarks(Number(e.target.value)))}
+                    className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-base text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                  />
+                </div>
+                <span className="mt-1.5 block text-xs text-slate-500">Must be &le; Max Marks</span>
+              </div>
+            </div>
+
+            {/* Late Submission Flag */}
+            <div className="flex items-center justify-between rounded-xl border border-slate-200/80 bg-slate-50 p-4">
+              <div>
+                <span className="block text-sm font-semibold text-slate-900">
+                  Late Submissions Allowed
+                </span>
+                <span className="mt-0.5 block text-xs text-slate-500">
+                  Allow cadets to turn in assignments after the scheduled allocation due date.
+                </span>
+              </div>
+
+              <button
+                type="button"
+                role="switch"
+                aria-checked={allowLate}
+                aria-label="Allow late submissions"
+                onClick={() => handleChange(() => setAllowLate(!allowLate))}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
+                  allowLate ? 'bg-purple-600' : 'bg-slate-300'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                    allowLate ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+
+          {/* Card 3: Submission Modes Chooser */}
+          <div className="space-y-4 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+            <div>
+              <H3 className="text-base font-bold text-slate-900">Mentee Submission Deliverables</H3>
+              <P className="mt-0.5 text-xs text-slate-500">
+                Configure accepted deliverable formats. At least one deliverable must not be
+                &apos;OFF&apos;.
+              </P>
+            </div>
+
+            <div className="space-y-3">
+              {/* PDF Mode */}
+              <div className="flex flex-col gap-3 rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <span className="block text-sm font-semibold text-slate-900">PDF Document</span>
+                  <span className="text-xs text-slate-500">
+                    Design reports, architectural writeups, and diagrams
+                  </span>
+                </div>
+                <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 text-xs">
+                  {(['OFF', 'OPTIONAL', 'REQUIRED'] as SubmissionMode[]).map((mode) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => handleChange(() => setPdfMode(mode))}
+                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                        pdfMode === mode
+                          ? 'bg-slate-900 text-white shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      {mode}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* ZIP Mode */}
+              <div className="flex flex-col gap-3 rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <span className="block text-sm font-semibold text-slate-900">ZIP Archive</span>
+                  <span className="text-xs text-slate-500">
+                    Source code bundles, compressed repositories, binaries
+                  </span>
+                </div>
+                <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 text-xs">
+                  {(['OFF', 'OPTIONAL', 'REQUIRED'] as SubmissionMode[]).map((mode) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => handleChange(() => setZipMode(mode))}
+                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                        zipMode === mode
+                          ? 'bg-slate-900 text-white shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      {mode}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* URL Mode */}
+              <div className="flex flex-col gap-3 rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <span className="block text-sm font-semibold text-slate-900">
+                    Repository / Demo URL
+                  </span>
+                  <span className="text-xs text-slate-500">
+                    GitHub / GitLab pull request link or deployed site
+                  </span>
+                </div>
+                <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 text-xs">
+                  {(['OFF', 'OPTIONAL', 'REQUIRED'] as SubmissionMode[]).map((mode) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => handleChange(() => setUrlMode(mode))}
+                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                        urlMode === mode
+                          ? 'bg-slate-900 text-white shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      {mode}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 4: Resources Manager */}
+          <div className="space-y-4 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+            <div className="flex items-center justify-between">
+              <div>
+                <H3 className="text-base font-bold text-slate-900">Task Resources & References</H3>
+                <P className="mt-0.5 text-xs text-slate-500">
+                  Starter code repositories, rubrics, and reference assets
+                </P>
+              </div>
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
+                {resources.length} {resources.length === 1 ? 'Resource' : 'Resources'}
+              </span>
+            </div>
+
+            <div className="space-y-2.5">
+              {resources.map((item, idx) => (
+                <div
+                  key={item.id || idx}
+                  className="flex items-center justify-between rounded-xl border border-slate-200/80 bg-slate-50/70 p-3.5 text-sm transition-all hover:bg-slate-50"
+                >
+                  <div className="flex items-center gap-3 truncate">
+                    <span className="rounded-lg bg-purple-100 px-2 py-0.5 text-[10px] font-bold tracking-wide text-purple-800 uppercase">
+                      {item.type}
+                    </span>
+                    <span className="truncate font-semibold text-slate-900">{item.title}</span>
+                    {isValidWebUrl(item.url) ? (
+                      <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="truncate text-xs text-slate-400 hover:text-blue-600 hover:underline"
+                      >
+                        {item.url}
+                      </a>
+                    ) : (
+                      <span
+                        className="truncate text-xs text-slate-400 italic"
+                        title="Invalid or unverified URL"
+                      >
+                        {item.url}
+                      </span>
+                    )}
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => handleRemoveResource(idx)}
+                    className="h-8 w-8 rounded-lg p-0 text-slate-400 hover:bg-slate-200/70 hover:text-rose-600 focus-visible:ring-slate-400 active:bg-slate-200"
+                    title="Remove resource"
+                  >
+                    &times;
+                  </Button>
+                </div>
+              ))}
+
+              {resources.length === 0 && (
+                <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-400 italic">
+                  No task resources attached yet. Add one below.
+                </div>
+              )}
+            </div>
+
+            {errorMsg && (
+              <FieldError
+                error={errorMsg}
+                className="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700"
+              />
+            )}
+
+            <div className="mt-5 grid grid-cols-1 gap-3 border-t border-slate-100 pt-4 sm:grid-cols-12">
+              <div className="sm:col-span-4">
+                <Input
+                  type="text"
+                  placeholder="Resource title"
+                  value={newResourceTitle}
+                  onChange={(e) => {
+                    setNewResourceTitle(e.target.value);
+                    if (errorMsg) setErrorMsg(null);
+                  }}
+                  className="h-10 w-full rounded-xl border border-slate-300 px-3.5 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                />
+              </div>
+              <div className="sm:col-span-5">
+                <Input
+                  type="url"
+                  placeholder="https://github.com/..."
+                  value={newResourceUrl}
+                  onChange={(e) => {
+                    setNewResourceUrl(e.target.value);
+                    if (errorMsg) setErrorMsg(null);
+                  }}
+                  className="h-10 w-full rounded-xl border border-slate-300 px-3.5 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <select
+                  value={newResourceType}
+                  onChange={(e) => setNewResourceType(e.target.value as 'LINK' | 'ATTACHMENT')}
+                  className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                >
+                  <option value="LINK">LINK</option>
+                  <option value="ATTACHMENT">FILE</option>
+                </select>
+              </div>
+              <div className="sm:col-span-1">
+                <Button
+                  type="button"
+                  onClick={handleAddResource}
+                  className="h-10 w-full rounded-xl bg-purple-600 px-3 text-sm font-semibold text-white shadow-xs hover:bg-purple-700 focus-visible:ring-purple-500 active:bg-purple-800"
+                >
+                  <span className="sm:hidden">+ Add</span>
+                  <span className="hidden sm:inline">+</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Live Mentee Submission Form Preview */}
+        <div className="lg:col-span-5">
+          <div className="sticky top-6 space-y-5 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
+              <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
+                Mentee Form Preview
+              </span>
+              <span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-700">
+                Live Rendering
+              </span>
+            </div>
+
+            <div className="space-y-4 text-sm">
+              <div>
+                <H4 className="text-base font-bold text-slate-900">
+                  {title || 'Untitled Assignment'}
+                </H4>
+                <P className="mt-1 text-xs font-medium text-slate-500">
+                  Est. {totalDurationMinutes > 0 ? `${totalDurationMinutes}m` : '0m'} • Max{' '}
+                  {maxMarks} marks (Pass: {passMarks})
+                </P>
+              </div>
+
+              {instructions && (
+                <div className="max-h-40 overflow-y-auto rounded-xl border border-slate-100 bg-slate-50 p-4 font-mono text-xs leading-relaxed text-slate-700">
+                  {instructions}
+                </div>
+              )}
+
+              {/* Mentee Deliverables Fields */}
+              <div className="space-y-3.5 pt-1">
+                {pdfMode !== SubmissionMode.OFF && (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700">
+                      Upload PDF Document{' '}
+                      {pdfMode === SubmissionMode.REQUIRED ? (
+                        <span className="text-rose-600">*</span>
+                      ) : (
+                        <span className="font-normal text-slate-400">(Optional)</span>
+                      )}
+                    </label>
+                    <div className="mt-1.5 flex items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50/50 p-4 text-center">
+                      <span className="text-xs text-slate-400">Choose .pdf file to upload</span>
+                    </div>
+                  </div>
+                )}
+
+                {zipMode !== SubmissionMode.OFF && (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700">
+                      Upload ZIP Archive{' '}
+                      {zipMode === SubmissionMode.REQUIRED ? (
+                        <span className="text-rose-600">*</span>
+                      ) : (
+                        <span className="font-normal text-slate-400">(Optional)</span>
+                      )}
+                    </label>
+                    <div className="mt-1.5 flex items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50/50 p-4 text-center">
+                      <span className="text-xs text-slate-400">Choose .zip archive to upload</span>
+                    </div>
+                  </div>
+                )}
+
+                {urlMode !== SubmissionMode.OFF && (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700">
+                      Submission Repository URL{' '}
+                      {urlMode === SubmissionMode.REQUIRED ? (
+                        <span className="text-rose-600">*</span>
+                      ) : (
+                        <span className="font-normal text-slate-400">(Optional)</span>
+                      )}
+                    </label>
+                    <input
+                      type="url"
+                      disabled
+                      placeholder="https://github.com/mentee/submission"
+                      className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-xs text-slate-400"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Mandatory Mentee Completion Checkbox (FR-6.5) */}
+              <div className="mt-5 rounded-xl border border-blue-200 bg-blue-50/60 p-4">
+                <label className="flex cursor-not-allowed items-start gap-3">
+                  <input
+                    type="checkbox"
+                    disabled
+                    checked
+                    readOnly
+                    className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600"
+                  />
+                  <span className="text-xs leading-tight font-semibold text-blue-900">
+                    &ldquo;I have completed this assignment&rdquo; confirmation
+                    <span className="mt-0.5 block text-[11px] font-normal text-blue-700">
+                      Mandatory for all cadets (cannot be turned off)
+                    </span>
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+}

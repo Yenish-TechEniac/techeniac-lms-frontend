@@ -31,3 +31,46 @@ export class ApiError extends Error {
     this.retryAfter = retryAfter;
   }
 }
+
+/**
+ * Type guard to check if an unknown error is an ApiError with HTTP 409 Conflict status.
+ */
+export function isConflictError(err: unknown): boolean {
+  return err instanceof ApiError && err.status === 409;
+}
+
+/**
+ * Error formatting utility for extracting descriptive user-friendly error messages
+ * from backend API error responses or unexpected error objects.
+ */
+export function formatErrorMessage(err: unknown, fallback = 'Operation failed'): string {
+  if (err && typeof err === 'object') {
+    const apiErr = err as { message?: string; details?: unknown };
+    if (Array.isArray(apiErr.details) && apiErr.details.length > 0) {
+      const messages = apiErr.details
+        .map((d: unknown) => {
+          if (typeof d === 'object' && d !== null) {
+            const entry = d as { message?: unknown; field?: unknown };
+            if (typeof entry.message === 'string') return entry.message;
+          }
+          if (typeof d === 'string') return d;
+          return null;
+        })
+        .filter((m): m is string => Boolean(m));
+
+      if (messages.length > 0) {
+        return messages.join('. ');
+      }
+    }
+
+    if (typeof apiErr.message === 'string' && apiErr.message.trim().length > 0) {
+      return apiErr.message;
+    }
+  }
+
+  if (err instanceof Error && err.message) {
+    return err.message;
+  }
+
+  return fallback;
+}
