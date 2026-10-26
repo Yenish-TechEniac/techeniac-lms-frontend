@@ -18,11 +18,11 @@ import {
   MENTOR_COURSES_NAV,
 } from '@/components/app/navigation/portal-nav.config';
 import { Header } from '@/components/layout/Header';
+import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { H3 } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { useCourseBuilder } from '@/hooks/useCourses';
 import { formatErrorMessage } from '@/lib/errors';
@@ -209,65 +209,74 @@ function AddTopicModal({ isOpen, onClose, onCreate }: Readonly<AddTopicModalProp
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
-      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-        <H3 className="text-base font-bold text-slate-900">Add New Topic</H3>
+    <Modal
+      isOpen={isOpen}
+      onClose={() => {
+        onClose();
+        setError(null);
+      }}
+      title="Add New Topic"
+      size="sm"
+      footer={
+        <>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isCreating}
+            onClick={() => {
+              onClose();
+              setError(null);
+            }}
+            size="sm"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            form="add-topic-form"
+            disabled={isCreating}
+            isLoading={isCreating}
+            size="sm"
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            Create Topic
+          </Button>
+        </>
+      }
+    >
+      {error && (
+        <FieldError
+          error={error}
+          className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700"
+        />
+      )}
 
-        {error && (
-          <FieldError
-            error={error}
-            className="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700"
+      <form
+        id="add-topic-form"
+        noValidate
+        onSubmit={(e) => {
+          void handleSubmit(e);
+        }}
+        className="space-y-4"
+      >
+        <div>
+          <Label required={true} className="block text-xs font-bold text-slate-700 uppercase">
+            Topic Title
+          </Label>
+          <Input
+            type="text"
+            value={title}
+            hasError={Boolean(error)}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              if (error) setError(null);
+            }}
+            placeholder="e.g. Distributed Consensus"
+            className="mt-1 h-8 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs focus:border-blue-600 focus:outline-hidden"
           />
-        )}
-
-        <form
-          noValidate
-          onSubmit={(e) => {
-            void handleSubmit(e);
-          }}
-          className="mt-4 space-y-4"
-        >
-          <div>
-            <Label required={true} className="block text-xs font-bold text-slate-700 uppercase">
-              Topic Title
-            </Label>
-            <Input
-              type="text"
-              value={title}
-              hasError={Boolean(error)}
-              onChange={(e) => {
-                setTitle(e.target.value);
-                if (error) setError(null);
-              }}
-              placeholder="e.g. Distributed Consensus"
-              className="mt-1 h-8 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs focus:border-blue-600 focus:outline-hidden"
-            />
-          </div>
-          <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={isCreating}
-              onClick={() => {
-                onClose();
-                setError(null);
-              }}
-              className="h-auto rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 active:bg-slate-100 disabled:opacity-50"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isCreating}
-              isLoading={isCreating}
-              className="inline-flex h-auto items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
-            >
-              Create Topic
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
+        </div>
+      </form>
+    </Modal>
   );
 }
 
@@ -311,65 +320,74 @@ function AddSubtopicModal({ isOpen, topicId, onClose, onCreate }: Readonly<AddSu
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
-      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-        <H3 className="text-base font-bold text-slate-900">Add New Subtopic Lesson</H3>
+    <Modal
+      isOpen={isOpen}
+      onClose={() => {
+        onClose();
+        setError(null);
+      }}
+      title="Add New Subtopic Lesson"
+      size="sm"
+      footer={
+        <>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isCreating}
+            onClick={() => {
+              onClose();
+              setError(null);
+            }}
+            size="sm"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            form="add-subtopic-form"
+            disabled={isCreating}
+            isLoading={isCreating}
+            size="sm"
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            Create Subtopic
+          </Button>
+        </>
+      }
+    >
+      {error && (
+        <FieldError
+          error={error}
+          className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700"
+        />
+      )}
 
-        {error && (
-          <FieldError
-            error={error}
-            className="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700"
+      <form
+        id="add-subtopic-form"
+        noValidate
+        onSubmit={(e) => {
+          void handleSubmit(e);
+        }}
+        className="space-y-4"
+      >
+        <div>
+          <Label required={true} className="block text-xs font-bold text-slate-700 uppercase">
+            Subtopic Title
+          </Label>
+          <Input
+            type="text"
+            value={title}
+            hasError={Boolean(error)}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              if (error) setError(null);
+            }}
+            placeholder="e.g. Raft Leader Election Protocol"
+            className="mt-1 h-8 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs focus:border-blue-600 focus:outline-hidden"
           />
-        )}
-
-        <form
-          noValidate
-          onSubmit={(e) => {
-            void handleSubmit(e);
-          }}
-          className="mt-4 space-y-4"
-        >
-          <div>
-            <Label required={true} className="block text-xs font-bold text-slate-700 uppercase">
-              Subtopic Title
-            </Label>
-            <Input
-              type="text"
-              value={title}
-              hasError={Boolean(error)}
-              onChange={(e) => {
-                setTitle(e.target.value);
-                if (error) setError(null);
-              }}
-              placeholder="e.g. Raft Leader Election Protocol"
-              className="mt-1 h-8 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs focus:border-blue-600 focus:outline-hidden"
-            />
-          </div>
-          <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={isCreating}
-              onClick={() => {
-                onClose();
-                setError(null);
-              }}
-              className="h-auto rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 active:bg-slate-100 disabled:opacity-50"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isCreating}
-              isLoading={isCreating}
-              className="inline-flex h-auto items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
-            >
-              Create Subtopic
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
+        </div>
+      </form>
+    </Modal>
   );
 }
 
@@ -472,158 +490,157 @@ function AddAssignmentModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
-      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-        <H3 className="text-base font-bold text-slate-900">Add {scope} Assignment</H3>
+    <Modal
+      isOpen={isOpen}
+      onClose={() => {
+        onClose();
+        setError(null);
+      }}
+      title={`Add ${scope} Assignment`}
+      size="sm"
+      footer={
+        <>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isCreating}
+            onClick={() => {
+              onClose();
+              setError(null);
+            }}
+            size="sm"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            form="add-assignment-form"
+            disabled={isCreating}
+            isLoading={isCreating}
+            size="sm"
+            className="bg-purple-600 hover:bg-purple-700 focus-visible:ring-purple-500"
+          >
+            Create Assignment
+          </Button>
+        </>
+      }
+    >
+      {error && (
+        <FieldError
+          error={error}
+          className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700"
+        />
+      )}
 
-        {error && (
-          <FieldError
-            error={error}
-            className="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700"
+      <form
+        id="add-assignment-form"
+        noValidate
+        onSubmit={(e) => {
+          void handleSubmit(e);
+        }}
+        className="space-y-4"
+      >
+        <div>
+          <Label required={true} className="block text-xs font-bold text-slate-700 uppercase">
+            Assignment Title
+          </Label>
+          <Input
+            type="text"
+            value={title}
+            hasError={Boolean(error)}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              if (error) setError(null);
+            }}
+            placeholder="e.g. Implement Raft Log Compaction"
+            className="mt-1 h-8 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs focus:border-blue-600 focus:outline-hidden"
           />
-        )}
+        </div>
 
-        <form
-          noValidate
-          onSubmit={(e) => {
-            void handleSubmit(e);
-          }}
-          className="mt-4 space-y-4"
-        >
+        <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label required={true} className="block text-xs font-bold text-slate-700 uppercase">
-              Assignment Title
+            <Label required={true} className="block text-[11px] font-bold text-slate-700 uppercase">
+              Est. Hours
+            </Label>
+            <div className="relative mt-1">
+              <Input
+                type="number"
+                min={0}
+                value={hours}
+                onChange={(e) => {
+                  setHours(e.target.value);
+                  if (error) setError(null);
+                }}
+                className="h-8 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 pr-8 text-xs focus:border-blue-600 focus:outline-hidden"
+              />
+              <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-[10px] font-medium text-slate-400">
+                hrs
+              </span>
+            </div>
+          </div>
+          <div>
+            <Label className="block text-[11px] font-bold text-slate-700 uppercase">
+              Est. Minutes
+            </Label>
+            <div className="relative mt-1">
+              <Input
+                type="number"
+                min={0}
+                max={59}
+                value={minutes}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  const sanitized =
+                    raw === ''
+                      ? ''
+                      : Math.min(59, Math.max(0, Number.parseInt(raw, 10) || 0)).toString();
+                  setMinutes(sanitized);
+                  if (error) setError(null);
+                }}
+                className="h-8 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 pr-8 text-xs focus:border-blue-600 focus:outline-hidden"
+              />
+              <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-[10px] font-medium text-slate-400">
+                mins
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label required={true} className="block text-[11px] font-bold text-slate-700 uppercase">
+              Max Marks
             </Label>
             <Input
-              type="text"
-              value={title}
-              hasError={Boolean(error)}
+              type="number"
+              min={1}
+              max={1000}
+              value={maxMarks || ''}
               onChange={(e) => {
-                setTitle(e.target.value);
+                setMaxMarks(Number(e.target.value));
                 if (error) setError(null);
               }}
-              placeholder="e.g. Implement Raft Log Compaction"
-              className="mt-1 h-8 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs focus:border-blue-600 focus:outline-hidden"
+              className="mt-1 h-8 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs focus:border-blue-600 focus:outline-hidden"
             />
           </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label
-                required={true}
-                className="block text-[11px] font-bold text-slate-700 uppercase"
-              >
-                Est. Hours
-              </Label>
-              <div className="relative mt-1">
-                <Input
-                  type="number"
-                  min={0}
-                  value={hours}
-                  onChange={(e) => {
-                    setHours(e.target.value);
-                    if (error) setError(null);
-                  }}
-                  className="h-8 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 pr-8 text-xs focus:border-blue-600 focus:outline-hidden"
-                />
-                <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-[10px] font-medium text-slate-400">
-                  hrs
-                </span>
-              </div>
-            </div>
-            <div>
-              <Label className="block text-[11px] font-bold text-slate-700 uppercase">
-                Est. Minutes
-              </Label>
-              <div className="relative mt-1">
-                <Input
-                  type="number"
-                  min={0}
-                  max={59}
-                  value={minutes}
-                  onChange={(e) => {
-                    const raw = e.target.value;
-                    const sanitized =
-                      raw === ''
-                        ? ''
-                        : Math.min(59, Math.max(0, Number.parseInt(raw, 10) || 0)).toString();
-                    setMinutes(sanitized);
-                    if (error) setError(null);
-                  }}
-                  className="h-8 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 pr-8 text-xs focus:border-blue-600 focus:outline-hidden"
-                />
-                <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-[10px] font-medium text-slate-400">
-                  mins
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label
-                required={true}
-                className="block text-[11px] font-bold text-slate-700 uppercase"
-              >
-                Max Marks
-              </Label>
-              <Input
-                type="number"
-                min={1}
-                max={1000}
-                value={maxMarks || ''}
-                onChange={(e) => {
-                  setMaxMarks(Number(e.target.value));
-                  if (error) setError(null);
-                }}
-                className="mt-1 h-8 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs focus:border-blue-600 focus:outline-hidden"
-              />
-            </div>
-            <div>
-              <Label
-                required={true}
-                className="block text-[11px] font-bold text-slate-700 uppercase"
-              >
-                Pass Marks
-              </Label>
-              <Input
-                type="number"
-                min={1}
-                value={passMarks || ''}
-                onChange={(e) => {
-                  setPassMarks(Number(e.target.value));
-                  if (error) setError(null);
-                }}
-                className="mt-1 h-8 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs focus:border-blue-600 focus:outline-hidden"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={isCreating}
-              onClick={() => {
-                onClose();
-                setError(null);
+          <div>
+            <Label required={true} className="block text-[11px] font-bold text-slate-700 uppercase">
+              Pass Marks
+            </Label>
+            <Input
+              type="number"
+              min={1}
+              value={passMarks || ''}
+              onChange={(e) => {
+                setPassMarks(Number(e.target.value));
+                if (error) setError(null);
               }}
-              className="h-auto rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 active:bg-slate-100 disabled:opacity-50"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isCreating}
-              isLoading={isCreating}
-              className="inline-flex h-auto items-center gap-1.5 rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-purple-700 focus-visible:ring-purple-500 active:bg-purple-800 disabled:opacity-50"
-            >
-              Create Assignment
-            </Button>
+              className="mt-1 h-8 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs focus:border-blue-600 focus:outline-hidden"
+            />
           </div>
-        </form>
-      </div>
-    </div>
+        </div>
+      </form>
+    </Modal>
   );
 }
 

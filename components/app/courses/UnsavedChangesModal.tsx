@@ -2,8 +2,9 @@
 
 import React from 'react';
 
+import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
-import { H3, P } from '@/components/ui/Typography';
+import { P } from '@/components/ui/Typography';
 
 interface UnsavedChangesModalProps {
   isOpen: boolean;
@@ -12,43 +13,30 @@ interface UnsavedChangesModalProps {
 }
 
 export function UnsavedChangesModal({ isOpen, onStay, onDiscard }: UnsavedChangesModalProps) {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
-      <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-        <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
-            <span className="text-xl font-bold">!</span>
-          </div>
-          <div className="flex-1">
-            <H3 className="text-lg font-bold text-slate-900">Unsaved Changes Guard</H3>
-            <P className="mt-1 text-sm text-slate-600">
-              You have unsaved changes in this form. If you navigate away or switch nodes now, your
-              edits will be discarded.
-            </P>
-          </div>
-        </div>
-
-        <div className="mt-6 flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onStay}
-            className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus-visible:ring-slate-400 active:bg-slate-100"
-          >
+    <Modal
+      isOpen={isOpen}
+      onClose={onStay}
+      title="Unsaved Changes Guard"
+      description="You have unsaved changes in this form. If you navigate away or switch nodes now, your edits will be discarded."
+      size="sm"
+      footer={
+        <>
+          <Button type="button" variant="outline" onClick={onStay} size="sm">
             Stay & Keep Editing
           </Button>
-          <Button
-            type="button"
-            variant="danger"
-            onClick={onDiscard}
-            className="rounded-lg bg-rose-600 px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-rose-700 focus-visible:ring-rose-500 active:bg-rose-800"
-          >
+          <Button type="button" variant="danger" onClick={onDiscard} size="sm">
             Discard Changes
           </Button>
-        </div>
+        </>
+      }
+    >
+      <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs text-amber-900">
+        <span className="font-bold">Notice:</span>
+        <P className="leading-relaxed">
+          Unsaved modifications on this outline node will be permanently lost if you discard.
+        </P>
       </div>
-    </div>
+    </Modal>
   );
 }

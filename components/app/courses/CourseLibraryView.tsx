@@ -11,6 +11,7 @@ import {
   MENTOR_COURSES_NAV,
 } from '@/components/app/navigation/portal-nav.config';
 import { Header } from '@/components/layout/Header';
+import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
@@ -30,16 +31,24 @@ export function CourseLibraryView({ portal }: CourseLibraryViewProps) {
   const { user, isAuthenticated, isLoading } = useAuth();
 
   const [search, setSearch] = useState('');
-  const [activeFilter, setActiveFilter] = useState<'all' | 'true' | 'false'>('all');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'inactive'>('all');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const courseQuery = useMemo(
     () => ({
       page: 1,
       limit: 50,
-      search: search.trim() || undefined,
-      isActive: activeFilter === 'all' ? ('all' as const) : activeFilter === 'true',
+      search: debouncedSearch.trim() || undefined,
+      isActive: activeFilter === 'all' ? ('all' as const) : activeFilter === 'active',
     }),
-    [search, activeFilter],
+    [debouncedSearch, activeFilter],
   );
 
   const {
@@ -66,6 +75,9 @@ export function CourseLibraryView({ portal }: CourseLibraryViewProps) {
   // Impact & Action Modals State
   const [activeActionCourse, setActiveActionCourse] = useState<Course | null>(null);
   const [courseImpact, setCourseImpact] = useState<CourseImpact | null>(null);
+  const [impactStatus, setImpactStatus] = useState<'idle' | 'loading' | 'success' | 'error'>(
+    'idle',
+  );
   const [modalActionType, setModalActionType] = useState<'DELETE' | 'TOGGLE_STATUS' | null>(null);
   const [isActionSubmitting, setIsActionSubmitting] = useState(false);
 
@@ -141,22 +153,28 @@ export function CourseLibraryView({ portal }: CourseLibraryViewProps) {
   const onRequestDelete = async (course: Course) => {
     setActiveActionCourse(course);
     setModalActionType('DELETE');
+    setImpactStatus('loading');
     try {
       const impactData = await getCourseImpact(course.id);
       setCourseImpact(impactData);
+      setImpactStatus('success');
     } catch {
       setCourseImpact(null);
+      setImpactStatus('error');
     }
   };
 
   const onRequestToggleStatus = async (course: Course) => {
     setActiveActionCourse(course);
     setModalActionType('TOGGLE_STATUS');
+    setImpactStatus('loading');
     try {
       const impactData = await getCourseImpact(course.id);
       setCourseImpact(impactData);
+      setImpactStatus('success');
     } catch {
       setCourseImpact(null);
+      setImpactStatus('error');
     }
   };
 
@@ -177,6 +195,7 @@ export function CourseLibraryView({ portal }: CourseLibraryViewProps) {
       setActiveActionCourse(null);
       setModalActionType(null);
       setCourseImpact(null);
+      setImpactStatus('idle');
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : 'Action failed');
     } finally {
@@ -350,7 +369,7 @@ export function CourseLibraryView({ portal }: CourseLibraryViewProps) {
           <div className="flex flex-wrap items-center gap-3">
             {/* Status Segmented Filter */}
             <div className="inline-flex rounded-xl border border-slate-200/80 bg-slate-100/80 p-1 text-sm">
-              {(['all', 'true', 'false'] as const).map((st) => (
+              {(['all', 'active', 'inactive'] as const).map((st) => (
                 <Button
                   key={st}
                   type="button"
@@ -362,7 +381,7 @@ export function CourseLibraryView({ portal }: CourseLibraryViewProps) {
                       : 'border-transparent bg-transparent text-slate-600 shadow-none hover:bg-slate-200/60 hover:text-slate-900 active:bg-slate-200'
                   }`}
                 >
-                  {st === 'all' ? 'All' : st === 'true' ? 'Active' : 'Inactive'}
+                  {st === 'all' ? 'All' : st === 'active' ? 'Active' : 'Inactive'}
                 </Button>
               ))}
             </div>
@@ -407,165 +426,169 @@ export function CourseLibraryView({ portal }: CourseLibraryViewProps) {
       </main>
 
       {/* Create Course Modal */}
-      {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
-          <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-            <H3 className="text-lg font-bold text-slate-900">Create New Course</H3>
-            <P className="mt-1 text-xs text-slate-500">
-              Initialize a curriculum standard. You will be redirected to the Course Builder to add
-              topics and assignments.
-            </P>
-
-            {createError && (
-              <FieldError
-                error={createError}
-                className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700"
-              />
-            )}
-
-            <form
-              noValidate
-              onSubmit={(e) => {
-                void handleCreateCourse(e);
-              }}
-              className="mt-5 space-y-4"
+      <Modal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        title="Create New Course"
+        description="Initialize a curriculum standard. You will be redirected to the Course Builder to add topics and assignments."
+        size="md"
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsCreateModalOpen(false)}
             >
-              <div>
-                <Label
-                  required={true}
-                  className="block text-xs font-bold tracking-wide text-slate-700 uppercase"
-                >
-                  Course Title
-                </Label>
-                <Input
-                  type="text"
-                  value={newTitle}
-                  hasError={Boolean(createError)}
-                  onChange={(e) => {
-                    setNewTitle(e.target.value);
-                    if (createError) setCreateError(null);
-                  }}
-                  placeholder="e.g. Git & GitHub Mastery"
-                  className="mt-1.5 h-10 w-full rounded-lg border border-slate-300 px-3.5 py-2 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
-                />
-              </div>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              form="create-course-form"
+              size="sm"
+              disabled={isSubmittingCreate}
+              isLoading={isSubmittingCreate}
+            >
+              Create & Open Builder
+            </Button>
+          </>
+        }
+      >
+        {createError && (
+          <FieldError
+            error={createError}
+            className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700"
+          />
+        )}
 
-              <div>
-                <Label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
-                  Description
-                </Label>
-                <textarea
-                  rows={3}
-                  value={newDescription}
-                  onChange={(e) => setNewDescription(e.target.value)}
-                  placeholder="Core objectives and competency goals..."
-                  className="mt-1.5 w-full rounded-lg border border-slate-300 px-3.5 py-2 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
-                />
-              </div>
+        <form
+          id="create-course-form"
+          noValidate
+          onSubmit={(e) => {
+            void handleCreateCourse(e);
+          }}
+          className="space-y-4"
+        >
+          <div>
+            <Label
+              required={true}
+              className="block text-xs font-bold tracking-wide text-slate-700 uppercase"
+            >
+              Course Title
+            </Label>
+            <Input
+              type="text"
+              value={newTitle}
+              hasError={Boolean(createError)}
+              onChange={(e) => {
+                setNewTitle(e.target.value);
+                if (createError) setCreateError(null);
+              }}
+              placeholder="e.g. Git & GitHub Mastery"
+              className="mt-1.5 h-10 w-full rounded-lg border border-slate-300 px-3.5 py-2 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+            />
+          </div>
 
+          <div>
+            <Label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
+              Description
+            </Label>
+            <textarea
+              rows={3}
+              value={newDescription}
+              onChange={(e) => setNewDescription(e.target.value)}
+              placeholder="Core objectives and competency goals..."
+              className="mt-1.5 w-full rounded-lg border border-slate-300 px-3.5 py-2 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+            />
+          </div>
+
+          <div>
+            <Label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
+              Estimated Duration
+            </Label>
+            <div className="mt-1.5 grid grid-cols-2 gap-3">
               <div>
-                <Label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
-                  Estimated Duration
+                <Label className="block text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
+                  Hours
                 </Label>
-                <div className="mt-1.5 grid grid-cols-2 gap-3">
-                  <div>
-                    <Label className="block text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
-                      Hours
-                    </Label>
-                    <div className="relative mt-1">
-                      <Input
-                        type="number"
-                        min={0}
-                        value={durationHours}
-                        onChange={(e) => setDurationHours(e.target.value)}
-                        placeholder="0"
-                        className="h-9 w-full rounded-lg border border-slate-300 px-3 py-2 pr-10 text-xs text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
-                      />
-                      <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
-                        hrs
-                      </span>
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="block text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
-                      Minutes
-                    </Label>
-                    <div className="relative mt-1">
-                      <Input
-                        type="number"
-                        min={0}
-                        max={59}
-                        value={durationMinutes}
-                        onChange={(e) => {
-                          const raw = e.target.value;
-                          const sanitized =
-                            raw === ''
-                              ? ''
-                              : Math.min(59, Math.max(0, parseInt(raw, 10) || 0)).toString();
-                          setDurationMinutes(sanitized);
-                        }}
-                        placeholder="0"
-                        className="h-9 w-full rounded-lg border border-slate-300 px-3 py-2 pr-10 text-xs text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
-                      />
-                      <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
-                        mins
-                      </span>
-                    </div>
-                  </div>
+                <div className="relative mt-1">
+                  <Input
+                    type="number"
+                    min={0}
+                    value={durationHours}
+                    onChange={(e) => setDurationHours(e.target.value)}
+                    placeholder="0"
+                    className="h-9 w-full rounded-lg border border-slate-300 px-3 py-2 pr-10 text-xs text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                  />
+                  <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
+                    hrs
+                  </span>
                 </div>
               </div>
-
-              <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3">
-                <span className="text-xs font-bold text-slate-800">Initial Active State</span>
-                <button
-                  type="button"
-                  onClick={() => setNewIsActive(!newIsActive)}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
-                    newIsActive ? 'bg-emerald-600' : 'bg-slate-300'
-                  }`}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                      newIsActive ? 'translate-x-5' : 'translate-x-0'
-                    }`}
+              <div>
+                <Label className="block text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
+                  Minutes
+                </Label>
+                <div className="relative mt-1">
+                  <Input
+                    type="number"
+                    min={0}
+                    max={59}
+                    value={durationMinutes}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      const sanitized =
+                        raw === ''
+                          ? ''
+                          : Math.min(59, Math.max(0, parseInt(raw, 10) || 0)).toString();
+                      setDurationMinutes(sanitized);
+                    }}
+                    placeholder="0"
+                    className="h-9 w-full rounded-lg border border-slate-300 px-3 py-2 pr-10 text-xs text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
                   />
-                </button>
+                  <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
+                    mins
+                  </span>
+                </div>
               </div>
-
-              <div className="mt-6 flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsCreateModalOpen(false)}
-                  className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus-visible:ring-slate-400 active:bg-slate-100"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={isSubmittingCreate}
-                  isLoading={isSubmittingCreate}
-                  className="rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-slate-800 focus-visible:ring-slate-800 active:bg-slate-950 disabled:opacity-50"
-                >
-                  Create & Open Builder
-                </Button>
-              </div>
-            </form>
+            </div>
           </div>
-        </div>
-      )}
+
+          <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3">
+            <span className="text-xs font-bold text-slate-800">Initial Active State</span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={newIsActive}
+              aria-label="Course active status"
+              onClick={() => setNewIsActive(!newIsActive)}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
+                newIsActive ? 'bg-emerald-600' : 'bg-slate-300'
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                  newIsActive ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Impact & Action Notice Modal */}
       {activeActionCourse && modalActionType && (
         <ImpactNoticeModal
           isOpen={true}
-          isLoading={isActionSubmitting}
+          isLoading={isActionSubmitting || impactStatus === 'loading'}
           loadingLabel={
-            modalActionType === 'DELETE'
-              ? 'Deleting...'
-              : activeActionCourse.isActive
-                ? 'Deactivating...'
-                : 'Activating...'
+            impactStatus === 'loading'
+              ? 'Verifying live impact...'
+              : modalActionType === 'DELETE'
+                ? 'Deleting...'
+                : activeActionCourse.isActive
+                  ? 'Deactivating...'
+                  : 'Activating...'
           }
           impact={courseImpact}
           actionTitle={
@@ -583,8 +606,15 @@ export function CourseLibraryView({ portal }: CourseLibraryViewProps) {
                 : 'Activating this course makes it available for immediate mentee assignment across batches.'
           }
           isDestructive={modalActionType === 'DELETE' || activeActionCourse.isActive}
-          isBlocked={modalActionType === 'DELETE' && (courseImpact?.openAllocationsCount ?? 0) > 0}
-          blockedMessage="This course has active mentee allocations. It cannot be deleted. Please deactivate the course instead."
+          isBlocked={
+            impactStatus === 'error' ||
+            (modalActionType === 'DELETE' && (courseImpact?.openAllocationsCount ?? 0) > 0)
+          }
+          blockedMessage={
+            impactStatus === 'error'
+              ? 'Could not verify live impact — please retry.'
+              : 'This course has active mentee allocations. It cannot be deleted. Please deactivate the course instead.'
+          }
           confirmLabel={
             modalActionType === 'DELETE'
               ? 'Confirm Deletion'
@@ -599,6 +629,7 @@ export function CourseLibraryView({ portal }: CourseLibraryViewProps) {
             setActiveActionCourse(null);
             setModalActionType(null);
             setCourseImpact(null);
+            setImpactStatus('idle');
           }}
         />
       )}

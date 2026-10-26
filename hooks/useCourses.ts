@@ -31,7 +31,7 @@ export function useCourses(initialQuery?: ListCoursesQuery) {
     error: queryError,
   } = useQuery({
     queryKey: ['courses', initialQuery],
-    queryFn: () => coursesService.listCourses(initialQuery),
+    queryFn: ({ signal }) => coursesService.listCourses(initialQuery, { signal }),
   });
 
   const courses = data?.courses ?? [];

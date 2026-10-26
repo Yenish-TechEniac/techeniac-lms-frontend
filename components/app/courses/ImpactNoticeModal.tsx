@@ -2,8 +2,9 @@
 
 import React from 'react';
 
+import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
-import { H3, P } from '@/components/ui/Typography';
+import { P } from '@/components/ui/Typography';
 import type { CourseImpact } from '@/types/courses';
 
 interface ImpactNoticeModalProps {
@@ -35,71 +36,19 @@ export function ImpactNoticeModal({
   onConfirm,
   onCancel,
 }: ImpactNoticeModalProps) {
-  if (!isOpen) return null;
-
   const affectedCount = impact?.affectedMenteesCount ?? 0;
   const hasAllocations = (impact?.openAllocationsCount ?? 0) > 0;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
-      <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-        <div className="flex items-start gap-3">
-          <div
-            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-              isBlocked
-                ? 'bg-amber-100 text-amber-700'
-                : isDestructive
-                  ? 'bg-rose-100 text-rose-700'
-                  : 'bg-blue-100 text-blue-700'
-            }`}
-          >
-            {isBlocked ? (
-              <span className="text-xl font-bold">!</span>
-            ) : isDestructive ? (
-              <span className="text-xl font-bold">&times;</span>
-            ) : (
-              <span className="text-xl font-bold">&Delta;</span>
-            )}
-          </div>
-          <div className="min-w-0 flex-1">
-            <H3 className="text-lg font-bold break-words break-all text-slate-900">
-              {actionTitle}
-            </H3>
-            <P className="mt-1 text-sm break-words text-slate-600">{actionMessage}</P>
-          </div>
-        </div>
-
-        {/* Impact Warning Banner */}
-        {hasAllocations && (
-          <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs text-amber-900">
-            <div className="flex items-center gap-2 font-semibold">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
-              Live Impact Notice
-            </div>
-            <P className="mt-1 leading-relaxed">
-              This course is currently allocated to{' '}
-              <strong className="font-bold underline">{affectedCount} active mentees</strong> across{' '}
-              <strong>{impact?.openAllocationsCount} batches/allocations</strong>. Any modification
-              applies live immediately to all affected cadets.
-            </P>
-          </div>
-        )}
-
-        {isBlocked && (
-          <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800">
-            {blockedMessage ||
-              'This course cannot be deleted because it has active mentee allocations. Deactivate the course instead.'}
-          </div>
-        )}
-
-        <div className="mt-6 flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
-          <Button
-            type="button"
-            variant="outline"
-            disabled={isLoading}
-            onClick={onCancel}
-            className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus-visible:ring-slate-400 active:bg-slate-100 disabled:opacity-50"
-          >
+    <Modal
+      isOpen={isOpen}
+      onClose={onCancel}
+      title={actionTitle}
+      description={actionMessage}
+      size="sm"
+      footer={
+        <>
+          <Button type="button" variant="outline" disabled={isLoading} onClick={onCancel} size="sm">
             {isBlocked ? 'Close' : 'Cancel'}
           </Button>
           {!isBlocked && (
@@ -109,17 +58,36 @@ export function ImpactNoticeModal({
               disabled={isLoading}
               isLoading={isLoading}
               onClick={onConfirm}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold text-white shadow-xs disabled:opacity-50 ${
-                isDestructive
-                  ? 'bg-rose-600 hover:bg-rose-700 focus-visible:ring-rose-500 active:bg-rose-800'
-                  : 'bg-slate-900 hover:bg-slate-800 focus-visible:ring-slate-800 active:bg-slate-950'
-              }`}
+              size="sm"
             >
               {isLoading ? loadingLabel : confirmLabel}
             </Button>
           )}
+        </>
+      }
+    >
+      {/* Impact Warning Banner */}
+      {hasAllocations && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs text-amber-900">
+          <div className="flex items-center gap-2 font-semibold">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
+            Live Impact Notice
+          </div>
+          <P className="mt-1 leading-relaxed">
+            This course is currently allocated to{' '}
+            <strong className="font-bold underline">{affectedCount} active mentees</strong> across{' '}
+            <strong>{impact?.openAllocationsCount} batches/allocations</strong>. Any modification
+            applies live immediately to all affected cadets.
+          </P>
         </div>
-      </div>
-    </div>
+      )}
+
+      {isBlocked && (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800">
+          {blockedMessage ||
+            'This course cannot be deleted because it has active mentee allocations. Deactivate the course instead.'}
+        </div>
+      )}
+    </Modal>
   );
 }

@@ -57,6 +57,7 @@ export const coursesService = {
   // Course APIs
   async listCourses(
     params?: ListCoursesQuery,
+    options?: { signal?: AbortSignal },
   ): Promise<{ courses: Course[]; pagination: CoursePagination }> {
     const res = await apiClient<
       ApiResponse<{ courses: Course[]; pagination: CoursePagination } | Course[]>
@@ -72,6 +73,7 @@ export const coursesService = {
         sortBy: params?.sortBy ?? 'createdAt',
         sortOrder: params?.sortOrder ?? 'desc',
       },
+      ...(options?.signal ? { signal: options.signal } : {}),
     });
 
     if (res.data && 'courses' in res.data && Array.isArray(res.data.courses)) {
