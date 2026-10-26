@@ -595,14 +595,23 @@ export function AssignmentEditor({
                       {item.type}
                     </span>
                     <span className="truncate font-semibold text-slate-900">{item.title}</span>
-                    <a
-                      href={item.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="truncate text-xs text-slate-400 hover:text-blue-600 hover:underline"
-                    >
-                      {item.url}
-                    </a>
+                    {isValidWebUrl(item.url) ? (
+                      <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="truncate text-xs text-slate-400 hover:text-blue-600 hover:underline"
+                      >
+                        {item.url}
+                      </a>
+                    ) : (
+                      <span
+                        className="truncate text-xs text-slate-400 italic"
+                        title="Invalid or unverified URL"
+                      >
+                        {item.url}
+                      </span>
+                    )}
                   </div>
                   <Button
                     type="button"

@@ -15,6 +15,17 @@ interface Block {
   code?: string | undefined;
 }
 
+function isSafeMarkdownUrl(urlString: string): boolean {
+  try {
+    const trimmed = urlString.trim();
+    if (!trimmed) return false;
+    const parsed = new URL(trimmed);
+    return ['http:', 'https:', 'mailto:'].includes(parsed.protocol);
+  } catch {
+    return false;
+  }
+}
+
 function renderInline(text: string): React.ReactNode {
   // Regex to match inline code, bold, italic, and links
   const tokens = text.split(/(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|\[[^\]]+\]\([^)]+\))/g);
@@ -56,16 +67,24 @@ function renderInline(text: string): React.ReactNode {
     const linkMatch = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(token);
     if (linkMatch) {
       const [, label, url] = linkMatch;
+      if (url && isSafeMarkdownUrl(url)) {
+        return (
+          <a
+            key={i}
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-blue-600 underline hover:text-blue-700"
+          >
+            {label}
+          </a>
+        );
+      }
+
       return (
-        <a
-          key={i}
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-medium text-blue-600 underline hover:text-blue-700"
-        >
+        <span key={i} className="font-medium text-slate-700" title="Blocked link">
           {label}
-        </a>
+        </span>
       );
     }
 

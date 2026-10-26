@@ -114,7 +114,7 @@ export default function AdminPage() {
             </div>
           </div>
 
-          {/* Module 6: Curriculum & Courses (Raj) */}
+          {/* Module 6: Curriculum & Courses */}
           <Link
             href="/admin/courses"
             className="group flex flex-col justify-between rounded-xl border border-blue-200 bg-blue-50/50 p-5 shadow-xs transition-all hover:border-blue-300 hover:bg-blue-50 hover:shadow-sm"

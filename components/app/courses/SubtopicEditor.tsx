@@ -537,14 +537,23 @@ export function SubtopicEditor({
                     {resItem.type}
                   </span>
                   <span className="truncate font-semibold text-slate-900">{resItem.title}</span>
-                  <a
-                    href={resItem.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="truncate text-xs text-slate-400 hover:text-blue-600 hover:underline"
-                  >
-                    {resItem.url}
-                  </a>
+                  {isValidWebUrl(resItem.url) ? (
+                    <a
+                      href={resItem.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="truncate text-xs text-slate-400 hover:text-blue-600 hover:underline"
+                    >
+                      {resItem.url}
+                    </a>
+                  ) : (
+                    <span
+                      className="truncate text-xs text-slate-400 italic"
+                      title="Invalid or unverified URL"
+                    >
+                      {resItem.url}
+                    </span>
+                  )}
                 </div>
 
                 <Button
