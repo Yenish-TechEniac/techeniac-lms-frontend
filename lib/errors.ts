@@ -33,6 +33,13 @@ export class ApiError extends Error {
 }
 
 /**
+ * Type guard to check if an unknown error is an ApiError with HTTP 409 Conflict status.
+ */
+export function isConflictError(err: unknown): boolean {
+  return err instanceof ApiError && err.status === 409;
+}
+
+/**
  * Error formatting utility for extracting descriptive user-friendly error messages
  * from backend API error responses or unexpected error objects.
  */

@@ -12,7 +12,11 @@ interface UnsavedChangesModalProps {
   onDiscard: () => void;
 }
 
-export function UnsavedChangesModal({ isOpen, onStay, onDiscard }: UnsavedChangesModalProps) {
+export function UnsavedChangesModal({
+  isOpen,
+  onStay,
+  onDiscard,
+}: Readonly<UnsavedChangesModalProps>) {
   return (
     <Modal
       isOpen={isOpen}

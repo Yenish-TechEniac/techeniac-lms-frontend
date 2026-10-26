@@ -88,7 +88,7 @@ function SortableTopicItem({
   onToggleCollapse,
   onRequestDeleteNode,
   children,
-}: SortableTopicItemProps) {
+}: Readonly<SortableTopicItemProps>) {
   const isBeingSaved = isBeingSavedProp ?? reorderingId === topic.id;
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -246,7 +246,7 @@ function SortableSubtopicItem({
   onSelectNode,
   onToggleMenu,
   onRequestDeleteNode,
-}: SortableSubtopicItemProps) {
+}: Readonly<SortableSubtopicItemProps>) {
   const isBeingSaved = isBeingSavedProp ?? reorderingId === subtopic.id;
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -402,7 +402,7 @@ function SortableAssignmentItem({
   onSelectNode,
   onToggleMenu,
   onRequestDeleteNode,
-}: SortableAssignmentItemProps) {
+}: Readonly<SortableAssignmentItemProps>) {
   const isBeingSaved = isBeingSavedProp ?? reorderingId === assignment.id;
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -545,7 +545,7 @@ export function CourseOutlineTree({
   onReorderSubtopics,
   onReorderAssignments,
   onRequestDeleteNode,
-}: CourseOutlineTreeProps) {
+}: Readonly<CourseOutlineTreeProps>) {
   const [collapsedTopics, setCollapsedTopics] = useState<Record<string, boolean>>({});
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 

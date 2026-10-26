@@ -7,7 +7,8 @@ import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { H2, H3, H4, P } from '@/components/ui/Typography';
-import { formatErrorMessage } from '@/lib/errors';
+import { useDurationInput } from '@/hooks/useDurationInput';
+import { formatErrorMessage, isConflictError } from '@/lib/errors';
 import {
   Assignment,
   CourseImpact,
@@ -45,17 +46,15 @@ export function AssignmentEditor({
   const [title, setTitle] = useState(assignment.title);
   const [instructions, setInstructions] = useState(assignment.instructions || '');
 
-  const initialHours = assignment.estimatedMinutes
-    ? Math.floor(assignment.estimatedMinutes / 60)
-    : 0;
-  const initialMinutes = assignment.estimatedMinutes ? assignment.estimatedMinutes % 60 : 0;
-
-  const [durationHours, setDurationHours] = useState<string>(
-    initialHours > 0 || initialMinutes > 0 ? String(initialHours) : '',
-  );
-  const [durationMinutes, setDurationMinutes] = useState<string>(
-    initialHours > 0 || initialMinutes > 0 ? String(initialMinutes) : '',
-  );
+  const {
+    durationHours,
+    durationMinutes,
+    handleHoursChange,
+    handleMinutesChange,
+    totalMinutes: totalDurationMinutes,
+  } = useDurationInput({
+    initialMinutes: assignment.estimatedMinutes,
+  });
   const [maxMarks, setMaxMarks] = useState<number>(Number(assignment.maxMarks) || 0);
   const [passMarks, setPassMarks] = useState<number>(Number(assignment.passMarks) || 0);
   const [allowLate, setAllowLate] = useState<boolean>(assignment.allowLate);
@@ -72,9 +71,6 @@ export function AssignmentEditor({
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-  const totalDurationMinutes =
-    (Number.parseInt(durationHours, 10) || 0) * 60 + (Number.parseInt(durationMinutes, 10) || 0);
 
   const handleAddResource = () => {
     const trimmedTitle = newResourceTitle.trim();
@@ -224,12 +220,7 @@ export function AssignmentEditor({
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err: unknown) {
-      if (
-        typeof err === 'object' &&
-        err !== null &&
-        'status' in err &&
-        (err as { status: number }).status === 409
-      ) {
+      if (isConflictError(err)) {
         onConflict();
       } else {
         setErrorMsg(formatErrorMessage(err, 'Failed to save assignment changes'));
@@ -373,10 +364,7 @@ export function AssignmentEditor({
                       type="number"
                       min={0}
                       value={durationHours}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        handleChange(() => setDurationHours(val));
-                      }}
+                      onChange={(e) => handleChange(() => handleHoursChange(e.target.value))}
                       placeholder="0"
                       className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 pr-10 text-sm text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden sm:text-base"
                     />
@@ -390,14 +378,7 @@ export function AssignmentEditor({
                       min={0}
                       max={59}
                       value={durationMinutes}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        const sanitized =
-                          val === ''
-                            ? ''
-                            : Math.min(59, Math.max(0, Number.parseInt(val, 10) || 0)).toString();
-                        handleChange(() => setDurationMinutes(sanitized));
-                      }}
+                      onChange={(e) => handleChange(() => handleMinutesChange(e.target.value))}
                       placeholder="0"
                       className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 pr-11 text-sm text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden sm:text-base"
                     />

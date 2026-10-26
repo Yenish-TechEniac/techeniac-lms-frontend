@@ -7,7 +7,8 @@ import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { H2, H3, P } from '@/components/ui/Typography';
-import { formatErrorMessage } from '@/lib/errors';
+import { useDurationInput } from '@/hooks/useDurationInput';
+import { formatErrorMessage, isConflictError } from '@/lib/errors';
 import type { CourseImpact, ResourceItem, Topic, UpdateTopicInput } from '@/types/courses';
 
 function isValidWebUrl(urlString: string): boolean {
@@ -39,20 +40,21 @@ export function TopicEditor({
   onSaveTopic,
   onConflict,
   onDirtyChange,
-}: TopicEditorProps) {
+}: Readonly<TopicEditorProps>) {
   const [title, setTitle] = useState(topic.title);
   const [description, setDescription] = useState(topic.description || '');
   const [resources, setResources] = useState<ResourceItem[]>(topic.resources || []);
 
-  const initialHours = topic.estimatedMinutes ? Math.floor(topic.estimatedMinutes / 60) : 0;
-  const initialMinutes = topic.estimatedMinutes ? topic.estimatedMinutes % 60 : 0;
+  const {
+    durationHours,
+    durationMinutes,
+    handleHoursChange,
+    handleMinutesChange,
+    estimatedMinutes: totalEstimatedMins,
+  } = useDurationInput({
+    initialMinutes: topic.estimatedMinutes,
+  });
 
-  const [durationHours, setDurationHours] = useState<string>(
-    initialHours > 0 || initialMinutes > 0 ? String(initialHours) : '',
-  );
-  const [durationMinutes, setDurationMinutes] = useState<string>(
-    initialHours > 0 || initialMinutes > 0 ? String(initialMinutes) : '',
-  );
   const [isActive, setIsActive] = useState(topic.isActive);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -66,11 +68,6 @@ export function TopicEditor({
     courseEstimatedMinutes !== null &&
     courseEstimatedMinutes > 0
       ? Math.max(0, courseEstimatedMinutes - (otherTopicsMinutes || 0))
-      : null;
-
-  const totalEstimatedMins =
-    durationHours !== '' || durationMinutes !== ''
-      ? (parseInt(durationHours, 10) || 0) * 60 + (parseInt(durationMinutes, 10) || 0)
       : null;
 
   const [newResourceTitle, setNewResourceTitle] = useState('');
@@ -230,12 +227,7 @@ export function TopicEditor({
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err: unknown) {
-      if (
-        typeof err === 'object' &&
-        err !== null &&
-        'status' in err &&
-        (err as { status: number }).status === 409
-      ) {
+      if (isConflictError(err)) {
         onConflict();
       } else {
         setErrorMsg(formatErrorMessage(err, 'Failed to save topic changes'));
@@ -371,7 +363,7 @@ export function TopicEditor({
                   type="number"
                   min={0}
                   value={durationHours}
-                  onChange={(e) => handleChange(() => setDurationHours(e.target.value))}
+                  onChange={(e) => handleChange(() => handleHoursChange(e.target.value))}
                   placeholder="0"
                   className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 pr-11 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
                 />
@@ -390,14 +382,7 @@ export function TopicEditor({
                   min={0}
                   max={59}
                   value={durationMinutes}
-                  onChange={(e) => {
-                    const raw = e.target.value;
-                    const sanitized =
-                      raw === ''
-                        ? ''
-                        : Math.min(59, Math.max(0, parseInt(raw, 10) || 0)).toString();
-                    handleChange(() => setDurationMinutes(sanitized));
-                  }}
+                  onChange={(e) => handleChange(() => handleMinutesChange(e.target.value))}
                   placeholder="0"
                   className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 pr-12 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
                 />

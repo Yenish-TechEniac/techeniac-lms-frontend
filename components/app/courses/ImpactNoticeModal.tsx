@@ -35,7 +35,7 @@ export function ImpactNoticeModal({
   loadingLabel = 'Processing...',
   onConfirm,
   onCancel,
-}: ImpactNoticeModalProps) {
+}: Readonly<ImpactNoticeModalProps>) {
   const affectedCount = impact?.affectedMenteesCount ?? 0;
   const hasAllocations = (impact?.openAllocationsCount ?? 0) > 0;
 

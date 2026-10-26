@@ -11,7 +11,7 @@ import { CourseOutlineTree } from '@/components/app/courses/CourseOutlineTree';
 import { ImpactNoticeModal } from '@/components/app/courses/ImpactNoticeModal';
 import { SubtopicEditor } from '@/components/app/courses/SubtopicEditor';
 import { TopicEditor } from '@/components/app/courses/TopicEditor';
-import { ActiveNodeSelection } from '@/components/app/courses/types';
+import { ActiveNodeSelection, sanitizeDurationMinutes } from '@/components/app/courses/types';
 import { UnsavedChangesModal } from '@/components/app/courses/UnsavedChangesModal';
 import {
   ADMIN_COURSES_NAV,
@@ -589,12 +589,7 @@ function AddAssignmentModal({
                 max={59}
                 value={minutes}
                 onChange={(e) => {
-                  const raw = e.target.value;
-                  const sanitized =
-                    raw === ''
-                      ? ''
-                      : Math.min(59, Math.max(0, Number.parseInt(raw, 10) || 0)).toString();
-                  setMinutes(sanitized);
+                  setMinutes(sanitizeDurationMinutes(e.target.value));
                   if (error) setError(null);
                 }}
                 className="h-8 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 pr-8 text-xs focus:border-blue-600 focus:outline-hidden"

@@ -19,6 +19,7 @@ import { Label } from '@/components/ui/Label';
 import { H1, H3, P } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { useCourses } from '@/hooks/useCourses';
+import { useDurationInput } from '@/hooks/useDurationInput';
 import { formatErrorMessage } from '@/lib/errors';
 import type { Course, CourseImpact } from '@/types/courses';
 
@@ -26,7 +27,7 @@ interface CourseLibraryViewProps {
   portal: 'admin' | 'mentor';
 }
 
-export function CourseLibraryView({ portal }: CourseLibraryViewProps) {
+export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) {
   const router = useRouter();
   const { user, isAuthenticated, isLoading } = useAuth();
 
@@ -66,8 +67,16 @@ export function CourseLibraryView({ portal }: CourseLibraryViewProps) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
-  const [durationHours, setDurationHours] = useState('40');
-  const [durationMinutes, setDurationMinutes] = useState('0');
+  const {
+    durationHours,
+    durationMinutes,
+    handleHoursChange,
+    handleMinutesChange,
+    resetDuration,
+    estimatedMinutes,
+  } = useDurationInput({
+    initialMinutes: 2400,
+  });
   const [newIsActive, setNewIsActive] = useState(true);
   const [isSubmittingCreate, setIsSubmittingCreate] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
@@ -107,26 +116,8 @@ export function CourseLibraryView({ portal }: CourseLibraryViewProps) {
       return;
     }
 
-    const parsedHours = durationHours !== '' ? parseInt(durationHours, 10) : 0;
-    const parsedMins = durationMinutes !== '' ? parseInt(durationMinutes, 10) : 0;
-
-    if (isNaN(parsedHours) || parsedHours < 0) {
-      setCreateError('Hours cannot be negative.');
-      return;
-    }
-
-    if (durationMinutes !== '') {
-      if (isNaN(parsedMins) || parsedMins < 0 || parsedMins > 59) {
-        setCreateError('Minutes must be between 0 and 59.');
-        return;
-      }
-    }
-
-    const calculatedMins =
-      durationHours !== '' || durationMinutes !== '' ? parsedHours * 60 + parsedMins : null;
-
     const totalEstimatedMins =
-      calculatedMins !== null && calculatedMins > 0 ? calculatedMins : undefined;
+      estimatedMinutes !== null && estimatedMinutes > 0 ? estimatedMinutes : undefined;
 
     setIsSubmittingCreate(true);
     setCreateError(null);
@@ -142,6 +133,7 @@ export function CourseLibraryView({ portal }: CourseLibraryViewProps) {
       setIsCreateModalOpen(false);
       setNewTitle('');
       setNewDescription('');
+      resetDuration(2400);
       router.push(`/${portal}/courses/${created.id}/builder`);
     } catch (err: unknown) {
       setCreateError(formatErrorMessage(err, 'Failed to create course'));
@@ -516,7 +508,7 @@ export function CourseLibraryView({ portal }: CourseLibraryViewProps) {
                     type="number"
                     min={0}
                     value={durationHours}
-                    onChange={(e) => setDurationHours(e.target.value)}
+                    onChange={(e) => handleHoursChange(e.target.value)}
                     placeholder="0"
                     className="h-9 w-full rounded-lg border border-slate-300 px-3 py-2 pr-10 text-xs text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
                   />
@@ -535,14 +527,7 @@ export function CourseLibraryView({ portal }: CourseLibraryViewProps) {
                     min={0}
                     max={59}
                     value={durationMinutes}
-                    onChange={(e) => {
-                      const raw = e.target.value;
-                      const sanitized =
-                        raw === ''
-                          ? ''
-                          : Math.min(59, Math.max(0, parseInt(raw, 10) || 0)).toString();
-                      setDurationMinutes(sanitized);
-                    }}
+                    onChange={(e) => handleMinutesChange(e.target.value)}
                     placeholder="0"
                     className="h-9 w-full rounded-lg border border-slate-300 px-3 py-2 pr-10 text-xs text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
                   />
