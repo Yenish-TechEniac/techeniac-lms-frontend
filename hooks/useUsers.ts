@@ -113,23 +113,23 @@ export function useUsers(initialFilters: UserQueryFilters = DEFAULT_FILTERS): Us
   });
 
   const createUser = async (formData: CreateUserFormData): Promise<ApiUser> => {
-    return createUserMutation.mutateAsync(formData);
+    return await createUserMutation.mutateAsync(formData);
   };
 
   const updateUser = async (id: string, editData: Partial<EditUserFormData>): Promise<ApiUser> => {
-    return updateUserMutation.mutateAsync({ id, data: editData });
+    return await updateUserMutation.mutateAsync({ id, data: editData });
   };
 
   const changeRole = async (id: string, roleData: ChangeRoleFormData): Promise<ApiUser> => {
-    return changeRoleMutation.mutateAsync({ id, data: roleData });
+    return await changeRoleMutation.mutateAsync({ id, data: roleData });
   };
 
   const toggleStatus = async (id: string, activate: boolean): Promise<ApiUser> => {
-    return toggleStatusMutation.mutateAsync({ id, activate });
+    return await toggleStatusMutation.mutateAsync({ id, activate });
   };
 
   const resendInvite = async (id: string): Promise<{ message: string }> => {
-    return usersService.resendInvite(id);
+    return await usersService.resendInvite(id);
   };
 
   const createUsersBulk = async (
@@ -139,18 +139,23 @@ export function useUsers(initialFilters: UserQueryFilters = DEFAULT_FILTERS): Us
     let successCount = 0;
     const failures: BulkImportFailure[] = [];
 
-    for (let i = 0; i < rows.length; i++) {
+    const processIndex = async (i: number): Promise<void> => {
+      if (i >= rows.length) return;
       const r = rows[i];
-      if (!r) continue;
-      onProgress?.({ current: i + 1, total: rows.length });
-      try {
-        await usersService.createUser({ name: r.name, email: r.email, role: r.role });
-        successCount++;
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Failed to create user';
-        failures.push({ row: r, error: message });
+      if (r) {
+        onProgress?.({ current: i + 1, total: rows.length });
+        try {
+          await usersService.createUser({ name: r.name, email: r.email, role: r.role });
+          successCount++;
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : 'Failed to create user';
+          failures.push({ row: r, error: message });
+        }
       }
-    }
+      await processIndex(i + 1);
+    };
+
+    await processIndex(0);
 
     void queryClient.invalidateQueries({ queryKey: userKeys.all });
     return { successCount, failures };

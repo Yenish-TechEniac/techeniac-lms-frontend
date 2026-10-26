@@ -34,7 +34,7 @@ export function BatchStatusModal({
   isOpen,
   onClose,
   onSuccess,
-}: BatchStatusModalProps) {
+}: Readonly<BatchStatusModalProps>) {
   const allowedNextStatuses = ALLOWED_STATUS_TRANSITIONS[currentStatus] || [];
   const [newStatus, setNewStatus] = useState<BatchStatus>(allowedNextStatuses[0] ?? currentStatus);
   const [reason, setReason] = useState('');
@@ -44,7 +44,7 @@ export function BatchStatusModal({
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
 

@@ -27,38 +27,49 @@ function extractRoleFromJwt(token: string | undefined): string | null {
   }
 }
 
+function isProtected(pathname: string): boolean {
+  if (pathname === '/change-password') {
+    return true;
+  }
+  return (
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/mentor') ||
+    pathname.startsWith('/mentee')
+  );
+}
+
+function getRoleRedirectPath(pathname: string, role: string): string | null {
+  if (pathname.startsWith('/admin') && role !== 'SUPER_ADMIN') {
+    return role === 'MENTOR' ? '/mentor' : '/mentee';
+  }
+  if (pathname.startsWith('/mentor') && role !== 'MENTOR' && role !== 'SUPER_ADMIN') {
+    return role === 'MENTEE' ? '/mentee' : '/admin';
+  }
+  if (pathname.startsWith('/mentee') && role !== 'MENTEE' && role !== 'SUPER_ADMIN') {
+    return role === 'MENTOR' ? '/mentor' : '/admin';
+  }
+  return null;
+}
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const isProtectedPath =
-    pathname === '/change-password' ||
-    pathname.startsWith('/admin') ||
-    pathname.startsWith('/mentor') ||
-    pathname.startsWith('/mentee');
+  if (!isProtected(pathname)) {
+    return NextResponse.next();
+  }
 
-  if (isProtectedPath) {
-    const accessToken = request.cookies.get('accessToken')?.value;
-    const hasAuth = Boolean(accessToken || request.cookies.has('refreshToken'));
-    if (!hasAuth) {
-      const loginUrl = new URL('/login', request.url);
-      return NextResponse.redirect(loginUrl);
-    }
+  const accessToken = request.cookies.get('accessToken')?.value;
+  const hasAuth = Boolean(accessToken || request.cookies.has('refreshToken'));
+  if (!hasAuth) {
+    const loginUrl = new URL('/login', request.url);
+    return NextResponse.redirect(loginUrl);
+  }
 
-    const role = extractRoleFromJwt(accessToken);
-    if (role) {
-      // Role-based route isolation at network boundary
-      if (pathname.startsWith('/admin') && role !== 'SUPER_ADMIN') {
-        const redirectUrl = new URL(role === 'MENTOR' ? '/mentor' : '/mentee', request.url);
-        return NextResponse.redirect(redirectUrl);
-      }
-      if (pathname.startsWith('/mentor') && role !== 'MENTOR' && role !== 'SUPER_ADMIN') {
-        const redirectUrl = new URL(role === 'MENTEE' ? '/mentee' : '/admin', request.url);
-        return NextResponse.redirect(redirectUrl);
-      }
-      if (pathname.startsWith('/mentee') && role !== 'MENTEE' && role !== 'SUPER_ADMIN') {
-        const redirectUrl = new URL(role === 'MENTOR' ? '/mentor' : '/admin', request.url);
-        return NextResponse.redirect(redirectUrl);
-      }
+  const role = extractRoleFromJwt(accessToken);
+  if (role) {
+    const redirectPath = getRoleRedirectPath(pathname, role);
+    if (redirectPath) {
+      return NextResponse.redirect(new URL(redirectPath, request.url));
     }
   }
 
@@ -73,6 +84,6 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico, images, and public assets
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    String.raw`/((?!_next/static|_next/image|favicon.ico|.*\.(?:svg|png|jpg|jpeg|gif|webp)$).*)`,
   ],
 };

@@ -37,6 +37,63 @@ export interface MapMenteeModalProps {
   unmappedMentees?: MenteeOption[] | undefined;
 }
 
+function getSubmitButtonLabel(
+  isSubmitting: boolean,
+  isReassign: boolean,
+  targetMentee: { id: string } | null | undefined,
+  selectedCount: number,
+): string {
+  if (isSubmitting) return 'Saving...';
+  if (isReassign) return 'Confirm Reassignment';
+  const count = targetMentee ? 1 : selectedCount;
+  return `Assign Mentor (${count})`;
+}
+
+function BulkMenteeSelector({
+  unmappedMentees,
+  selectedMenteeIds,
+  onToggleMentee,
+}: Readonly<{
+  unmappedMentees: MenteeOption[];
+  selectedMenteeIds: string[];
+  onToggleMentee: (id: string) => void;
+}>) {
+  return (
+    <div className="space-y-1.5">
+      <Label>Select Mentees to Map ({selectedMenteeIds.length} selected)</Label>
+      <div className="max-h-48 space-y-1 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/50 p-2">
+        {unmappedMentees.length === 0 ? (
+          <P className="p-3 text-center text-xs text-slate-500">
+            All mentees in this cohort are already mapped to a mentor.
+          </P>
+        ) : (
+          unmappedMentees.map((mentee) => {
+            const isChecked = selectedMenteeIds.includes(mentee.id);
+            return (
+              <Label
+                key={mentee.id}
+                className={`flex cursor-pointer items-center justify-between rounded-lg p-2 text-xs font-normal transition-colors ${
+                  isChecked
+                    ? 'border border-blue-200 bg-blue-50 text-blue-900'
+                    : 'bg-white text-slate-800 hover:bg-slate-100'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Checkbox checked={isChecked} onChange={() => onToggleMentee(mentee.id)} />
+                  <div>
+                    <P className="font-semibold text-slate-900">{mentee.name}</P>
+                    <Span className="text-[11px] text-slate-500">{mentee.email}</Span>
+                  </div>
+                </div>
+              </Label>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function MapMenteeModal({
   isOpen,
   onClose,
@@ -46,8 +103,8 @@ export function MapMenteeModal({
   mentors,
   targetMentee,
   unmappedMentees = [],
-}: MapMenteeModalProps) {
-  const isReassign = Boolean(targetMentee && targetMentee.currentMentorName);
+}: Readonly<MapMenteeModalProps>) {
+  const isReassign = Boolean(targetMentee?.currentMentorName);
   const [selectedMentorId, setSelectedMentorId] = useState<string>(mentors[0]?.id || '');
   const [selectedMenteeIds, setSelectedMenteeIds] = useState<string[]>(() =>
     targetMentee ? [targetMentee.id] : [],
@@ -67,7 +124,7 @@ export function MapMenteeModal({
     );
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
 
@@ -108,6 +165,13 @@ export function MapMenteeModal({
     }
   };
 
+  const submitLabel = getSubmitButtonLabel(
+    isSubmitting,
+    isReassign,
+    targetMentee,
+    selectedMenteeIds.length,
+  );
+
   return (
     <Modal
       isOpen={isOpen}
@@ -126,11 +190,7 @@ export function MapMenteeModal({
             variant="primary"
             disabled={isSubmitting || !selectedMentorId}
           >
-            {isSubmitting
-              ? 'Saving...'
-              : isReassign
-                ? 'Confirm Reassignment'
-                : `Assign Mentor (${targetMentee ? 1 : selectedMenteeIds.length})`}
+            {submitLabel}
           </Button>
         </div>
       }
@@ -199,40 +259,15 @@ export function MapMenteeModal({
               Pending review assignments will transition to the new mentor (FR-4.2).
             </P>
           </div>
-        ) : !targetMentee ? (
-          /* Bulk unmapped mentees selection */
-          <div className="space-y-1.5">
-            <Label>Select Mentees to Map ({selectedMenteeIds.length} selected)</Label>
-            <div className="max-h-48 space-y-1 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/50 p-2">
-              {unmappedMentees.length === 0 ? (
-                <P className="p-3 text-center text-xs text-slate-500">
-                  All mentees in this cohort are already mapped to a mentor.
-                </P>
-              ) : (
-                unmappedMentees.map((mentee) => {
-                  const isChecked = selectedMenteeIds.includes(mentee.id);
-                  return (
-                    <Label
-                      key={mentee.id}
-                      className={`flex cursor-pointer items-center justify-between rounded-lg p-2 text-xs font-normal transition-colors ${
-                        isChecked
-                          ? 'border border-blue-200 bg-blue-50 text-blue-900'
-                          : 'bg-white text-slate-800 hover:bg-slate-100'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <Checkbox checked={isChecked} onChange={() => toggleMentee(mentee.id)} />
-                        <div>
-                          <P className="font-semibold text-slate-900">{mentee.name}</P>
-                          <Span className="text-[11px] text-slate-500">{mentee.email}</Span>
-                        </div>
-                      </div>
-                    </Label>
-                  );
-                })
-              )}
-            </div>
-          </div>
+        ) : null}
+
+        {/* Bulk unmapped mentees selection */}
+        {!isReassign && !targetMentee ? (
+          <BulkMenteeSelector
+            unmappedMentees={unmappedMentees}
+            selectedMenteeIds={selectedMenteeIds}
+            onToggleMentee={toggleMentee}
+          />
         ) : null}
       </Form>
     </Modal>

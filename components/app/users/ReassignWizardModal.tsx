@@ -21,13 +21,79 @@ export interface ReassignWizardModalProps {
   onComplete: () => void;
 }
 
+function MentorSelectionList({
+  isLoading,
+  mentors,
+  selectedMentorId,
+  onSelectMentor,
+}: Readonly<{
+  isLoading: boolean;
+  mentors: Array<{ id: string; name: string; email: string; batchName: string }>;
+  selectedMentorId: string | null;
+  onSelectMentor: (id: string) => void;
+}>) {
+  if (isLoading) {
+    return (
+      <P className="py-6 text-center text-xs text-slate-400">
+        Loading available mentors in batch...
+      </P>
+    );
+  }
+
+  if (mentors.length === 0) {
+    return (
+      <P className="rounded-xl border border-dashed border-amber-300 bg-amber-50/50 p-4 text-center text-xs text-amber-800">
+        No alternative mentors found in this batch. Please add another mentor to the batch first.
+      </P>
+    );
+  }
+
+  return (
+    <div className="max-h-60 space-y-2 overflow-y-auto pr-1">
+      {mentors.map((mentor) => {
+        const isSelected = selectedMentorId === mentor.id;
+        return (
+          <button
+            key={mentor.id}
+            type="button"
+            onClick={() => onSelectMentor(mentor.id)}
+            className={`flex w-full cursor-pointer items-center justify-between rounded-xl border p-3 text-left transition-all ${
+              isSelected
+                ? 'border-blue-600 bg-blue-50/60 shadow-sm ring-1 ring-blue-600'
+                : 'border-slate-200 bg-white hover:bg-slate-50'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
+                {mentor.name
+                  .split(' ')
+                  .map((n) => n[0])
+                  .slice(0, 2)
+                  .join('')
+                  .toUpperCase()}
+              </div>
+              <div>
+                <Span className="block text-xs font-bold text-slate-900">{mentor.name}</Span>
+                <Span className="block text-[11px] text-slate-500">{mentor.email}</Span>
+              </div>
+            </div>
+            <Span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+              Batch: {mentor.batchName}
+            </Span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function ReassignWizardModal({
   isOpen,
   onClose,
   sourceMentor,
   activeMentees,
   onComplete,
-}: ReassignWizardModalProps) {
+}: Readonly<ReassignWizardModalProps>) {
   const [step, setStep] = useState<1 | 2>(1);
   const [selectedMenteeIds, setSelectedMenteeIds] = useState<string[]>(() =>
     activeMentees.map((m) => m.id),
@@ -67,14 +133,16 @@ export function ReassignWizardModal({
     try {
       const selectedMentees = activeMentees.filter((m) => selectedMenteeIds.includes(m.id));
 
-      for (const mentee of selectedMentees) {
-        await reassignMutation.mutateAsync({
-          batchId: mentee.batchId,
-          menteeId: mentee.id,
-          newMentorId: selectedMentorId,
-          reason: 'Mentor role transition reassignment wizard',
-        });
-      }
+      await Promise.all(
+        selectedMentees.map((mentee) =>
+          reassignMutation.mutateAsync({
+            batchId: mentee.batchId,
+            menteeId: mentee.id,
+            newMentorId: selectedMentorId,
+            reason: 'Mentor role transition reassignment wizard',
+          }),
+        ),
+      );
 
       onComplete();
       onClose();
@@ -208,7 +276,7 @@ export function ReassignWizardModal({
                 return (
                   <label
                     key={mentee.id}
-                    onClick={() => toggleMentee(mentee.id)}
+                    htmlFor={`reassign-mentee-${mentee.id}`}
                     className={`flex cursor-pointer items-center justify-between rounded-xl border p-2.5 transition-all ${
                       isChecked
                         ? 'border-blue-300 bg-blue-50/50'
@@ -217,9 +285,10 @@ export function ReassignWizardModal({
                   >
                     <div className="flex items-center gap-3">
                       <input
+                        id={`reassign-mentee-${mentee.id}`}
                         type="checkbox"
                         checked={isChecked}
-                        onChange={() => {}}
+                        onChange={() => toggleMentee(mentee.id)}
                         className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500/20"
                       />
                       <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-200 text-[11px] font-bold text-slate-700">
@@ -261,53 +330,12 @@ export function ReassignWizardModal({
               />
             </div>
 
-            {isLoadingMentors ? (
-              <P className="py-6 text-center text-xs text-slate-400">
-                Loading available mentors in batch...
-              </P>
-            ) : filteredMentors.length === 0 ? (
-              <P className="rounded-xl border border-dashed border-amber-300 bg-amber-50/50 p-4 text-center text-xs text-amber-800">
-                No alternative mentors found in this batch. Please add another mentor to the batch
-                first.
-              </P>
-            ) : (
-              <div className="max-h-60 space-y-2 overflow-y-auto pr-1">
-                {filteredMentors.map((mentor) => {
-                  const isSelected = selectedMentorId === mentor.id;
-                  return (
-                    <div
-                      key={mentor.id}
-                      onClick={() => setSelectedMentorId(mentor.id)}
-                      className={`flex cursor-pointer items-center justify-between rounded-xl border p-3 transition-all ${
-                        isSelected
-                          ? 'border-blue-600 bg-blue-50/60 shadow-sm ring-1 ring-blue-600'
-                          : 'border-slate-200 bg-white hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
-                          {mentor.name
-                            .split(' ')
-                            .map((n) => n[0])
-                            .slice(0, 2)
-                            .join('')
-                            .toUpperCase()}
-                        </div>
-                        <div>
-                          <Span className="block text-xs font-bold text-slate-900">
-                            {mentor.name}
-                          </Span>
-                          <Span className="block text-[11px] text-slate-500">{mentor.email}</Span>
-                        </div>
-                      </div>
-                      <Span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                        Batch: {mentor.batchName}
-                      </Span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            <MentorSelectionList
+              isLoading={isLoadingMentors}
+              mentors={filteredMentors}
+              selectedMentorId={selectedMentorId}
+              onSelectMentor={setSelectedMentorId}
+            />
           </div>
         )}
       </div>

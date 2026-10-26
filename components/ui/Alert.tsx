@@ -16,7 +16,7 @@ export function Alert({
   children,
   className,
   ...props
-}: AlertProps) {
+}: Readonly<AlertProps>) {
   const styles = {
     error: 'border-red-200 bg-red-50 text-red-700',
     warning: 'border-amber-200 bg-amber-50 text-amber-700',

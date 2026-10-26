@@ -22,6 +22,76 @@ export interface AddMemberModalProps {
   existingMemberUserIds: string[];
 }
 
+function AddMemberCandidateList({
+  isLoading,
+  candidates,
+  role,
+  selectedUserIds,
+  onToggleUser,
+}: Readonly<{
+  isLoading: boolean;
+  candidates: Array<{ id: string; name: string; email: string; role: string }>;
+  role: 'MENTEE' | 'MENTOR';
+  selectedUserIds: string[];
+  onToggleUser: (userId: string) => void;
+}>) {
+  if (isLoading) {
+    return (
+      <P className="p-4 text-center text-xs font-medium text-slate-500">
+        Loading candidate users...
+      </P>
+    );
+  }
+
+  if (candidates.length === 0) {
+    return (
+      <P className="p-4 text-center text-xs font-medium text-slate-500">
+        No eligible active {role.toLowerCase()}s available to add.
+      </P>
+    );
+  }
+
+  return (
+    <>
+      {candidates.map((user) => {
+        const isSelected = selectedUserIds.includes(user.id);
+        return (
+          <Label
+            key={user.id}
+            htmlFor={`user-select-${user.id}`}
+            className={`flex cursor-pointer items-center justify-between rounded-xl border p-2.5 text-xs font-normal transition-all ${
+              isSelected
+                ? 'border-blue-400 bg-blue-50/90 text-blue-900 shadow-xs ring-1 ring-blue-300'
+                : 'border-slate-200 bg-white text-slate-800 shadow-xs hover:border-slate-300 hover:bg-slate-50'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <Checkbox
+                id={`user-select-${user.id}`}
+                checked={isSelected}
+                onChange={() => onToggleUser(user.id)}
+              />
+              <div>
+                <P className="text-xs font-bold text-slate-900">{user.name}</P>
+                <Span className="text-[11px] text-slate-500">{user.email}</Span>
+              </div>
+            </div>
+            <Span
+              className={`rounded-full border px-2 py-0.5 font-mono text-[10px] font-bold ${
+                user.role === 'MENTOR'
+                  ? 'border-purple-200 bg-purple-100 text-purple-800'
+                  : 'border-blue-200 bg-blue-100 text-blue-800'
+              }`}
+            >
+              {user.role}
+            </Span>
+          </Label>
+        );
+      })}
+    </>
+  );
+}
+
 export function AddMemberModal({
   batchId,
   batchName,
@@ -29,7 +99,7 @@ export function AddMemberModal({
   onClose,
   onSuccess,
   existingMemberUserIds,
-}: AddMemberModalProps) {
+}: Readonly<AddMemberModalProps>) {
   const [role, setRole] = useState<'MENTEE' | 'MENTOR'>('MENTEE');
   const [search, setSearch] = useState('');
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
@@ -69,7 +139,7 @@ export function AddMemberModal({
     );
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (selectedUserIds.length === 0) {
       setSubmitError('Please select at least one user to add.');
@@ -197,51 +267,13 @@ export function AddMemberModal({
             ) : null}
           </div>
           <div className="max-h-60 space-y-1.5 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/70 p-2">
-            {isLoadingCandidates ? (
-              <P className="p-4 text-center text-xs font-medium text-slate-500">
-                Loading candidate users...
-              </P>
-            ) : filteredCandidates.length === 0 ? (
-              <P className="p-4 text-center text-xs font-medium text-slate-500">
-                No eligible active {role.toLowerCase()}s available to add.
-              </P>
-            ) : (
-              filteredCandidates.map((user) => {
-                const isSelected = selectedUserIds.includes(user.id);
-                return (
-                  <Label
-                    key={user.id}
-                    htmlFor={`user-select-${user.id}`}
-                    className={`flex cursor-pointer items-center justify-between rounded-xl border p-2.5 text-xs font-normal transition-all ${
-                      isSelected
-                        ? 'border-blue-400 bg-blue-50/90 text-blue-900 shadow-xs ring-1 ring-blue-300'
-                        : 'border-slate-200 bg-white text-slate-800 shadow-xs hover:border-slate-300 hover:bg-slate-50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Checkbox
-                        id={`user-select-${user.id}`}
-                        checked={isSelected}
-                        onChange={() => toggleUser(user.id)}
-                      />
-                      <div>
-                        <P className="text-xs font-bold text-slate-900">{user.name}</P>
-                        <Span className="text-[11px] text-slate-500">{user.email}</Span>
-                      </div>
-                    </div>
-                    <Span
-                      className={`rounded-full border px-2 py-0.5 font-mono text-[10px] font-bold ${
-                        user.role === 'MENTOR'
-                          ? 'border-purple-200 bg-purple-100 text-purple-800'
-                          : 'border-blue-200 bg-blue-100 text-blue-800'
-                      }`}
-                    >
-                      {user.role}
-                    </Span>
-                  </Label>
-                );
-              })
-            )}
+            <AddMemberCandidateList
+              isLoading={isLoadingCandidates}
+              candidates={filteredCandidates}
+              role={role}
+              selectedUserIds={selectedUserIds}
+              onToggleUser={toggleUser}
+            />
           </div>
         </div>
       </Form>

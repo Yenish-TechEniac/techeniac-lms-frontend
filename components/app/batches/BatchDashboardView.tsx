@@ -62,7 +62,81 @@ export interface BatchDetailData {
   history: StatusHistoryEntry[];
 }
 
-export function BatchDashboardView({ initialBatch }: { initialBatch: BatchDetailData }) {
+function getBatchStatusBadgeClass(status: BatchStatus): string {
+  switch (status) {
+    case 'LIVE':
+      return 'bg-emerald-100 text-emerald-800';
+    case 'DRAFT':
+      return 'bg-blue-100 text-blue-800';
+    case 'ON_HOLD':
+      return 'bg-amber-100 text-amber-800';
+    default:
+      return 'bg-slate-200 text-slate-800';
+  }
+}
+
+function MentorMappingCell({
+  member,
+  onOpenMapping,
+}: Readonly<{
+  member: BatchMemberItem;
+  onOpenMapping: (targetMentee: {
+    id: string;
+    name: string;
+    currentMentorName?: string | undefined;
+  }) => void;
+}>) {
+  if (member.memberRole !== 'MENTEE') {
+    return <Span className="text-slate-400">—</Span>;
+  }
+
+  if (member.mappedToName) {
+    return (
+      <div className="flex items-center gap-2">
+        <Span className="font-semibold text-slate-900">{member.mappedToName}</Span>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() =>
+            onOpenMapping({
+              id: member.id,
+              name: member.name,
+              currentMentorName: member.mappedToName,
+            })
+          }
+          className="h-6 px-1.5 text-[11px] font-bold text-blue-600 hover:bg-blue-50"
+        >
+          Reassign
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <Span className="rounded-md bg-amber-100 px-2 py-0.5 font-mono text-[10px] font-bold text-amber-800">
+        Unmapped
+      </Span>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() =>
+          onOpenMapping({
+            id: member.id,
+            name: member.name,
+          })
+        }
+        className="h-6 px-1.5 text-[11px] font-bold text-blue-600 hover:bg-blue-50"
+      >
+        Assign Mentor
+      </Button>
+    </div>
+  );
+}
+
+export function BatchDashboardView({ initialBatch }: Readonly<{ initialBatch: BatchDetailData }>) {
   const router = useRouter();
   const { user, isAuthorized, sessionError } = useRoleRedirect({ allowedRoles: ['SUPER_ADMIN'] });
 
@@ -180,15 +254,9 @@ export function BatchDashboardView({ initialBatch }: { initialBatch: BatchDetail
               {batch.code}
             </Span>
             <Span
-              className={`rounded-full px-3 py-1 font-mono text-xs font-bold uppercase ${
-                batch.status === 'LIVE'
-                  ? 'bg-emerald-100 text-emerald-800'
-                  : batch.status === 'DRAFT'
-                    ? 'bg-blue-100 text-blue-800'
-                    : batch.status === 'ON_HOLD'
-                      ? 'bg-amber-100 text-amber-800'
-                      : 'bg-slate-200 text-slate-800'
-              }`}
+              className={`rounded-full px-3 py-1 font-mono text-xs font-bold uppercase ${getBatchStatusBadgeClass(
+                batch.status,
+              )}`}
             >
               {batch.status}
             </Span>
@@ -369,57 +437,12 @@ export function BatchDashboardView({ initialBatch }: { initialBatch: BatchDetail
                       </Span>
                     </td>
                     <td className="px-4 py-3.5 text-xs text-slate-700">
-                      {m.memberRole === 'MENTEE' ? (
-                        m.mappedToName ? (
-                          <div className="flex items-center gap-2">
-                            <Span className="font-semibold text-slate-900">{m.mappedToName}</Span>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() =>
-                                setMapMenteeTarget({
-                                  isOpen: true,
-                                  targetMentee: {
-                                    id: m.id,
-                                    name: m.name,
-                                    currentMentorName: m.mappedToName,
-                                  },
-                                })
-                              }
-                              className="h-6 px-1.5 text-[11px] font-bold text-blue-600 hover:bg-blue-50"
-                            >
-                              Reassign
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <Span className="rounded-md bg-amber-100 px-2 py-0.5 font-mono text-[10px] font-bold text-amber-800">
-                              Unmapped
-                            </Span>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              disabled={mentors.length === 0}
-                              onClick={() =>
-                                setMapMenteeTarget({
-                                  isOpen: true,
-                                  targetMentee: {
-                                    id: m.id,
-                                    name: m.name,
-                                  },
-                                })
-                              }
-                              className="h-6 px-1.5 text-[11px] font-bold text-blue-600 hover:bg-blue-50"
-                            >
-                              Assign Mentor
-                            </Button>
-                          </div>
-                        )
-                      ) : (
-                        <Span className="text-slate-400">—</Span>
-                      )}
+                      <MentorMappingCell
+                        member={m}
+                        onOpenMapping={(target) =>
+                          setMapMenteeTarget({ isOpen: true, targetMentee: target })
+                        }
+                      />
                     </td>
                     <td className="px-4 py-3.5 font-mono text-xs text-slate-500">
                       <Span>{m.joinedAt}</Span>

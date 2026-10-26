@@ -33,7 +33,7 @@ export function TransferMenteeModal({
   isOpen,
   onClose,
   onSuccess,
-}: TransferMenteeModalProps) {
+}: Readonly<TransferMenteeModalProps>) {
   const eligibleBatches = availableBatches.filter(
     (b) => b.id !== mentee?.currentBatchId && (b.status === 'LIVE' || b.status === 'DRAFT'),
   );
@@ -46,7 +46,7 @@ export function TransferMenteeModal({
 
   if (!isOpen || !mentee) return null;
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     if (!targetBatchId) return;
