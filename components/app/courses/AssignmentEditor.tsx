@@ -41,7 +41,7 @@ export function AssignmentEditor({
   onSaveAssignment,
   onConflict,
   onDirtyChange,
-}: AssignmentEditorProps) {
+}: Readonly<AssignmentEditorProps>) {
   const [title, setTitle] = useState(assignment.title);
   const [instructions, setInstructions] = useState(assignment.instructions || '');
 
@@ -74,7 +74,7 @@ export function AssignmentEditor({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const totalDurationMinutes =
-    (parseInt(durationHours, 10) || 0) * 60 + (parseInt(durationMinutes, 10) || 0);
+    (Number.parseInt(durationHours, 10) || 0) * 60 + (Number.parseInt(durationMinutes, 10) || 0);
 
   const handleAddResource = () => {
     const trimmedTitle = newResourceTitle.trim();
@@ -130,8 +130,8 @@ export function AssignmentEditor({
     }
 
     if (durationMinutes !== '') {
-      const parsedMins = parseInt(durationMinutes, 10);
-      if (isNaN(parsedMins) || parsedMins < 0 || parsedMins > 59) {
+      const parsedMins = Number.parseInt(durationMinutes, 10);
+      if (Number.isNaN(parsedMins) || parsedMins < 0 || parsedMins > 59) {
         setErrorMsg('Minutes must be between 0 and 59.');
         return;
       }
@@ -140,11 +140,11 @@ export function AssignmentEditor({
     const numMaxMarks = Number(maxMarks);
     const numPassMarks = Number(passMarks);
 
-    if (isNaN(numMaxMarks) || numMaxMarks <= 0) {
+    if (Number.isNaN(numMaxMarks) || numMaxMarks <= 0) {
       setErrorMsg('Max marks must be greater than 0.');
       return;
     }
-    if (isNaN(numPassMarks) || numPassMarks <= 0) {
+    if (Number.isNaN(numPassMarks) || numPassMarks <= 0) {
       setErrorMsg('Pass marks must be greater than 0.');
       return;
     }
@@ -267,7 +267,7 @@ export function AssignmentEditor({
           {saveSuccess && (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
               <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              Saved Live
+              <span>Saved Live</span>
             </span>
           )}
 
@@ -395,7 +395,7 @@ export function AssignmentEditor({
                         const sanitized =
                           val === ''
                             ? ''
-                            : Math.min(59, Math.max(0, parseInt(val, 10) || 0)).toString();
+                            : Math.min(59, Math.max(0, Number.parseInt(val, 10) || 0)).toString();
                         handleChange(() => setDurationMinutes(sanitized));
                       }}
                       placeholder="0"
