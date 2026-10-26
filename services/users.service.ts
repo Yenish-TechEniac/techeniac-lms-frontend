@@ -26,6 +26,7 @@ export interface UserQueryFilters {
   status?: string | undefined;
   search?: string | undefined;
   batchId?: string | undefined;
+  mentorId?: string | undefined;
 }
 
 export interface RoleImpactActiveMentee {
@@ -78,6 +79,7 @@ export const usersService = {
     }
     if (filters.search) params.search = filters.search;
     if (filters.batchId) params.batchId = filters.batchId;
+    if (filters.mentorId) params.mentorId = filters.mentorId;
 
     const res = await apiClient<
       ApiResponse<{ users: ApiUser[]; total: number; counts?: UserDirectoryCounts }>

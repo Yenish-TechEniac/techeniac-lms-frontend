@@ -157,6 +157,7 @@ export function UsersTable() {
   const [search, setSearch] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
+  const [selectedMentor, setSelectedMentor] = useState<string>('ALL');
 
   useEffect(() => {
     if (!isAuthLoading) {
@@ -237,17 +238,27 @@ export function UsersTable() {
     }));
   }, [apiUsers, activeAdminsCount]);
 
-  const handleFilterUpdate = (newRole: string, newStatus: string, newSearch: string) => {
+  const mentors = useMemo(() => {
+    return apiUsers.filter((u) => u.role === 'MENTOR' && u.isActive);
+  }, [apiUsers]);
+
+  const handleFilterUpdate = (
+    newRole: string,
+    newStatus: string,
+    newSearch: string,
+    newMentorId: string = selectedMentor,
+  ) => {
     void fetchUsers({
       role: newRole !== 'ALL' ? newRole : undefined,
       status: newStatus !== 'ALL' ? newStatus : undefined,
       search: newSearch.trim() || undefined,
+      mentorId: newMentorId !== 'ALL' ? newMentorId : undefined,
     });
   };
 
   const handleSearchChange = (val: string) => {
     setSearch(val);
-    handleFilterUpdate(selectedRole, selectedStatus, val);
+    handleFilterUpdate(selectedRole, selectedStatus, val, selectedMentor);
   };
 
   const isInitialLoading = isLoading && apiUsers.length === 0;
@@ -493,15 +504,24 @@ export function UsersTable() {
             </select>
           </div>
 
-          {/* Batch Filter (Coming Soon) */}
+          {/* Mentor Filter */}
           <div className="md:col-span-3">
             <select
-              value="ALL"
-              disabled
-              aria-label="Batch filter coming soon"
-              className="h-10 w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-100 px-3 text-sm text-slate-400 focus:outline-none"
+              value={selectedMentor}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedMentor(val);
+                handleFilterUpdate(selectedRole, selectedStatus, search, val);
+              }}
+              aria-label="Filter by mentor"
+              className="h-10 w-full cursor-pointer rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-900 transition-all focus:border-blue-500 focus:outline-none"
             >
-              <option value="ALL">Batches (Coming soon)</option>
+              <option value="ALL">All Mentors</option>
+              {mentors.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -515,7 +535,8 @@ export function UsersTable() {
                 setSearch('');
                 setSelectedRole('ALL');
                 setSelectedStatus('ALL');
-                handleFilterUpdate('ALL', 'ALL', '');
+                setSelectedMentor('ALL');
+                handleFilterUpdate('ALL', 'ALL', '', 'ALL');
               }}
               className="p-2 text-xs font-semibold text-blue-600 hover:text-blue-700"
             >
