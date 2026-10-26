@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
+import { Form } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { H3, P, Span } from '@/components/ui/Typography';
@@ -132,12 +133,11 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <form
+    <Form
       className="space-y-5"
       onSubmit={(e) => {
         void handleSubmit(e);
       }}
-      noValidate
     >
       <div className="space-y-1.5">
         <Label htmlFor="email">Work Email</Label>
@@ -173,6 +173,6 @@ export function ForgotPasswordForm() {
           ← Back to sign in
         </Link>
       </div>
-    </form>
+    </Form>
   );
 }

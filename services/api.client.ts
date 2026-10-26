@@ -39,13 +39,14 @@ function parseRetryAfter(header: string | null): number | undefined {
 }
 
 function isAuthBypassEndpoint(endpoint: string): boolean {
-  const clean = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+  const clean = endpoint.replace(/^\/?(api\/v1\/)?/, '');
   return (
     clean.startsWith('auth/login') ||
     clean.startsWith('auth/refresh') ||
     clean.startsWith('auth/logout') ||
     clean.startsWith('auth/forgot-password') ||
-    clean.startsWith('auth/reset-password')
+    clean.startsWith('auth/reset-password') ||
+    clean.startsWith('auth/verify-reset-token')
   );
 }
 
@@ -109,6 +110,22 @@ function parseErrorPayload(response: Response, data: unknown): ApiError {
   // Fallback chain uses || intentionally so empty strings fall through to the default message
   let message =
     errData?.error?.message || errData?.message || response.statusText || 'An error occurred';
+
+  // Surface detailed field-level validation errors so user sees exactly what is invalid
+  if (Array.isArray(errData?.error?.details) && errData.error.details.length > 0) {
+    const detailList = (errData.error.details as Array<{ field?: string; message?: string }>)
+      .map((d) => {
+        if (d.field && d.message) {
+          return `${d.field}: ${d.message}`;
+        }
+        return d.message || '';
+      })
+      .filter(Boolean);
+
+    if (detailList.length > 0) {
+      message = `${message} — ${detailList.join('; ')}`;
+    }
+  }
 
   if (response.status === 429 && retryAfter && !errData?.error?.message) {
     const minutes = Math.ceil(retryAfter / 60);

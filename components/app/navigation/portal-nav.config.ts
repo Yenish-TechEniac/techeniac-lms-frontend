@@ -14,7 +14,7 @@ export const ADMIN_PORTAL_NAV: PortalNavConfig = {
   nav: [
     { label: 'Overview', href: '/admin', active: true },
     { label: 'Users', href: '/admin/users', active: false },
-    { label: 'Batches', href: '#', active: false },
+    { label: 'Batches', href: '/admin/batches', active: false },
     { label: 'Curriculum', href: '/admin/courses', active: false },
   ],
 };
@@ -26,7 +26,7 @@ export const ADMIN_USERS_NAV: PortalNavConfig = {
   nav: [
     { label: 'Overview', href: '/admin', active: false },
     { label: 'Users', href: '/admin/users', active: true },
-    { label: 'Batches', href: '#', active: false },
+    { label: 'Batches', href: '/admin/batches', active: false },
     { label: 'Curriculum', href: '/admin/courses', active: false },
   ],
 };
@@ -38,7 +38,7 @@ export const ADMIN_COURSES_NAV: PortalNavConfig = {
   nav: [
     { label: 'Overview', href: '/admin', active: false },
     { label: 'Users', href: '/admin/users', active: false },
-    { label: 'Batches', href: '#', active: false },
+    { label: 'Batches', href: '/admin/batches', active: false },
     { label: 'Curriculum', href: '/admin/courses', active: true },
   ],
 };
