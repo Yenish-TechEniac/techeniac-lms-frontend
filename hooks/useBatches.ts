@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { BatchStatus, CreateBatchFormData } from '@/lib/validation';
 import {
   type ApiBatchDetailData,
+  type ApiBatchListResponse,
   type ApiBatchSummary,
   batchesService,
   type BatchQueryFilters,
@@ -26,7 +27,7 @@ export const batchKeys = {
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export function useBatchesList(filters: BatchQueryFilters = {}) {
-  return useQuery<ApiBatchSummary[]>({
+  return useQuery<ApiBatchListResponse>({
     queryKey: batchKeys.list(filters),
     queryFn: () => batchesService.listBatches(filters),
   });
@@ -45,7 +46,10 @@ export function useBatchDetail(id: string, initialData?: ApiBatchDetailData) {
 export function useAvailableBatches() {
   return useQuery<ApiBatchSummary[]>({
     queryKey: batchKeys.available(),
-    queryFn: () => batchesService.listBatches({ limit: 100 }),
+    queryFn: async () => {
+      const res = await batchesService.listBatches({ limit: 100 });
+      return res.items;
+    },
     staleTime: 5 * 60_000,
   });
 }

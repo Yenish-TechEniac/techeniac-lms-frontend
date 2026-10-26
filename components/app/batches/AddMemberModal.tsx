@@ -153,6 +153,9 @@ export function AddMemberModal({
         userIds: selectedUserIds,
         memberRole: role,
       });
+      setSelectedUserIds([]);
+      setSearch('');
+      setSubmitError(null);
       onSuccess();
       onClose();
     } catch (err: unknown) {
@@ -160,10 +163,17 @@ export function AddMemberModal({
     }
   };
 
+  const handleClose = () => {
+    setSelectedUserIds([]);
+    setSearch('');
+    setSubmitError(null);
+    onClose();
+  };
+
   return (
     <Modal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       title="Add Batch Members"
       description={
         <Span className="text-xs text-slate-600">
@@ -181,7 +191,7 @@ export function AddMemberModal({
               type="button"
               variant="outline"
               size="sm"
-              onClick={onClose}
+              onClick={handleClose}
               disabled={isSubmitting}
             >
               Cancel

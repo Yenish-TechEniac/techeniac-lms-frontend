@@ -1,103 +1,333 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { CreateBatchModal } from '@/components/app/batches/CreateBatchModal';
 import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
+import { Checkbox } from '@/components/ui/Checkbox';
 import { Input } from '@/components/ui/Input';
 import { H1, P, Span } from '@/components/ui/Typography';
 import { useBatchesList } from '@/hooks/useBatches';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 import { type BatchStatus } from '@/lib/validation';
+import type { ApiBatchSummary } from '@/services/batches.service';
 
-export interface BatchSummaryItem {
-  id: string;
-  name: string;
-  code: string;
-  status: BatchStatus;
-  startDate: string;
-  endDate: string;
-  menteesCount: number;
-  mentorsCount: number;
-  coursesCount: number;
-  progressPercent: number;
+const ALL_BATCH_STATUSES: readonly BatchStatus[] = [
+  'DRAFT',
+  'LIVE',
+  'ON_HOLD',
+  'COMPLETED',
+  'ARCHIVED',
+];
+
+function getStatusBadge(status: BatchStatus): string {
+  switch (status) {
+    case 'LIVE':
+      return 'bg-emerald-50 text-emerald-800 border-emerald-300 font-bold';
+    case 'DRAFT':
+      return 'bg-blue-50 text-blue-800 border-blue-300 font-bold';
+    case 'ON_HOLD':
+      return 'bg-amber-50 text-amber-800 border-amber-300 font-bold';
+    case 'COMPLETED':
+      return 'bg-slate-100 text-slate-800 border-slate-300 font-bold';
+    case 'ARCHIVED':
+      return 'bg-slate-200 text-slate-600 border-slate-300 font-bold';
+    default:
+      return 'bg-slate-100 text-slate-700';
+  }
+}
+
+function BatchStatusFilterDropdown({
+  selectedStatuses,
+  onChange,
+}: Readonly<{
+  selectedStatuses: BatchStatus[];
+  onChange: (statuses: BatchStatus[]) => void;
+}>) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  const toggleStatus = (status: BatchStatus) => {
+    if (selectedStatuses.includes(status)) {
+      onChange(selectedStatuses.filter((s) => s !== status));
+    } else {
+      onChange([...selectedStatuses, status]);
+    }
+  };
+
+  const labelText = useMemo(() => {
+    if (selectedStatuses.length === 0) return 'Filter Status (All)';
+    if (selectedStatuses.length === ALL_BATCH_STATUSES.length) return 'All Statuses (5)';
+    if (selectedStatuses.length <= 2) return `Status: ${selectedStatuses.join(', ')}`;
+    return `${selectedStatuses.length} Statuses Selected`;
+  }, [selectedStatuses]);
+
+  return (
+    <div className="relative inline-block text-left" ref={containerRef}>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="flex h-10 items-center gap-2 rounded-xl border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+      >
+        <Span className="text-slate-400">🏷️</Span>
+        <Span>{labelText}</Span>
+        <Span className="text-[10px] text-slate-400">▼</Span>
+      </Button>
+
+      {isOpen ? (
+        <div className="absolute left-0 z-30 mt-1.5 w-64 rounded-xl border border-slate-200 bg-white p-3 shadow-lg ring-1 ring-black/5">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+            <Span className="text-xs font-bold text-slate-900">Filter by Status</Span>
+            <div className="flex items-center gap-2 text-[11px]">
+              <button
+                type="button"
+                onClick={() => onChange([...ALL_BATCH_STATUSES])}
+                className="font-medium text-blue-600 hover:underline"
+              >
+                All
+              </button>
+              <Span className="text-slate-300">|</Span>
+              <button
+                type="button"
+                onClick={() => onChange([])}
+                className="font-medium text-slate-500 hover:underline"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-2 space-y-1.5">
+            {ALL_BATCH_STATUSES.map((st) => {
+              const isChecked = selectedStatuses.includes(st);
+              return (
+                <label
+                  key={st}
+                  className="flex cursor-pointer items-center justify-between rounded-lg px-2 py-1.5 text-xs transition-colors hover:bg-slate-50"
+                >
+                  <div className="flex items-center gap-2">
+                    <Checkbox checked={isChecked} onChange={() => toggleStatus(st)} />
+                    <Span className="font-semibold text-slate-700">{st}</Span>
+                  </div>
+                  <Span
+                    className={`inline-block rounded-full border px-2 py-0.5 font-mono text-[10px] font-bold ${getStatusBadge(
+                      st,
+                    )}`}
+                  >
+                    {st}
+                  </Span>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function BatchPaginationControls({
+  page,
+  limit,
+  total,
+  totalPages,
+  onPageChange,
+  onLimitChange,
+}: Readonly<{
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  onPageChange: (newPage: number) => void;
+  onLimitChange: (newLimit: number) => void;
+}>) {
+  const startItem = total === 0 ? 0 : (page - 1) * limit + 1;
+  const endItem = Math.min(page * limit, total);
+
+  return (
+    <div className="flex flex-col items-center justify-between gap-3 border-t border-slate-100 bg-white px-6 py-4 text-xs text-slate-600 sm:flex-row">
+      <div className="flex items-center gap-2 font-medium">
+        <Span>
+          Showing <strong className="font-semibold text-slate-900">{startItem}</strong> to{' '}
+          <strong className="font-semibold text-slate-900">{endItem}</strong> of{' '}
+          <strong className="font-semibold text-slate-900">{total}</strong> cohorts
+        </Span>
+      </div>
+
+      <div className="flex items-center gap-4">
+        {/* Page Size Selector */}
+        <div className="flex items-center gap-1.5">
+          <Span className="text-slate-500">Per page:</Span>
+          <select
+            value={limit}
+            onChange={(e) => onLimitChange(Number(e.target.value))}
+            className="h-8 rounded-lg border border-slate-200 bg-white px-2 py-0.5 text-xs font-semibold text-slate-700 focus:border-blue-500 focus:outline-none"
+          >
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+          </select>
+        </div>
+
+        {/* Navigation Buttons */}
+        <div className="flex items-center gap-1">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onPageChange(page - 1)}
+            disabled={page <= 1}
+            className="h-8 px-2.5 text-xs font-medium"
+          >
+            ← Prev
+          </Button>
+
+          <Span className="px-2 font-mono text-xs font-bold text-slate-800">
+            {page} / {totalPages}
+          </Span>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onPageChange(page + 1)}
+            disabled={page >= totalPages}
+            className="h-8 px-2.5 text-xs font-medium"
+          >
+            Next →
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BatchesTableRow({ batch }: Readonly<{ batch: ApiBatchSummary }>) {
+  return (
+    <tr className="transition-colors hover:bg-slate-50/60">
+      <td className="px-6 py-4">
+        <Link
+          href={`/admin/batches/${batch.id}`}
+          className="font-bold text-slate-900 transition-colors hover:text-blue-600"
+        >
+          {batch.name}
+        </Link>
+      </td>
+      <td className="px-4 py-4 font-mono text-xs font-bold text-slate-700">
+        <Span>{batch.code}</Span>
+      </td>
+      <td className="px-4 py-4">
+        <Span
+          className={`inline-block rounded-full border px-2.5 py-0.5 font-mono text-xs font-bold ${getStatusBadge(
+            batch.status,
+          )}`}
+        >
+          {batch.status}
+        </Span>
+      </td>
+      <td className="px-4 py-4 font-mono text-xs text-slate-600">
+        <Span>
+          {batch.startDate} → {batch.endDate}
+        </Span>
+      </td>
+      <td className="px-4 py-4 font-mono text-xs font-semibold text-slate-700">
+        <Span>{batch.menteesCount ?? 0} mentees</Span>
+      </td>
+      <td className="px-4 py-4">
+        <div className="flex items-center gap-2">
+          <div className="h-2 w-24 overflow-hidden rounded-full bg-slate-100">
+            <div
+              className="h-full rounded-full bg-blue-600"
+              style={{ width: `${batch.progressPercent ?? 0}%` }}
+            />
+          </div>
+          <Span className="font-mono text-xs font-bold text-slate-700">
+            {batch.progressPercent ?? 0}%
+          </Span>
+        </div>
+      </td>
+      <td className="px-6 py-4 text-right">
+        <Link
+          href={`/admin/batches/${batch.id}`}
+          className="inline-block rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 transition-colors hover:bg-blue-100"
+        >
+          Manage →
+        </Link>
+      </td>
+    </tr>
+  );
 }
 
 export function BatchesTable() {
   const { user, isAuthorized, sessionError } = useRoleRedirect({ allowedRoles: ['SUPER_ADMIN'] });
   const [search, setSearch] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
+  const [selectedStatuses, setSelectedStatuses] = useState<BatchStatus[]>([]);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
   const [isCreateOpen, setIsCreateOpen] = useState(
     () => typeof window !== 'undefined' && window.location.search.includes('create=true'),
   );
 
   const {
-    data: serverBatches,
+    data: batchesResponse,
     isLoading,
     isSuccess,
     error,
   } = useBatchesList({
-    status: selectedStatus !== 'ALL' ? selectedStatus : undefined,
+    status: selectedStatuses.length > 0 ? selectedStatuses : undefined,
     search: search.trim() || undefined,
-    limit: 50,
+    page,
+    limit,
   });
 
-  const batches = useMemo<BatchSummaryItem[]>(() => {
-    if (!serverBatches || serverBatches.length === 0) {
-      return [];
-    }
-    return serverBatches.map((b) => ({
-      id: b.id,
-      name: b.name,
-      code: b.code,
-      status: b.status,
-      startDate: b.startDate,
-      endDate: b.endDate,
-      menteesCount: b.menteesCount ?? 0,
-      mentorsCount: b.mentorsCount ?? 0,
-      coursesCount: b.coursesCount ?? 0,
-      progressPercent: b.progressPercent ?? 0,
-    }));
-  }, [serverBatches]);
+  const batches = useMemo(() => batchesResponse?.items ?? [], [batchesResponse]);
+  const pagination = useMemo(
+    () =>
+      batchesResponse?.pagination ?? {
+        page,
+        limit,
+        total: 0,
+        totalPages: 1,
+      },
+    [batchesResponse, page, limit],
+  );
 
-  const filteredBatches = useMemo(() => {
-    return batches.filter((b) => {
-      const matchesSearch =
-        b.name.toLowerCase().includes(search.toLowerCase()) ||
-        b.code.toLowerCase().includes(search.toLowerCase());
-      const matchesStatus =
-        selectedStatus === 'ALL'
-          ? b.status !== 'ARCHIVED' // Archived batches hidden from default list (PRD FR-5.3)
-          : b.status === selectedStatus;
-      return matchesSearch && matchesStatus;
-    });
-  }, [batches, search, selectedStatus]);
-
-  const handleCreateBatch = () => {
-    // TanStack Query automatically invalidates the query cache on mutation success
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPage(1);
   };
 
-  const getStatusBadge = (status: BatchStatus) => {
-    switch (status) {
-      case 'LIVE':
-        return 'bg-emerald-50 text-emerald-800 border-emerald-300 font-bold';
-      case 'DRAFT':
-        return 'bg-blue-50 text-blue-800 border-blue-300 font-bold';
-      case 'ON_HOLD':
-        return 'bg-amber-50 text-amber-800 border-amber-300 font-bold';
-      case 'COMPLETED':
-        return 'bg-slate-100 text-slate-800 border-slate-300 font-bold';
-      case 'ARCHIVED':
-        return 'bg-slate-200 text-slate-600 border-slate-300 font-bold';
-      default:
-        return 'bg-slate-100 text-slate-700';
-    }
+  const handleStatusFilterChange = (statuses: BatchStatus[]) => {
+    setSelectedStatuses(statuses);
+    setPage(1);
   };
 
-  const isLiveConnected = isSuccess && serverBatches !== undefined;
+  const handleResetFilters = () => {
+    setSearch('');
+    setSelectedStatuses([]);
+    setPage(1);
+  };
+
+  const isLiveConnected = isSuccess && batchesResponse !== undefined;
 
   if (!isAuthorized || !user) {
     return (
@@ -153,54 +383,36 @@ export function BatchesTable() {
       ) : null}
 
       {/* Filter and Search Bar */}
-      <div className="space-y-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
-        {/* Status quick select tabs */}
-        <div className="flex scrollbar-none items-center gap-1.5 overflow-x-auto pb-1 text-xs font-semibold">
-          {(['ALL', 'LIVE', 'DRAFT', 'ON_HOLD', 'COMPLETED', 'ARCHIVED'] as const).map((st) => (
-            <Button
-              key={st}
-              type="button"
-              variant={selectedStatus === st ? 'primary' : 'ghost'}
-              size="sm"
-              onClick={() => setSelectedStatus(st)}
-              className={`rounded-lg px-3 py-1.5 text-xs whitespace-nowrap transition-all ${
-                selectedStatus === st
-                  ? 'bg-blue-600 text-white shadow-sm hover:bg-blue-700'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              {st === 'ALL' ? 'Active Batches' : st}
-            </Button>
-          ))}
+      <div className="flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:flex-row sm:items-center">
+        {/* Multi-Select Status Dropdown */}
+        <BatchStatusFilterDropdown
+          selectedStatuses={selectedStatuses}
+          onChange={handleStatusFilterChange}
+        />
+
+        {/* Search Input */}
+        <div className="relative flex-1">
+          <Span className="absolute top-2.5 left-3.5 text-sm text-slate-400">🔍</Span>
+          <Input
+            type="text"
+            value={search}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            placeholder="Search batches by name or code..."
+            className="h-10 pl-9 text-sm"
+          />
         </div>
 
-        {/* Search */}
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1">
-            <Span className="absolute top-2.5 left-3.5 text-sm text-slate-400">🔍</Span>
-            <Input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search batches by name or code..."
-              className="h-10 pl-9 text-sm"
-            />
-          </div>
-          {search || selectedStatus !== 'ALL' ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setSearch('');
-                setSelectedStatus('ALL');
-              }}
-              className="px-2 text-xs font-semibold whitespace-nowrap text-blue-600 hover:text-blue-700"
-            >
-              Reset Filters
-            </Button>
-          ) : null}
-        </div>
+        {search || selectedStatuses.length > 0 ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleResetFilters}
+            className="px-2 text-xs font-semibold whitespace-nowrap text-blue-600 hover:text-blue-700"
+          >
+            Reset Filters
+          </Button>
+        ) : null}
       </div>
 
       {/* Batches Table View */}
@@ -233,83 +445,44 @@ export function BatchesTable() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {isLoading && filteredBatches.length === 0 ? (
+              {isLoading && batches.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
                     <Span>Loading cohorts from live database...</Span>
                   </td>
                 </tr>
-              ) : filteredBatches.length === 0 ? (
+              ) : batches.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
                     <Span>No batches match the applied filter.</Span>
                   </td>
                 </tr>
               ) : (
-                filteredBatches.map((b) => (
-                  <tr key={b.id} className="transition-colors hover:bg-slate-50/60">
-                    <td className="px-6 py-4">
-                      <Link
-                        href={`/admin/batches/${b.id}`}
-                        className="font-bold text-slate-900 transition-colors hover:text-blue-600"
-                      >
-                        {b.name}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-4 font-mono text-xs font-bold text-slate-700">
-                      <Span>{b.code}</Span>
-                    </td>
-                    <td className="px-4 py-4">
-                      <Span
-                        className={`inline-block rounded-full border px-2.5 py-0.5 font-mono text-xs font-bold ${getStatusBadge(
-                          b.status,
-                        )}`}
-                      >
-                        {b.status}
-                      </Span>
-                    </td>
-                    <td className="px-4 py-4 font-mono text-xs text-slate-600">
-                      <Span>
-                        {b.startDate} → {b.endDate}
-                      </Span>
-                    </td>
-                    <td className="px-4 py-4 font-mono text-xs font-semibold text-slate-700">
-                      <Span>{b.menteesCount} mentees</Span>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 w-24 overflow-hidden rounded-full bg-slate-100">
-                          <div
-                            className="h-full rounded-full bg-blue-600"
-                            style={{ width: `${b.progressPercent}%` }}
-                          />
-                        </div>
-                        <Span className="font-mono text-xs font-bold text-slate-700">
-                          {b.progressPercent}%
-                        </Span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <Link
-                        href={`/admin/batches/${b.id}`}
-                        className="inline-block rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 transition-colors hover:bg-blue-100"
-                      >
-                        Manage →
-                      </Link>
-                    </td>
-                  </tr>
-                ))
+                batches.map((b) => <BatchesTableRow key={b.id} batch={b} />)
               )}
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Controls */}
+        <BatchPaginationControls
+          page={pagination.page}
+          limit={pagination.limit}
+          total={pagination.total}
+          totalPages={pagination.totalPages}
+          onPageChange={setPage}
+          onLimitChange={(l) => {
+            setLimit(l);
+            setPage(1);
+          }}
+        />
       </div>
 
       {/* Create Batch Modal */}
       <CreateBatchModal
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
-        onSuccess={handleCreateBatch}
+        onSuccess={() => {}}
       />
     </div>
   );

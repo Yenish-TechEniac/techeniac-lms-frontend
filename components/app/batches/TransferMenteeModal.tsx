@@ -11,6 +11,7 @@ import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
 import { P, Span } from '@/components/ui/Typography';
 import { useTransferMenteeMutation } from '@/hooks/useBatches';
+import { transferMenteeSchema } from '@/lib/validation';
 
 export interface BatchOption {
   id: string;
@@ -38,9 +39,14 @@ export function TransferMenteeModal({
     (b) => b.id !== mentee?.currentBatchId && (b.status === 'LIVE' || b.status === 'DRAFT'),
   );
 
-  const [targetBatchId, setTargetBatchId] = useState<string>(eligibleBatches[0]?.id || '');
+  const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  const targetBatchId =
+    selectedBatchId && eligibleBatches.some((b) => b.id === selectedBatchId)
+      ? selectedBatchId
+      : eligibleBatches[0]?.id || '';
 
   const { mutateAsync: transferMentee, isPending: isSubmitting } = useTransferMenteeMutation();
 
@@ -51,14 +57,24 @@ export function TransferMenteeModal({
     setError(null);
     if (!targetBatchId) return;
 
+    const result = transferMenteeSchema.safeParse({
+      menteeId: mentee.id,
+      targetBatchId,
+      reason: reason.trim() ? reason.trim() : undefined,
+    });
+    if (!result.success) {
+      setError(result.error.issues[0]?.message ?? 'Invalid transfer details.');
+      return;
+    }
+
     try {
       await transferMentee({
         sourceBatchId: mentee.currentBatchId,
-        menteeId: mentee.id,
-        targetBatchId,
-        reason: reason || undefined,
+        menteeId: result.data.menteeId,
+        targetBatchId: result.data.targetBatchId,
+        reason: result.data.reason,
       });
-      onSuccess(mentee.id, targetBatchId, reason);
+      onSuccess(mentee.id, result.data.targetBatchId, result.data.reason);
       onClose();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to transfer mentee.';
@@ -124,7 +140,7 @@ export function TransferMenteeModal({
           <Select
             id="target-batch"
             value={targetBatchId}
-            onChange={(e) => setTargetBatchId(e.target.value)}
+            onChange={(e) => setSelectedBatchId(e.target.value)}
             className="cursor-pointer"
           >
             {eligibleBatches.map((b) => (
@@ -157,14 +173,18 @@ export function TransferMenteeModal({
         </div>
 
         <div className="space-y-1">
-          <Label htmlFor="transfer-reason">
-            Transfer Reason <Span className="text-xs font-normal text-slate-500">(optional)</Span>
-          </Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="transfer-reason">
+              Transfer Reason <Span className="text-xs font-normal text-slate-500">(optional)</Span>
+            </Label>
+            <Span className="font-mono text-[11px] text-slate-400">{reason.length}/500</Span>
+          </div>
           <Textarea
             id="transfer-reason"
             rows={2}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
+            maxLength={500}
             placeholder="e.g. Schedule realignment or curriculum track adjustment..."
           />
         </div>

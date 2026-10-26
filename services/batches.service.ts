@@ -90,8 +90,20 @@ export interface ApiBatchDetailData {
   history: ApiStatusHistoryEntry[];
 }
 
+export interface BatchPagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface ApiBatchListResponse {
+  items: ApiBatchSummary[];
+  pagination: BatchPagination;
+}
+
 export interface BatchQueryFilters {
-  status?: string | undefined;
+  status?: string | string[] | undefined;
   search?: string | undefined;
   limit?: number | undefined;
   page?: number | undefined;
@@ -103,10 +115,16 @@ interface ApiResponse<T> {
 }
 
 export const batchesService = {
-  async listBatches(filters: BatchQueryFilters = {}): Promise<ApiBatchSummary[]> {
+  async listBatches(filters: BatchQueryFilters = {}): Promise<ApiBatchListResponse> {
     const params: Record<string, string | number | undefined> = {};
-    if (filters.status && filters.status !== 'ALL') {
-      params.status = filters.status;
+    if (filters.status) {
+      if (Array.isArray(filters.status)) {
+        if (filters.status.length > 0) {
+          params.status = filters.status.join(',');
+        }
+      } else if (filters.status !== 'ALL') {
+        params.status = filters.status;
+      }
     }
     if (filters.search) {
       params.search = filters.search.trim();
@@ -123,7 +141,7 @@ export const batchesService = {
         | ApiBatchSummary[]
         | {
             items: ApiBatchSummary[];
-            pagination?: { page: number; limit: number; total: number; totalPages: number };
+            pagination?: BatchPagination | undefined;
           }
       >
     >('/batches', {
@@ -132,12 +150,31 @@ export const batchesService = {
     });
 
     if (Array.isArray(res.data)) {
-      return res.data;
+      return {
+        items: res.data,
+        pagination: {
+          page: 1,
+          limit: res.data.length,
+          total: res.data.length,
+          totalPages: 1,
+        },
+      };
     }
     if (res.data && Array.isArray(res.data.items)) {
-      return res.data.items;
+      return {
+        items: res.data.items,
+        pagination: res.data.pagination ?? {
+          page: filters.page ?? 1,
+          limit: filters.limit ?? 20,
+          total: res.data.items.length,
+          totalPages: 1,
+        },
+      };
     }
-    return [];
+    return {
+      items: [],
+      pagination: { page: 1, limit: 20, total: 0, totalPages: 1 },
+    };
   },
 
   async getBatchById(id: string): Promise<ApiBatchDetailData> {
@@ -300,7 +337,15 @@ export const batchesService = {
 
   async listMentorBatches(filters: BatchQueryFilters = {}): Promise<ApiBatchSummary[]> {
     const params: Record<string, string | number | undefined> = {};
-    if (filters.status && filters.status !== 'ALL') params.status = filters.status;
+    if (filters.status) {
+      if (Array.isArray(filters.status)) {
+        if (filters.status.length > 0) {
+          params.status = filters.status.join(',');
+        }
+      } else if (filters.status !== 'ALL') {
+        params.status = filters.status;
+      }
+    }
     if (filters.search) params.search = filters.search.trim();
     if (filters.limit) params.limit = filters.limit;
     if (filters.page) params.page = filters.page;

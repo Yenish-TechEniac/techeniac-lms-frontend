@@ -36,9 +36,14 @@ export function BatchStatusModal({
   onSuccess,
 }: Readonly<BatchStatusModalProps>) {
   const allowedNextStatuses = ALLOWED_STATUS_TRANSITIONS[currentStatus] || [];
-  const [newStatus, setNewStatus] = useState<BatchStatus>(allowedNextStatuses[0] ?? currentStatus);
+  const [selectedStatus, setSelectedStatus] = useState<BatchStatus | null>(null);
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  const newStatus =
+    selectedStatus && allowedNextStatuses.includes(selectedStatus)
+      ? selectedStatus
+      : (allowedNextStatuses[0] ?? currentStatus);
 
   const { mutateAsync: updateStatus, isPending: isSubmitting } = useUpdateBatchStatusMutation();
 
@@ -144,7 +149,7 @@ export function BatchStatusModal({
             <Select
               id="target-batch-status"
               value={newStatus}
-              onChange={(e) => setNewStatus(e.target.value as BatchStatus)}
+              onChange={(e) => setSelectedStatus(e.target.value as BatchStatus)}
               className="cursor-pointer font-mono text-sm font-bold text-slate-900"
             >
               {allowedNextStatuses.map((st) => (
