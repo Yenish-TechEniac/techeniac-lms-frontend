@@ -35,7 +35,7 @@ export function useCourses(initialQuery?: ListCoursesQuery) {
   });
 
   const courses = data?.courses ?? [];
-  const total = data?.pagination.total ?? 0;
+  const total = data?.pagination?.total ?? 0;
   const error = queryError instanceof Error ? queryError.message : null;
 
   const fetchCourses = useCallback(
