@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React, { useMemo, useState } from 'react';
 
 import { AllocationStatusBadge } from '@/components/app/allocations/AllocationStatusBadge';
@@ -264,9 +265,11 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
         </div>
 
         {/* Title & Description */}
-        <H3 className="line-clamp-1 text-lg font-bold tracking-tight text-slate-900">
-          {allocation.course?.title ?? 'Course Track'}
-        </H3>
+        <Link href={`/mentee/courses/${allocation.id}`} className="group">
+          <H3 className="line-clamp-1 text-lg font-bold tracking-tight text-slate-900 transition-colors group-hover:text-blue-600">
+            {allocation.course?.title ?? 'Course Track'}
+          </H3>
+        </Link>
         <P className="mt-1 line-clamp-2 min-h-[2rem] text-xs text-slate-500">
           Structured learning modules, milestone task submissions, and topic reviews.
         </P>
@@ -318,17 +321,26 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
       {/* Footer CTA */}
       <div className="mt-5 border-t border-slate-100 pt-3">
         {isRevokedOrClosed ? (
-          <div className="flex items-center justify-center rounded-xl bg-slate-100 p-2.5 text-xs font-medium text-slate-500">
-            <Span>Course Closed • Read-Only (M7)</Span>
-          </div>
+          <Link
+            href={`/mentee/courses/${allocation.id}`}
+            className="flex items-center justify-center rounded-xl bg-slate-100 p-2.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-200"
+          >
+            <Span>Course Closed • View Syllabus</Span>
+          </Link>
         ) : isCompleted ? (
-          <div className="flex items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 p-2.5 text-xs font-bold text-emerald-700">
-            <Span>✓ Track Completed (100%)</Span>
-          </div>
+          <Link
+            href={`/mentee/courses/${allocation.id}`}
+            className="flex items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 p-2.5 text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-100"
+          >
+            <Span>✓ Track Completed • Review Material</Span>
+          </Link>
         ) : (
-          <div className="flex items-center justify-center rounded-xl bg-blue-600 p-2.5 text-xs font-bold text-white shadow-xs transition-colors hover:bg-blue-700">
-            <Span>In Progress • Active Milestone</Span>
-          </div>
+          <Link
+            href={`/mentee/courses/${allocation.id}`}
+            className="flex items-center justify-center rounded-xl bg-blue-600 p-2.5 text-xs font-bold text-white shadow-xs transition-colors hover:bg-blue-700"
+          >
+            <Span>Continue Learning →</Span>
+          </Link>
         )}
       </div>
     </div>
