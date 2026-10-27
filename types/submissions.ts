@@ -8,9 +8,12 @@ export type AssignmentDerivedStatus =
 export type SubmissionStatus = 'SUBMITTED' | 'GRADED' | 'RESUBMIT_REQUESTED';
 
 export interface SubmissionData {
-  pdf_url?: string;
-  zip_url?: string;
-  url?: string;
+  pdfUrl?: string | null;
+  zipUrl?: string | null;
+  linkUrl?: string | null;
+  pdf_url?: string | null;
+  zip_url?: string | null;
+  url?: string | null;
 }
 
 export interface SubmissionVersion {

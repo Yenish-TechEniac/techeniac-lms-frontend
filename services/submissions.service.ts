@@ -38,7 +38,7 @@ export const submissionsService = {
     if (query?.status) params.status = query.status;
     if (query?.courseId) params.courseId = query.courseId;
 
-    const response = await apiClient<ListApiResponse>('/api/v1/submissions/my-assignments', {
+    const response = await apiClient<ListApiResponse>('/submissions/my-assignments', {
       params,
       ...(signal ? { signal } : {}),
     });
@@ -57,7 +57,7 @@ export const submissionsService = {
     signal?: AbortSignal,
   ): Promise<AssignmentSubmissionDetails> {
     const response = await apiClient<DetailApiResponse>(
-      `/api/v1/submissions/assignments/${assignmentId}`,
+      `/submissions/assignments/${assignmentId}`,
       signal ? { signal } : {},
     );
 
@@ -65,7 +65,7 @@ export const submissionsService = {
   },
 
   async submitAssignment(input: CreateSubmissionInput): Promise<SubmissionVersion> {
-    const response = await apiClient<SubmitApiResponse>('/api/v1/submissions', {
+    const response = await apiClient<SubmitApiResponse>('/submissions', {
       method: 'POST',
       body: JSON.stringify(input),
     });

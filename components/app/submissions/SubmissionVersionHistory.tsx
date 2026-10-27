@@ -81,50 +81,59 @@ export function SubmissionVersionHistory({
                 Submitted Resources
               </H4>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {versionItem.submissionData.pdf_url ? (
+                {versionItem.submissionData.pdfUrl || versionItem.submissionData.pdf_url ? (
                   <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800/50">
                     <Span className="block text-xs font-medium text-slate-500 dark:text-slate-400">
                       PDF Document Link
                     </Span>
                     <a
-                      href={versionItem.submissionData.pdf_url}
+                      href={
+                        (versionItem.submissionData.pdfUrl ||
+                          versionItem.submissionData.pdf_url) as string
+                      }
                       target="_blank"
                       rel="noopener noreferrer"
                       className="mt-1 block truncate text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
                     >
-                      {versionItem.submissionData.pdf_url}
+                      {versionItem.submissionData.pdfUrl || versionItem.submissionData.pdf_url}
                     </a>
                   </div>
                 ) : null}
 
-                {versionItem.submissionData.zip_url ? (
+                {versionItem.submissionData.zipUrl || versionItem.submissionData.zip_url ? (
                   <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800/50">
                     <Span className="block text-xs font-medium text-slate-500 dark:text-slate-400">
                       ZIP Archive Link
                     </Span>
                     <a
-                      href={versionItem.submissionData.zip_url}
+                      href={
+                        (versionItem.submissionData.zipUrl ||
+                          versionItem.submissionData.zip_url) as string
+                      }
                       target="_blank"
                       rel="noopener noreferrer"
                       className="mt-1 block truncate text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
                     >
-                      {versionItem.submissionData.zip_url}
+                      {versionItem.submissionData.zipUrl || versionItem.submissionData.zip_url}
                     </a>
                   </div>
                 ) : null}
 
-                {versionItem.submissionData.url ? (
+                {versionItem.submissionData.linkUrl || versionItem.submissionData.url ? (
                   <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800/50">
                     <Span className="block text-xs font-medium text-slate-500 dark:text-slate-400">
                       Project Repository / Live URL
                     </Span>
                     <a
-                      href={versionItem.submissionData.url}
+                      href={
+                        (versionItem.submissionData.linkUrl ||
+                          versionItem.submissionData.url) as string
+                      }
                       target="_blank"
                       rel="noopener noreferrer"
                       className="mt-1 block truncate text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
                     >
-                      {versionItem.submissionData.url}
+                      {versionItem.submissionData.linkUrl || versionItem.submissionData.url}
                     </a>
                   </div>
                 ) : null}

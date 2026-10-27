@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import React, { use } from 'react';
+import React, { Suspense, use } from 'react';
 
 import { MENTEE_ASSIGNMENTS_NAV } from '@/components/app/navigation/portal-nav.config';
 import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
@@ -9,17 +9,17 @@ import { AssignmentSubmissionForm } from '@/components/app/submissions/Assignmen
 import { SubmissionVersionHistory } from '@/components/app/submissions/SubmissionVersionHistory';
 import { Header } from '@/components/layout/Header';
 import { Alert } from '@/components/ui/Alert';
-import { Code, H1, H2, H3, P, Span } from '@/components/ui/Typography';
+import { H1, H2, H3, P, Span } from '@/components/ui/Typography';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 import { useAssignmentSubmissionDetails } from '@/hooks/useSubmissions';
 import { formatDateTimeIST } from '@/lib/date';
-import type { ResourceItem } from '@/types/courses';
+import { AssignmentScope } from '@/types/courses';
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export default function MenteeAssignmentDetailPage({ params }: Readonly<PageProps>) {
+function MenteeAssignmentDetailContent({ params }: Readonly<PageProps>) {
   const { id } = use(params);
   const { user, isAuthorized, sessionError } = useRoleRedirect({ allowedRoles: ['MENTEE'] });
 
@@ -68,44 +68,57 @@ export default function MenteeAssignmentDetailPage({ params }: Readonly<PageProp
             <div className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs sm:p-8">
               <div className="flex flex-col justify-between gap-4 border-b border-slate-100 pb-6 md:flex-row md:items-start">
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-700">
-                      {assignment.scope} Scope
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800">
+                      {assignment.scope === AssignmentScope.COURSE ? 'Course Scope' : 'Topic Scope'}
                     </Span>
-                    {assignment.topicId ? (
-                      <Span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
-                        Topic Assignment
-                      </Span>
-                    ) : null}
+                    <Span className="text-xs text-slate-400">
+                      {assignment.scope === AssignmentScope.COURSE
+                        ? 'Final Capstone'
+                        : 'Topic Assignment'}
+                    </Span>
                   </div>
                   <H1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
                     {assignment.title}
                   </H1>
                   <P className="text-xs text-slate-500">
-                    Course: <strong className="text-slate-700">{assignment.courseId}</strong>
+                    Course: <Span className="font-mono text-slate-700">{assignment.courseId}</Span>
+                    {assignment.topicId ? (
+                      <>
+                        {' '}
+                        • Topic:{' '}
+                        <Span className="font-mono text-slate-700">{assignment.topicId}</Span>
+                      </>
+                    ) : null}
                   </P>
                 </div>
 
-                {/* Deadlines & IST Details Card */}
-                <div className="min-w-[260px] space-y-2 rounded-xl border border-slate-100 bg-slate-50/75 p-4 text-xs">
+                {/* Deadlines and Marks Panel */}
+                <div className="flex flex-col gap-2 rounded-xl border border-slate-100 bg-slate-50 p-4 text-xs md:min-w-[240px]">
                   <div>
-                    <Span className="block text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                    <Span className="block text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
                       Due Date (IST Standard)
                     </Span>
-                    <Span className="mt-0.5 block text-sm font-bold text-slate-900">
+                    <Span className="mt-0.5 block font-bold text-slate-900">
                       {formatDateTimeIST(allocation.dueDate)}
                     </Span>
                   </div>
-                  <div className="flex items-center justify-between border-t border-slate-200/60 pt-2 text-slate-600">
-                    <span>Estimated Time:</span>
-                    <strong className="text-slate-800">{assignment.estimatedMinutes} mins</strong>
+                  <div className="grid grid-cols-2 gap-2 border-t border-slate-200/60 pt-2 text-[11px]">
+                    <div>
+                      <Span className="text-slate-400">Estimated Time:</Span>
+                      <Span className="block font-semibold text-slate-800">
+                        {assignment.estimatedMinutes} mins
+                      </Span>
+                    </div>
+                    <div>
+                      <Span className="text-slate-400">Max Marks:</Span>
+                      <Span className="block font-semibold text-slate-800">
+                        {assignment.maxMarks}
+                      </Span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between text-slate-600">
-                    <span>Max Marks:</span>
-                    <Code className="text-slate-800">{assignment.maxMarks}</Code>
-                  </div>
-                  <div className="flex items-center justify-between text-slate-600">
-                    <span>Late Submissions:</span>
+                  <div className="border-t border-slate-200/60 pt-2 text-[11px]">
+                    <Span className="text-slate-400">Late Submissions:</Span>{' '}
                     <Span
                       className={
                         assignment.allowLate
@@ -113,42 +126,44 @@ export default function MenteeAssignmentDetailPage({ params }: Readonly<PageProp
                           : 'font-semibold text-rose-600'
                       }
                     >
-                      {assignment.allowLate ? 'Allowed' : 'Blocked'}
+                      {assignment.allowLate ? 'Allowed (Flagged)' : 'Blocked'}
                     </Span>
                   </div>
                 </div>
               </div>
 
               {/* Instructions */}
-              {assignment.instructions ? (
-                <div className="space-y-2">
-                  <H2 className="text-sm font-bold tracking-wider text-slate-500 uppercase">
-                    Instructions & Guidelines
-                  </H2>
-                  <div className="rounded-xl bg-slate-50 p-4 text-xs leading-relaxed whitespace-pre-wrap text-slate-700">
-                    {assignment.instructions}
+              <div>
+                <H2 className="text-sm font-bold tracking-wider text-slate-700 uppercase">
+                  Instructions
+                </H2>
+                {assignment.instructions ? (
+                  <div className="mt-2 rounded-xl border border-slate-100 bg-slate-50/70 p-4 text-xs leading-relaxed text-slate-700">
+                    <P className="whitespace-pre-wrap">{assignment.instructions}</P>
                   </div>
-                </div>
-              ) : null}
+                ) : (
+                  <P className="mt-2 text-xs text-slate-400 italic">
+                    No specific instructions provided for this assignment.
+                  </P>
+                )}
+              </div>
 
-              {/* Attached Resources */}
+              {/* Learning Resources */}
               {Array.isArray(assignment.resources) && assignment.resources.length > 0 ? (
-                <div className="space-y-2">
-                  <H3 className="text-xs font-bold tracking-wider text-slate-500 uppercase">
-                    Reference Resources
+                <div>
+                  <H3 className="text-xs font-bold tracking-wider text-slate-700 uppercase">
+                    Reference Materials
                   </H3>
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    {assignment.resources.map((res: ResourceItem, index: number) => (
+                  <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {assignment.resources.map((res) => (
                       <a
-                        key={res.id ?? index}
+                        key={res.url}
                         href={res.url}
                         target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-3 text-xs transition-all hover:border-blue-400 hover:bg-blue-50/30"
+                        rel="noreferrer"
+                        className="flex items-center justify-between rounded-lg border border-slate-200 p-2.5 text-xs text-blue-600 hover:bg-blue-50/50"
                       >
-                        <Span className="mr-2 truncate font-semibold text-slate-800">
-                          {res.title}
-                        </Span>
+                        <Span className="truncate font-medium text-slate-800">{res.title}</Span>
                         <Span className="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600 uppercase">
                           {res.type} ↗
                         </Span>
@@ -177,5 +192,17 @@ export default function MenteeAssignmentDetailPage({ params }: Readonly<PageProp
         )}
       </main>
     </div>
+  );
+}
+
+export default function MenteeAssignmentDetailPage({ params }: Readonly<PageProps>) {
+  return (
+    <Suspense
+      fallback={
+        <PortalSessionState sessionError={null} loadingMessage="Loading assignment workspace..." />
+      }
+    >
+      <MenteeAssignmentDetailContent params={params} />
+    </Suspense>
   );
 }

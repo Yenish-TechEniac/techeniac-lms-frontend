@@ -37,6 +37,7 @@ export function AssignmentSubmissionForm({
   const [url, setUrl] = useState('');
   const [confirmedComplete, setConfirmedComplete] = useState(false);
   const [clientErrors, setClientErrors] = useState<Record<string, string>>({});
+  const [clientErrorMsg, setClientErrorMsg] = useState<string | null>(null);
 
   const submitMutation = useSubmitAssignment();
 
@@ -59,47 +60,67 @@ export function AssignmentSubmissionForm({
 
   const validate = (): boolean => {
     const errors: Record<string, string> = {};
+    let firstError: string | null = null;
 
     if (assignment.pdfMode === SubmissionMode.REQUIRED && !pdfUrl.trim()) {
       errors.pdfUrl = 'PDF document link is required.';
+      if (!firstError) firstError = errors.pdfUrl;
     } else if (pdfUrl.trim() && !isValidUrl(pdfUrl.trim())) {
       errors.pdfUrl = 'Please enter a valid HTTP or HTTPS URL for the PDF document.';
+      if (!firstError) firstError = errors.pdfUrl;
     }
 
     if (assignment.zipMode === SubmissionMode.REQUIRED && !zipUrl.trim()) {
       errors.zipUrl = 'ZIP archive link is required.';
+      if (!firstError) firstError = errors.zipUrl;
     } else if (zipUrl.trim() && !isValidUrl(zipUrl.trim())) {
       errors.zipUrl = 'Please enter a valid HTTP or HTTPS URL for the ZIP archive.';
+      if (!firstError) firstError = errors.zipUrl;
     }
 
     if (assignment.urlMode === SubmissionMode.REQUIRED && !url.trim()) {
       errors.url = 'Project / repository URL is required.';
+      if (!firstError) firstError = errors.url;
     } else if (url.trim() && !isValidUrl(url.trim())) {
-      errors.url = 'Please enter a valid HTTP or HTTPS URL.';
+      errors.url = 'Please enter a valid HTTP or HTTPS URL for the project repository.';
+      if (!firstError) firstError = errors.url;
     }
 
     const hasAnyContent = Boolean(pdfUrl.trim() || zipUrl.trim() || url.trim());
     if (!hasAnyContent) {
-      errors.general = 'At least one submission field must be provided.';
+      errors.general = 'At least one submission field (PDF, ZIP, or Project URL) must be provided.';
+      if (!firstError) firstError = errors.general;
     }
 
     if (!confirmedComplete) {
       errors.confirmedComplete =
         'You must confirm that you have completed this assignment before submitting.';
+      if (!firstError) firstError = errors.confirmedComplete;
     }
 
+    setClientErrorMsg(firstError);
     setClientErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setClientErrorMsg(null);
     if (!validate()) return;
 
     const submissionData: SubmissionData = {};
-    if (pdfUrl.trim()) submissionData.pdf_url = pdfUrl.trim();
-    if (zipUrl.trim()) submissionData.zip_url = zipUrl.trim();
-    if (url.trim()) submissionData.url = url.trim();
+    if (pdfUrl.trim()) {
+      submissionData.pdfUrl = pdfUrl.trim();
+      submissionData.pdf_url = pdfUrl.trim();
+    }
+    if (zipUrl.trim()) {
+      submissionData.zipUrl = zipUrl.trim();
+      submissionData.zip_url = zipUrl.trim();
+    }
+    if (url.trim()) {
+      submissionData.linkUrl = url.trim();
+      submissionData.url = url.trim();
+    }
 
     try {
       const result = await submitMutation.mutateAsync({
@@ -114,6 +135,7 @@ export function AssignmentSubmissionForm({
       setUrl('');
       setConfirmedComplete(false);
       setClientErrors({});
+      setClientErrorMsg(null);
 
       onSuccess?.(result);
     } catch {
@@ -143,6 +165,7 @@ export function AssignmentSubmissionForm({
 
   return (
     <form
+      noValidate
       onSubmit={(e) => {
         void handleSubmit(e);
       }}
@@ -169,17 +192,22 @@ export function AssignmentSubmissionForm({
         />
       ) : null}
 
-      {submitMutation.error ? (
-        <Alert
-          variant="error"
-          title="Submission Failed"
-          message={
+      {/* Consistent design-system error banner (matching Photo 2) */}
+      {clientErrorMsg && (
+        <FieldError
+          error={clientErrorMsg}
+          className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 shadow-xs"
+        />
+      )}
+
+      {submitMutation.error && (
+        <FieldError
+          error={
             submitMutation.error.message || 'An error occurred while submitting your assignment.'
           }
+          className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 shadow-xs"
         />
-      ) : null}
-
-      {clientErrors.general ? <Alert variant="error" message={clientErrors.general} /> : null}
+      )}
 
       {submitMutation.isSuccess ? (
         <Alert
@@ -207,14 +235,21 @@ export function AssignmentSubmissionForm({
             </div>
             <Input
               id="pdf_url"
-              type="url"
+              type="text"
+              inputMode="url"
               placeholder="https://example.com/my-document.pdf"
               value={pdfUrl}
-              onChange={(e) => setPdfUrl(e.target.value)}
+              onChange={(e) => {
+                setPdfUrl(e.target.value);
+                setClientErrorMsg(null);
+                setClientErrors((prev) => ({ ...prev, pdfUrl: '', general: '' }));
+              }}
               hasError={Boolean(clientErrors.pdfUrl)}
               disabled={submitMutation.isPending}
             />
-            {clientErrors.pdfUrl ? <FieldError error={clientErrors.pdfUrl} /> : null}
+            {clientErrors.pdfUrl ? (
+              <FieldError error={clientErrors.pdfUrl} className="mt-1.5 text-xs text-rose-600" />
+            ) : null}
           </div>
         ) : null}
 
@@ -235,14 +270,21 @@ export function AssignmentSubmissionForm({
             </div>
             <Input
               id="zip_url"
-              type="url"
+              type="text"
+              inputMode="url"
               placeholder="https://example.com/project-files.zip"
               value={zipUrl}
-              onChange={(e) => setZipUrl(e.target.value)}
+              onChange={(e) => {
+                setZipUrl(e.target.value);
+                setClientErrorMsg(null);
+                setClientErrors((prev) => ({ ...prev, zipUrl: '', general: '' }));
+              }}
               hasError={Boolean(clientErrors.zipUrl)}
               disabled={submitMutation.isPending}
             />
-            {clientErrors.zipUrl ? <FieldError error={clientErrors.zipUrl} /> : null}
+            {clientErrors.zipUrl ? (
+              <FieldError error={clientErrors.zipUrl} className="mt-1.5 text-xs text-rose-600" />
+            ) : null}
           </div>
         ) : null}
 
@@ -263,14 +305,21 @@ export function AssignmentSubmissionForm({
             </div>
             <Input
               id="url"
-              type="url"
+              type="text"
+              inputMode="url"
               placeholder="https://github.com/my-repo or https://my-app.vercel.app"
               value={url}
-              onChange={(e) => setUrl(e.target.value)}
+              onChange={(e) => {
+                setUrl(e.target.value);
+                setClientErrorMsg(null);
+                setClientErrors((prev) => ({ ...prev, url: '', general: '' }));
+              }}
               hasError={Boolean(clientErrors.url)}
               disabled={submitMutation.isPending}
             />
-            {clientErrors.url ? <FieldError error={clientErrors.url} /> : null}
+            {clientErrors.url ? (
+              <FieldError error={clientErrors.url} className="mt-1.5 text-xs text-rose-600" />
+            ) : null}
           </div>
         ) : null}
 
@@ -280,7 +329,11 @@ export function AssignmentSubmissionForm({
             <Checkbox
               id="confirmed_complete"
               checked={confirmedComplete}
-              onChange={(e) => setConfirmedComplete(e.target.checked)}
+              onChange={(e) => {
+                setConfirmedComplete(e.target.checked);
+                setClientErrorMsg(null);
+                setClientErrors((prev) => ({ ...prev, confirmedComplete: '' }));
+              }}
               disabled={submitMutation.isPending}
               className="mt-0.5"
             />
@@ -295,7 +348,10 @@ export function AssignmentSubmissionForm({
             </label>
           </div>
           {clientErrors.confirmedComplete ? (
-            <FieldError error={clientErrors.confirmedComplete} />
+            <FieldError
+              error={clientErrors.confirmedComplete}
+              className="mt-1 text-xs text-rose-600"
+            />
           ) : null}
         </div>
       </div>

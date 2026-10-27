@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React, { useMemo, useState } from 'react';
 
 import { AllocationStatusBadge } from '@/components/app/allocations/AllocationStatusBadge';
@@ -308,17 +309,23 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
       </div>
 
       {/* Footer CTA */}
-      <div className="mt-5 border-t border-slate-100 pt-3">
+      <div className="mt-5 flex flex-col gap-2 border-t border-slate-100 pt-3">
+        <Link
+          href={`/mentee/assignments?courseId=${allocation.courseId}`}
+          className="flex items-center justify-center rounded-xl border border-blue-200 bg-blue-50/70 p-2 text-xs font-semibold text-blue-700 transition-colors hover:bg-blue-100"
+        >
+          <Span>View Course Assignments →</Span>
+        </Link>
         {isRevokedOrClosed ? (
-          <div className="flex items-center justify-center rounded-xl bg-slate-100 p-2.5 text-xs font-medium text-slate-500">
+          <div className="flex items-center justify-center rounded-xl bg-slate-100 p-2 text-xs font-medium text-slate-500">
             <Span>Course Closed • Read-Only (M7)</Span>
           </div>
         ) : isCompleted ? (
-          <div className="flex items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 p-2.5 text-xs font-bold text-emerald-700">
+          <div className="flex items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 p-2 text-xs font-bold text-emerald-700">
             <Span>✓ Track Completed (100%)</Span>
           </div>
         ) : (
-          <div className="flex items-center justify-center rounded-xl bg-blue-600 p-2.5 text-xs font-bold text-white shadow-xs transition-colors hover:bg-blue-700">
+          <div className="flex items-center justify-center rounded-xl bg-blue-600 p-2 text-xs font-bold text-white shadow-xs transition-colors hover:bg-blue-700">
             <Span>In Progress • Active Milestone</Span>
           </div>
         )}

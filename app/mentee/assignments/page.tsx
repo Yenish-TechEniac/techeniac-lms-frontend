@@ -1,24 +1,31 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import React, { Suspense, useState } from 'react';
 
 import { MENTEE_ASSIGNMENTS_NAV } from '@/components/app/navigation/portal-nav.config';
 import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
 import { MyAssignmentsTable } from '@/components/app/submissions/MyAssignmentsTable';
 import { Header } from '@/components/layout/Header';
+import { Button } from '@/components/ui/Button';
 import { H1, P, Span } from '@/components/ui/Typography';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 import { useMyAssignments } from '@/hooks/useSubmissions';
 import type { AssignmentDerivedStatus } from '@/types/submissions';
 
-export default function MenteeAssignmentsPage() {
+function MenteeAssignmentsContent() {
   const { user, isAuthorized, sessionError } = useRoleRedirect({ allowedRoles: ['MENTEE'] });
+  const searchParams = useSearchParams();
+  const courseIdParam = searchParams.get('courseId') ?? undefined;
+
   const [selectedStatus, setSelectedStatus] = useState<AssignmentDerivedStatus | undefined>(
     undefined,
   );
+  const [activeCourseId, setActiveCourseId] = useState<string | undefined>(courseIdParam);
 
   const { assignments, isLoading, error } = useMyAssignments({
     status: selectedStatus,
+    courseId: activeCourseId,
   });
 
   if (!isAuthorized || !user) {
@@ -60,6 +67,23 @@ export default function MenteeAssignmentsPage() {
               <Span className="mt-1 block text-slate-500">All due dates shown in IST</Span>
             </div>
           </div>
+
+          {activeCourseId ? (
+            <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
+              <Span className="text-xs text-slate-500">Filtered by course:</Span>
+              <Span className="rounded-md bg-blue-50 px-2 py-0.5 font-mono text-xs font-semibold text-blue-700">
+                {assignments[0]?.courseTitle ?? activeCourseId}
+              </Span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setActiveCourseId(undefined)}
+                className="h-6 px-2 text-[11px]"
+              >
+                Clear Course Filter
+              </Button>
+            </div>
+          ) : null}
         </div>
 
         {/* Assignments Table & Filters */}
@@ -72,5 +96,17 @@ export default function MenteeAssignmentsPage() {
         />
       </main>
     </div>
+  );
+}
+
+export default function MenteeAssignmentsPage() {
+  return (
+    <Suspense
+      fallback={
+        <PortalSessionState sessionError={null} loadingMessage="Loading student assignments..." />
+      }
+    >
+      <MenteeAssignmentsContent />
+    </Suspense>
   );
 }
