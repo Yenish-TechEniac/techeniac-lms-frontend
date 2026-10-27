@@ -150,6 +150,86 @@ function UserSearchInput({ value, onSearchChange }: Readonly<UserSearchInputProp
   );
 }
 
+interface UserPaginationControlsProps {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  onPageChange: (newPage: number) => void;
+  onLimitChange: (newLimit: number) => void;
+}
+
+function UserPaginationControls({
+  page,
+  limit,
+  total,
+  totalPages,
+  onPageChange,
+  onLimitChange,
+}: Readonly<UserPaginationControlsProps>) {
+  const startItem = total === 0 ? 0 : (page - 1) * limit + 1;
+  const endItem = Math.min(page * limit, total);
+
+  return (
+    <div className="flex flex-col items-center justify-between gap-3 border-t border-slate-100 bg-white px-6 py-4 text-xs text-slate-600 sm:flex-row">
+      <div className="flex items-center gap-2 font-medium">
+        <Span>
+          Showing <strong className="font-semibold text-slate-900">{startItem}</strong> to{' '}
+          <strong className="font-semibold text-slate-900">{endItem}</strong> of{' '}
+          <strong className="font-semibold text-slate-900">{total}</strong> users
+        </Span>
+      </div>
+
+      <div className="flex items-center gap-4">
+        {/* Page Size Selector */}
+        <div className="flex items-center gap-1.5">
+          <Span className="text-slate-500">Per page:</Span>
+          <select
+            value={limit}
+            onChange={(e) => onLimitChange(Number(e.target.value))}
+            aria-label="Users per page"
+            className="h-8 rounded-lg border border-slate-200 bg-white px-2 py-0.5 text-xs font-semibold text-slate-700 focus:border-blue-500 focus:outline-none"
+          >
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+          </select>
+        </div>
+
+        {/* Navigation Buttons */}
+        <div className="flex items-center gap-1">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onPageChange(page - 1)}
+            disabled={page <= 1}
+            className="h-8 px-2.5 text-xs font-medium"
+          >
+            ← Prev
+          </Button>
+
+          <Span className="px-2 font-mono text-xs font-bold text-slate-800">
+            {page} / {totalPages}
+          </Span>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onPageChange(page + 1)}
+            disabled={page >= totalPages}
+            className="h-8 px-2.5 text-xs font-medium"
+          >
+            Next →
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function UsersTable() {
   const router = useRouter();
   const { user: currentUser, isAuthenticated, isLoading: isAuthLoading } = useAuth();
@@ -157,6 +237,8 @@ export function UsersTable() {
   const [search, setSearch] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(20);
 
   useEffect(() => {
     if (!isAuthLoading) {
@@ -237,17 +319,39 @@ export function UsersTable() {
     }));
   }, [apiUsers, activeAdminsCount]);
 
-  const handleFilterUpdate = (newRole: string, newStatus: string, newSearch: string) => {
+  const totalPages = Math.max(1, Math.ceil(totalCount / limit));
+
+  const handleFilterUpdate = (
+    newRole: string,
+    newStatus: string,
+    newSearch: string,
+    newPage: number = page,
+    newLimit: number = limit,
+  ) => {
     void fetchUsers({
+      page: newPage,
+      limit: newLimit,
       role: newRole !== 'ALL' ? newRole : undefined,
       status: newStatus !== 'ALL' ? newStatus : undefined,
       search: newSearch.trim() || undefined,
     });
   };
 
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    handleFilterUpdate(selectedRole, selectedStatus, search, newPage, limit);
+  };
+
+  const handleLimitChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setPage(1);
+    handleFilterUpdate(selectedRole, selectedStatus, search, 1, newLimit);
+  };
+
   const handleSearchChange = (val: string) => {
     setSearch(val);
-    handleFilterUpdate(selectedRole, selectedStatus, val);
+    setPage(1);
+    handleFilterUpdate(selectedRole, selectedStatus, val, 1, limit);
   };
 
   const isInitialLoading = isLoading && apiUsers.length === 0;
@@ -416,7 +520,8 @@ export function UsersTable() {
           size="sm"
           onClick={() => {
             setSelectedStatus('ALL');
-            handleFilterUpdate(selectedRole, 'ALL', search);
+            setPage(1);
+            handleFilterUpdate(selectedRole, 'ALL', search, 1, limit);
           }}
           className={`h-8 gap-2 rounded-lg px-3 text-xs ${
             selectedStatus === 'ALL'
@@ -435,7 +540,8 @@ export function UsersTable() {
           size="sm"
           onClick={() => {
             setSelectedStatus('ACTIVE');
-            handleFilterUpdate(selectedRole, 'ACTIVE', search);
+            setPage(1);
+            handleFilterUpdate(selectedRole, 'ACTIVE', search, 1, limit);
           }}
           className={`h-8 gap-2 rounded-lg px-3 text-xs ${
             selectedStatus === 'ACTIVE'
@@ -453,7 +559,8 @@ export function UsersTable() {
           size="sm"
           onClick={() => {
             setSelectedStatus('INACTIVE');
-            handleFilterUpdate(selectedRole, 'INACTIVE', search);
+            setPage(1);
+            handleFilterUpdate(selectedRole, 'INACTIVE', search, 1, limit);
           }}
           className={`h-8 gap-2 rounded-lg px-3 text-xs ${
             selectedStatus === 'INACTIVE'
@@ -482,7 +589,8 @@ export function UsersTable() {
               onChange={(e) => {
                 const val = e.target.value;
                 setSelectedRole(val);
-                handleFilterUpdate(val, selectedStatus, search);
+                setPage(1);
+                handleFilterUpdate(val, selectedStatus, search, 1, limit);
               }}
               className="h-10 w-full cursor-pointer rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-900 transition-all focus:border-blue-500 focus:outline-none"
             >
@@ -515,7 +623,8 @@ export function UsersTable() {
                 setSearch('');
                 setSelectedRole('ALL');
                 setSelectedStatus('ALL');
-                handleFilterUpdate('ALL', 'ALL', '');
+                setPage(1);
+                handleFilterUpdate('ALL', 'ALL', '', 1, limit);
               }}
               className="p-2 text-xs font-semibold text-blue-600 hover:text-blue-700"
             >
@@ -577,6 +686,8 @@ export function UsersTable() {
                         size="sm"
                         onClick={() => {
                           void fetchUsers({
+                            page,
+                            limit,
                             role: selectedRole !== 'ALL' ? selectedRole : undefined,
                             status: selectedStatus !== 'ALL' ? selectedStatus : undefined,
                             search: search.trim() || undefined,
@@ -741,6 +852,16 @@ export function UsersTable() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Controls */}
+        <UserPaginationControls
+          page={page}
+          limit={limit}
+          total={totalCount}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          onLimitChange={handleLimitChange}
+        />
       </div>
 
       {/* Drawers and Modals */}
