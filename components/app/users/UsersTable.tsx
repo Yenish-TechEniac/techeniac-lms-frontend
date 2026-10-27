@@ -9,6 +9,7 @@ import { ChangeRoleModal } from '@/components/app/users/ChangeRoleModal';
 import { CreateUserDrawer } from '@/components/app/users/CreateUserDrawer';
 import { EditUserModal } from '@/components/app/users/EditUserModal';
 import { Modal } from '@/components/patterns/Modal';
+import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { H1, P, Span, Typography } from '@/components/ui/Typography';
@@ -146,86 +147,6 @@ function UserSearchInput({ value, onSearchChange }: Readonly<UserSearchInputProp
         placeholder="Search by name or email..."
         className="h-10 pl-9 text-sm"
       />
-    </div>
-  );
-}
-
-interface UserPaginationControlsProps {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-  onPageChange: (newPage: number) => void;
-  onLimitChange: (newLimit: number) => void;
-}
-
-function UserPaginationControls({
-  page,
-  limit,
-  total,
-  totalPages,
-  onPageChange,
-  onLimitChange,
-}: Readonly<UserPaginationControlsProps>) {
-  const startItem = total === 0 ? 0 : (page - 1) * limit + 1;
-  const endItem = Math.min(page * limit, total);
-
-  return (
-    <div className="flex flex-col items-center justify-between gap-3 border-t border-slate-100 bg-white px-6 py-4 text-xs text-slate-600 sm:flex-row">
-      <div className="flex items-center gap-2 font-medium">
-        <Span>
-          Showing <strong className="font-semibold text-slate-900">{startItem}</strong> to{' '}
-          <strong className="font-semibold text-slate-900">{endItem}</strong> of{' '}
-          <strong className="font-semibold text-slate-900">{total}</strong> users
-        </Span>
-      </div>
-
-      <div className="flex items-center gap-4">
-        {/* Page Size Selector */}
-        <div className="flex items-center gap-1.5">
-          <Span className="text-slate-500">Per page:</Span>
-          <select
-            value={limit}
-            onChange={(e) => onLimitChange(Number(e.target.value))}
-            aria-label="Users per page"
-            className="h-8 rounded-lg border border-slate-200 bg-white px-2 py-0.5 text-xs font-semibold text-slate-700 focus:border-blue-500 focus:outline-none"
-          >
-            <option value={10}>10</option>
-            <option value={20}>20</option>
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-          </select>
-        </div>
-
-        {/* Navigation Buttons */}
-        <div className="flex items-center gap-1">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => onPageChange(page - 1)}
-            disabled={page <= 1}
-            className="h-8 px-2.5 text-xs font-medium"
-          >
-            ← Prev
-          </Button>
-
-          <Span className="px-2 font-mono text-xs font-bold text-slate-800">
-            {page} / {totalPages}
-          </Span>
-
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => onPageChange(page + 1)}
-            disabled={page >= totalPages}
-            className="h-8 px-2.5 text-xs font-medium"
-          >
-            Next →
-          </Button>
-        </div>
-      </div>
     </div>
   );
 }
@@ -854,13 +775,15 @@ export function UsersTable() {
         </div>
 
         {/* Pagination Controls */}
-        <UserPaginationControls
+        <PaginationControls
           page={page}
           limit={limit}
           total={totalCount}
           totalPages={totalPages}
           onPageChange={handlePageChange}
           onLimitChange={handleLimitChange}
+          itemLabel="users"
+          pageSizeOptions={[10, 20, 50, 100]}
         />
       </div>
 
