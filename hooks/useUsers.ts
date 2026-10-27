@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 
 import type { ChangeRoleFormData, CreateUserFormData, EditUserFormData } from '@/lib/validation';
@@ -49,7 +49,12 @@ export const userKeys = {
   list: (filters: UserQueryFilters) => [...userKeys.lists(), filters] as const,
 };
 
-const DEFAULT_FILTERS: UserQueryFilters = {};
+export const DEFAULT_USERS_PAGE_SIZE = 20;
+
+const DEFAULT_FILTERS: UserQueryFilters = {
+  page: 1,
+  limit: DEFAULT_USERS_PAGE_SIZE,
+};
 
 export function useUsers(initialFilters: UserQueryFilters = DEFAULT_FILTERS): UseUsersReturn {
   const queryClient = useQueryClient();
@@ -57,7 +62,10 @@ export function useUsers(initialFilters: UserQueryFilters = DEFAULT_FILTERS): Us
 
   const serializedInitial = JSON.stringify(initialFilters);
   const activeFilters = useMemo(() => {
-    return overrideFilters ?? initialFilters;
+    return {
+      ...DEFAULT_FILTERS,
+      ...(overrideFilters ?? initialFilters),
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [overrideFilters, serializedInitial]);
 
@@ -70,6 +78,7 @@ export function useUsers(initialFilters: UserQueryFilters = DEFAULT_FILTERS): Us
     queryKey: userKeys.list(activeFilters),
     queryFn: () => usersService.listUsers(activeFilters),
     staleTime: 30_000,
+    placeholderData: keepPreviousData,
   });
 
   const fetchUsers = useCallback(

@@ -9,12 +9,13 @@ import { ChangeRoleModal } from '@/components/app/users/ChangeRoleModal';
 import { CreateUserDrawer } from '@/components/app/users/CreateUserDrawer';
 import { EditUserModal } from '@/components/app/users/EditUserModal';
 import { Modal } from '@/components/patterns/Modal';
+import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { H1, P, Span, Typography } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
-import { type UserQueryFilters, useUsers } from '@/hooks/useUsers';
+import { DEFAULT_USERS_PAGE_SIZE, type UserQueryFilters, useUsers } from '@/hooks/useUsers';
 import {
   type ChangeRoleFormData,
   type CreateUserFormData,
@@ -173,6 +174,8 @@ interface FilterUpdateOptions {
   status?: string;
   search?: string;
   mentorId?: string;
+  page?: number;
+  limit?: number;
 }
 
 export function UsersTable() {
@@ -183,12 +186,16 @@ export function UsersTable() {
   const [selectedRole, setSelectedRole] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
   const [selectedMentor, setSelectedMentor] = useState<string>('ALL');
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(DEFAULT_USERS_PAGE_SIZE);
 
   const filtersRef = useRef({
     role: selectedRole,
     status: selectedStatus,
     search,
     mentorId: selectedMentor,
+    page,
+    limit,
   });
 
   useEffect(() => {
@@ -197,8 +204,10 @@ export function UsersTable() {
       status: selectedStatus,
       search,
       mentorId: selectedMentor,
+      page,
+      limit,
     };
-  }, [selectedRole, selectedStatus, search, selectedMentor]);
+  }, [selectedRole, selectedStatus, search, selectedMentor, page, limit]);
 
   useEffect(() => {
     if (!isAuthLoading) {
@@ -292,20 +301,28 @@ export function UsersTable() {
 
   const isMentorFilterDisabled = selectedRole === 'SUPER_ADMIN' || selectedRole === 'MENTOR';
 
+  const totalPages = Math.max(1, Math.ceil(totalCount / limit));
+
   const handleFilterUpdate = ({
     role = filtersRef.current.role,
     status = filtersRef.current.status,
     search: searchVal = filtersRef.current.search,
     mentorId = filtersRef.current.mentorId,
+    page: newPage = filtersRef.current.page,
+    limit: newLimit = filtersRef.current.limit,
   }: FilterUpdateOptions = {}) => {
     filtersRef.current = {
       role,
       status,
       search: searchVal,
       mentorId,
+      page: newPage,
+      limit: newLimit,
     };
 
     void fetchUsers({
+      page: newPage,
+      limit: newLimit,
       role: role !== 'ALL' ? role : undefined,
       status: status !== 'ALL' ? status : undefined,
       search: searchVal.trim() || undefined,
@@ -313,9 +330,21 @@ export function UsersTable() {
     });
   };
 
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    handleFilterUpdate({ page: newPage });
+  };
+
+  const handleLimitChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setPage(1);
+    handleFilterUpdate({ page: 1, limit: newLimit });
+  };
+
   const handleSearchChange = (val: string) => {
     setSearch(val);
-    handleFilterUpdate({ search: val });
+    setPage(1);
+    handleFilterUpdate({ search: val, page: 1 });
   };
 
   const isInitialLoading = isLoading && apiUsers.length === 0;
@@ -484,7 +513,8 @@ export function UsersTable() {
           size="sm"
           onClick={() => {
             setSelectedStatus('ALL');
-            handleFilterUpdate({ status: 'ALL' });
+            setPage(1);
+            handleFilterUpdate({ status: 'ALL', page: 1 });
           }}
           className={`h-8 gap-2 rounded-lg px-3 text-xs ${
             selectedStatus === 'ALL'
@@ -503,7 +533,8 @@ export function UsersTable() {
           size="sm"
           onClick={() => {
             setSelectedStatus('ACTIVE');
-            handleFilterUpdate({ status: 'ACTIVE' });
+            setPage(1);
+            handleFilterUpdate({ status: 'ACTIVE', page: 1 });
           }}
           className={`h-8 gap-2 rounded-lg px-3 text-xs ${
             selectedStatus === 'ACTIVE'
@@ -521,7 +552,8 @@ export function UsersTable() {
           size="sm"
           onClick={() => {
             setSelectedStatus('INACTIVE');
-            handleFilterUpdate({ status: 'INACTIVE' });
+            setPage(1);
+            handleFilterUpdate({ status: 'INACTIVE', page: 1 });
           }}
           className={`h-8 gap-2 rounded-lg px-3 text-xs ${
             selectedStatus === 'INACTIVE'
@@ -550,12 +582,13 @@ export function UsersTable() {
               onChange={(e) => {
                 const val = e.target.value;
                 setSelectedRole(val);
+                setPage(1);
                 const isMentorRestricted = val === 'SUPER_ADMIN' || val === 'MENTOR';
                 if (isMentorRestricted && selectedMentor !== 'ALL') {
                   setSelectedMentor('ALL');
-                  handleFilterUpdate({ role: val, mentorId: 'ALL' });
+                  handleFilterUpdate({ role: val, mentorId: 'ALL', page: 1 });
                 } else {
-                  handleFilterUpdate({ role: val });
+                  handleFilterUpdate({ role: val, page: 1 });
                 }
               }}
               aria-label="Filter by role"
@@ -575,7 +608,8 @@ export function UsersTable() {
               onChange={(e) => {
                 const val = e.target.value;
                 setSelectedMentor(val);
-                handleFilterUpdate({ mentorId: val });
+                setPage(1);
+                handleFilterUpdate({ mentorId: val, page: 1 });
               }}
               aria-label="Filter by mentor"
               disabled={isMentorFilterDisabled}
@@ -623,11 +657,13 @@ export function UsersTable() {
                 setSelectedRole('ALL');
                 setSelectedStatus('ALL');
                 setSelectedMentor('ALL');
+                setPage(1);
                 handleFilterUpdate({
                   role: 'ALL',
                   status: 'ALL',
                   search: '',
                   mentorId: 'ALL',
+                  page: 1,
                 });
               }}
               className="p-2 text-xs font-semibold text-blue-600 hover:text-blue-700"
@@ -850,6 +886,20 @@ export function UsersTable() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Controls */}
+        {!usersError && (
+          <PaginationControls
+            page={page}
+            limit={limit}
+            total={totalCount}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            onLimitChange={handleLimitChange}
+            itemLabel="users"
+            pageSizeOptions={[10, 20, 50, 100]}
+          />
+        )}
       </div>
 
       {/* Drawers and Modals */}
