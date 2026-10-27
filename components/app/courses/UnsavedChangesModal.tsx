@@ -4,7 +4,7 @@ import React from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
-import { P } from '@/components/ui/Typography';
+import { P, Span } from '@/components/ui/Typography';
 
 interface UnsavedChangesModalProps {
   isOpen: boolean;
@@ -36,7 +36,7 @@ export function UnsavedChangesModal({
       }
     >
       <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs text-amber-900">
-        <span className="font-bold">Notice:</span>
+        <Span className="font-bold">Notice:</Span>
         <P className="leading-relaxed">
           Unsaved modifications on this outline node will be permanently lost if you discard.
         </P>

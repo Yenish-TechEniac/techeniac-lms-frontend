@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { P } from '@/components/ui/Typography';
 import { cn } from '@/lib/cn';
 
 export interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -43,11 +44,11 @@ export function Alert({
       className={cn('rounded-xl border p-3.5 text-xs shadow-2xs', styles, className)}
       {...props}
     >
-      {title ? <p className={titleStyles}>{title}</p> : null}
+      {title ? <P className={titleStyles}>{title}</P> : null}
       {message ? (
-        <p className={cn(title ? 'mt-1 text-xs' : 'text-xs', messageStyles, 'leading-relaxed')}>
+        <P className={cn(title ? 'mt-1 text-xs' : 'text-xs', messageStyles, 'leading-relaxed')}>
           {message}
-        </p>
+        </P>
       ) : null}
       {children}
     </div>

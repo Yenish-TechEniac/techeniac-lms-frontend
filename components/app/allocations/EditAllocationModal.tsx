@@ -134,9 +134,9 @@ export function EditAllocationModal({
             </P>
           </div>
           <div className="text-right">
-            <span className="inline-flex rounded-full border border-blue-200/60 bg-blue-50 px-2.5 py-1 font-mono text-xs font-semibold text-blue-700">
+            <Span className="inline-flex rounded-full border border-blue-200/60 bg-blue-50 px-2.5 py-1 font-mono text-xs font-semibold text-blue-700">
               Progress: {allocation.progressPercent}%
-            </span>
+            </Span>
           </div>
         </div>
 
@@ -189,10 +189,10 @@ export function EditAllocationModal({
 
           {/* Soft Email Notification Banner */}
           <div className="flex items-center gap-2.5 rounded-xl border border-blue-100 bg-blue-50/70 px-3.5 py-2.5 text-xs font-medium text-blue-900">
-            <span className="font-bold text-blue-600">✉</span>
-            <span>
+            <Span className="font-bold text-blue-600">✉</Span>
+            <Span>
               Mentees will be automatically emailed about due date changes (FR-7.3, ALC-15).
-            </span>
+            </Span>
           </div>
         </div>
 
@@ -208,12 +208,12 @@ export function EditAllocationModal({
               <div className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 font-mono text-[10px] font-bold text-white">
                 {allocation.user?.name ? allocation.user.name.slice(0, 2).toUpperCase() : 'ME'}
               </div>
-              <span className="font-medium text-slate-800">
+              <Span className="font-medium text-slate-800">
                 {allocation.user?.name ?? 'Mentee'}
-              </span>
-              <span className="font-mono text-[11px] text-slate-400">
+              </Span>
+              <Span className="font-mono text-[11px] text-slate-400">
                 ({allocation.user?.email})
-              </span>
+              </Span>
             </div>
           </div>
         </div>
@@ -223,7 +223,7 @@ export function EditAllocationModal({
           <div className="flex flex-col justify-between gap-4 rounded-xl border border-rose-200 bg-rose-50/60 p-4 sm:flex-row sm:items-center">
             <div className="space-y-0.5">
               <div className="flex items-center gap-1.5">
-                <span className="font-bold text-rose-600">⚠</span>
+                <Span className="font-bold text-rose-600">⚠</Span>
                 <H3 className="font-mono text-xs font-bold text-rose-800 uppercase">
                   Revoke Allocation
                 </H3>

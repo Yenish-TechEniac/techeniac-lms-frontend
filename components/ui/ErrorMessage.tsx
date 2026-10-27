@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { Button } from '@/components/ui/Button';
+import { H4, P, Span } from '@/components/ui/Typography';
 import { cn } from '@/lib/cn';
 import { ApiError } from '@/lib/errors';
 
@@ -163,25 +165,25 @@ export function ErrorMessage({
         {/* Content Area */}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h4 className="text-sm leading-tight font-semibold text-red-950">{title}</h4>
+            <H4 className="text-sm leading-tight font-semibold text-red-950">{title}</H4>
 
             {showCode && parsed.code ? (
-              <span className="inline-flex items-center rounded-md bg-red-100/90 px-1.5 py-0.5 font-mono text-[10px] font-medium text-red-800">
+              <Span className="inline-flex items-center rounded-md bg-red-100/90 px-1.5 py-0.5 font-mono text-[10px] font-medium text-red-800">
                 {parsed.code}
-              </span>
+              </Span>
             ) : null}
 
             {parsed.status ? (
-              <span className="inline-flex items-center rounded-md bg-red-100/60 px-1.5 py-0.5 font-mono text-[10px] text-red-700">
+              <Span className="inline-flex items-center rounded-md bg-red-100/60 px-1.5 py-0.5 font-mono text-[10px] text-red-700">
                 HTTP {parsed.status}
-              </span>
+              </Span>
             ) : null}
           </div>
 
           {/* Main Error Message (high-contrast dark text) */}
-          <p className="mt-1.5 text-xs leading-relaxed font-normal text-red-800">
+          <P className="mt-1.5 text-xs leading-relaxed font-normal text-red-800">
             {parsed.message}
-          </p>
+          </P>
 
           {/* Field-level validation or itemized details */}
           {parsed.details && parsed.details.length > 0 ? (
@@ -191,13 +193,13 @@ export function ErrorMessage({
                   key={`${item.field || idx}-${item.message}`}
                   className="flex items-start gap-1.5"
                 >
-                  <span className="font-bold text-red-500">•</span>
-                  <span>
+                  <Span className="font-bold text-red-500">•</Span>
+                  <Span>
                     {item.field ? (
-                      <span className="font-semibold text-red-950">{item.field}: </span>
+                      <Span className="font-semibold text-red-950">{item.field}: </Span>
                     ) : null}
-                    <span className="text-red-800">{item.message}</span>
-                  </span>
+                    <Span className="text-red-800">{item.message}</Span>
+                  </Span>
                 </li>
               ))}
             </ul>
@@ -206,10 +208,12 @@ export function ErrorMessage({
           {/* Action Area: Retry Button */}
           {onRetry ? (
             <div className="mt-3">
-              <button
+              <Button
                 type="button"
+                variant="outline"
+                size="sm"
                 onClick={onRetry}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-red-300 bg-white px-2.5 py-1 text-xs font-medium text-red-800 shadow-2xs hover:border-red-400 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-hidden"
+                className="h-auto border-red-300 bg-white px-2.5 py-1 text-xs font-medium text-red-800 shadow-2xs hover:border-red-400 hover:bg-red-50 focus-visible:ring-red-500"
               >
                 <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
                   <path
@@ -219,23 +223,25 @@ export function ErrorMessage({
                   />
                 </svg>
                 Retry
-              </button>
+              </Button>
             </div>
           ) : null}
         </div>
 
         {/* Dismiss Button */}
         {onDismiss ? (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={onDismiss}
             aria-label="Dismiss error"
-            className="-mt-1 -mr-1 shrink-0 rounded-md p-1.5 text-red-500 hover:bg-red-100 hover:text-red-800 focus:outline-hidden"
+            className="-mt-1 -mr-1 h-auto shrink-0 p-1.5 text-red-500 hover:bg-red-100 hover:text-red-800"
           >
             <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
               <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
             </svg>
-          </button>
+          </Button>
         ) : null}
       </div>
     </div>

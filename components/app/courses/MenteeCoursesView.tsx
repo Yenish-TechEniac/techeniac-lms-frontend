@@ -5,6 +5,7 @@ import React, { useMemo, useState } from 'react';
 import { AllocationStatusBadge } from '@/components/app/allocations/AllocationStatusBadge';
 import { MENTEE_COURSES_NAV } from '@/components/app/navigation/portal-nav.config';
 import { Header } from '@/components/layout/Header';
+import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { H1, H3, P, Span } from '@/components/ui/Typography';
 import { useAllocationsList } from '@/hooks/useAllocations';
@@ -67,12 +68,12 @@ export function MenteeCoursesView() {
           <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
             <div>
               <div className="mb-2 flex items-center gap-2">
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-xs font-bold text-blue-600">
+                <Span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-xs font-bold text-blue-600">
                   📚
-                </span>
-                <span className="font-mono text-xs font-bold tracking-wider text-blue-600 uppercase">
+                </Span>
+                <Span className="font-mono text-xs font-bold tracking-wider text-blue-600 uppercase">
                   Cohort Curricula
-                </span>
+                </Span>
               </div>
               <H1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
                 My Courses
@@ -98,70 +99,78 @@ export function MenteeCoursesView() {
           {/* Segmented Tabs & Summary Strip */}
           <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
             <div className="inline-flex gap-1 rounded-xl border border-slate-200/80 bg-slate-100 p-1">
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => setStatusTab('active')}
-                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition-all ${
+                className={`flex h-auto items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition-all ${
                   statusTab === 'active'
-                    ? 'bg-white text-blue-600 shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white text-blue-600 shadow-xs hover:bg-white hover:text-blue-600'
+                    : 'text-slate-600 hover:bg-slate-200/60 hover:text-slate-900'
                 }`}
               >
-                <span>Active</span>
-                <span className="inline-flex items-center justify-center rounded-full bg-blue-100 px-1.5 py-0.5 font-mono text-[10px] font-bold text-blue-800">
+                <Span>Active</Span>
+                <Span className="inline-flex items-center justify-center rounded-full bg-blue-100 px-1.5 py-0.5 font-mono text-[10px] font-bold text-blue-800">
                   {activeCount}
-                </span>
-              </button>
+                </Span>
+              </Button>
 
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => setStatusTab('completed')}
-                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition-all ${
+                className={`flex h-auto items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition-all ${
                   statusTab === 'completed'
-                    ? 'bg-white text-emerald-600 shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white text-emerald-600 shadow-xs hover:bg-white hover:text-emerald-600'
+                    : 'text-slate-600 hover:bg-slate-200/60 hover:text-slate-900'
                 }`}
               >
-                <span>Completed</span>
-                <span className="inline-flex items-center justify-center rounded-full bg-emerald-100 px-1.5 py-0.5 font-mono text-[10px] font-bold text-emerald-800">
+                <Span>Completed</Span>
+                <Span className="inline-flex items-center justify-center rounded-full bg-emerald-100 px-1.5 py-0.5 font-mono text-[10px] font-bold text-emerald-800">
                   {completedCount}
-                </span>
-              </button>
+                </Span>
+              </Button>
 
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => setStatusTab('closed')}
-                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition-all ${
+                className={`flex h-auto items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition-all ${
                   statusTab === 'closed'
-                    ? 'bg-white text-slate-800 shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white text-slate-800 shadow-xs hover:bg-white hover:text-slate-800'
+                    : 'text-slate-600 hover:bg-slate-200/60 hover:text-slate-900'
                 }`}
               >
-                <span>Closed</span>
-                <span className="inline-flex items-center justify-center rounded-full bg-slate-200 px-1.5 py-0.5 font-mono text-[10px] font-bold text-slate-700">
+                <Span>Closed</Span>
+                <Span className="inline-flex items-center justify-center rounded-full bg-slate-200 px-1.5 py-0.5 font-mono text-[10px] font-bold text-slate-700">
                   {closedCount}
-                </span>
-              </button>
+                </Span>
+              </Button>
 
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => setStatusTab('all')}
-                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition-all ${
+                className={`flex h-auto items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition-all ${
                   statusTab === 'all'
-                    ? 'bg-white text-slate-900 shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white text-slate-900 shadow-xs hover:bg-white hover:text-slate-900'
+                    : 'text-slate-600 hover:bg-slate-200/60 hover:text-slate-900'
                 }`}
               >
-                <span>All Tracks</span>
-                <span className="inline-flex items-center justify-center rounded-full bg-slate-200 px-1.5 py-0.5 font-mono text-[10px] font-bold text-slate-700">
+                <Span>All Tracks</Span>
+                <Span className="inline-flex items-center justify-center rounded-full bg-slate-200 px-1.5 py-0.5 font-mono text-[10px] font-bold text-slate-700">
                   {allocations.length}
-                </span>
-              </button>
+                </Span>
+              </Button>
             </div>
 
             <div className="hidden items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 font-mono text-xs text-slate-600 sm:flex">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              <span>Enrolled Curriculum Telemetry Active</span>
+              <Span className="h-2 w-2 rounded-full bg-emerald-500" />
+              <Span>Enrolled Curriculum Telemetry Active</Span>
             </div>
           </div>
         </div>
@@ -234,12 +243,12 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
               📖
             </div>
             <div className="flex flex-col">
-              <span className="max-w-[160px] truncate font-mono text-[11px] font-bold tracking-wide text-blue-600 uppercase">
+              <Span className="max-w-[160px] truncate font-mono text-[11px] font-bold tracking-wide text-blue-600 uppercase">
                 {allocation.batch ? allocation.batch.name : 'Individual Track'}
-              </span>
-              <span className="font-mono text-xs text-slate-400">
+              </Span>
+              <Span className="font-mono text-xs text-slate-400">
                 {allocation.batch?.code ?? 'Core Curriculum'}
-              </span>
+              </Span>
             </div>
           </div>
 
@@ -257,8 +266,8 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
         {/* Progress Section */}
         <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-3.5">
           <div className="mb-1.5 flex items-center justify-between text-xs font-semibold">
-            <span className="text-slate-700">Course Pace</span>
-            <span
+            <Span className="text-slate-700">Course Pace</Span>
+            <Span
               className={`font-mono ${
                 isCompleted
                   ? 'font-bold text-emerald-600'
@@ -268,7 +277,7 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
               }`}
             >
               {allocation.progressPercent}%
-            </span>
+            </Span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-slate-200">
             <div
@@ -283,17 +292,17 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
         {/* Metadata Row */}
         <div className="mt-4 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3 text-xs">
           <div className="flex items-center gap-1.5 text-slate-500">
-            <span className="text-slate-400">⏱</span>
-            <span className="font-mono text-[11px]">
+            <Span className="text-slate-400">⏱</Span>
+            <Span className="font-mono text-[11px]">
               {allocation.estimatedMinutes
                 ? `${Math.floor(allocation.estimatedMinutes / 60)}h ${allocation.estimatedMinutes % 60}m est.`
                 : 'Paced track'}
-            </span>
+            </Span>
           </div>
 
           <div className="flex items-center justify-end gap-1.5 text-right font-medium text-slate-700">
-            <span className="text-slate-400">📅</span>
-            <span className="truncate font-mono text-[11px]">Due {formattedDueDate}</span>
+            <Span className="text-slate-400">📅</Span>
+            <Span className="truncate font-mono text-[11px]">Due {formattedDueDate}</Span>
           </div>
         </div>
       </div>
@@ -302,15 +311,15 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
       <div className="mt-5 border-t border-slate-100 pt-3">
         {isRevokedOrClosed ? (
           <div className="flex items-center justify-center rounded-xl bg-slate-100 p-2.5 text-xs font-medium text-slate-500">
-            <span>Course Closed • Read-Only (M7)</span>
+            <Span>Course Closed • Read-Only (M7)</Span>
           </div>
         ) : isCompleted ? (
           <div className="flex items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 p-2.5 text-xs font-bold text-emerald-700">
-            <span>✓ Track Completed (100%)</span>
+            <Span>✓ Track Completed (100%)</Span>
           </div>
         ) : (
           <div className="flex items-center justify-center rounded-xl bg-blue-600 p-2.5 text-xs font-bold text-white shadow-xs transition-colors hover:bg-blue-700">
-            <span>In Progress • Active Milestone</span>
+            <Span>In Progress • Active Milestone</Span>
           </div>
         )}
       </div>

@@ -251,8 +251,8 @@ function AssignCourseModalDialog({
               <ul className="mt-2 max-h-32 divide-y divide-amber-100 overflow-y-auto rounded-lg border border-amber-200/60 bg-white/70 text-xs text-amber-900">
                 {result.skipped.map((s, idx) => (
                   <li key={idx} className="flex items-center justify-between p-2">
-                    <span className="truncate font-mono text-[11px]">{s.menteeId}</span>
-                    <span className="text-[10px] font-medium text-amber-700">{s.reason}</span>
+                    <Span className="truncate font-mono text-[11px]">{s.menteeId}</Span>
+                    <Span className="text-[10px] font-medium text-amber-700">{s.reason}</Span>
                   </li>
                 ))}
               </ul>
@@ -328,13 +328,13 @@ function AssignCourseModalDialog({
               >
                 1
               </div>
-              <span
+              <Span
                 className={`font-semibold ${
                   currentStep === 1 ? 'text-blue-600' : 'text-slate-600'
                 }`}
               >
                 Select Course
-              </span>
+              </Span>
             </div>
 
             <div className="mx-3 h-0.5 flex-1 bg-slate-200">
@@ -354,13 +354,13 @@ function AssignCourseModalDialog({
               >
                 2
               </div>
-              <span
+              <Span
                 className={`font-semibold ${
                   currentStep === 2 ? 'text-blue-600' : 'text-slate-600'
                 }`}
               >
                 Targets
-              </span>
+              </Span>
             </div>
 
             <div className="mx-3 h-0.5 flex-1 bg-slate-200">
@@ -375,18 +375,18 @@ function AssignCourseModalDialog({
             <div className="flex items-center gap-2">
               <div
                 className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
-                  currentStep === 3 ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'
+                  currentStep >= 3 ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'
                 }`}
               >
                 3
               </div>
-              <span
+              <Span
                 className={`font-semibold ${
                   currentStep === 3 ? 'text-blue-600' : 'text-slate-600'
                 }`}
               >
                 Schedule & Review
-              </span>
+              </Span>
             </div>
           </div>
         </div>
@@ -432,14 +432,14 @@ function AssignCourseModalDialog({
                   {selectedCourse.description || 'Enterprise curriculum module.'}
                 </P>
                 <div className="mt-3 flex items-center gap-4 font-mono text-xs text-slate-600">
-                  <span>
+                  <Span>
                     Duration:{' '}
                     {selectedCourse.estimatedMinutes
                       ? `${Math.floor(selectedCourse.estimatedMinutes / 60)}h ${selectedCourse.estimatedMinutes % 60}m`
                       : 'Unspecified'}
-                  </span>
-                  <span>•</span>
-                  <span>Status: Active</span>
+                  </Span>
+                  <Span>•</Span>
+                  <Span>Status: Active</Span>
                 </div>
               </div>
             ) : null}
@@ -452,61 +452,64 @@ function AssignCourseModalDialog({
             <div>
               <Label required>Target Scope</Label>
               <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
-                <button
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={() => {
                     setTargetType('BATCH');
                     setSelectedMenteeIds([]);
                   }}
-                  className={`rounded-xl border p-3.5 text-left transition-all ${
+                  className={`h-auto flex-col items-start rounded-xl border p-3.5 text-left transition-all ${
                     targetType === 'BATCH'
-                      ? 'border-blue-600 bg-blue-50/60 shadow-xs ring-2 ring-blue-500'
-                      : 'border-slate-200 bg-white hover:border-slate-300'
+                      ? 'border-blue-600 bg-blue-50/60 shadow-xs ring-2 ring-blue-500 hover:bg-blue-50/70'
+                      : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'
                   }`}
                 >
                   <P className="text-sm font-semibold text-slate-900">Whole Batch</P>
                   <Span className="mt-0.5 block text-xs text-slate-500">
                     All active mentees enrolled in cohort
                   </Span>
-                </button>
+                </Button>
 
-                <button
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={() => {
                     setTargetType('SELECTED_MENTEES');
                     setSelectedMenteeIds([]);
                   }}
-                  className={`rounded-xl border p-3.5 text-left transition-all ${
+                  className={`h-auto flex-col items-start rounded-xl border p-3.5 text-left transition-all ${
                     targetType === 'SELECTED_MENTEES'
-                      ? 'border-blue-600 bg-blue-50/60 shadow-xs ring-2 ring-blue-500'
-                      : 'border-slate-200 bg-white hover:border-slate-300'
+                      ? 'border-blue-600 bg-blue-50/60 shadow-xs ring-2 ring-blue-500 hover:bg-blue-50/70'
+                      : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'
                   }`}
                 >
                   <P className="text-sm font-semibold text-slate-900">Selected Mentees</P>
                   <Span className="mt-0.5 block text-xs text-slate-500">
                     Specific mentees inside a batch
                   </Span>
-                </button>
+                </Button>
 
                 {userRole === 'SUPER_ADMIN' ? (
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
                     onClick={() => {
                       setTargetType('INDIVIDUAL_MENTEES');
                       setSelectedBatchId('');
                       setSelectedMenteeIds([]);
                     }}
-                    className={`rounded-xl border p-3.5 text-left transition-all ${
+                    className={`h-auto flex-col items-start rounded-xl border p-3.5 text-left transition-all ${
                       targetType === 'INDIVIDUAL_MENTEES'
-                        ? 'border-blue-600 bg-blue-50/60 shadow-xs ring-2 ring-blue-500'
-                        : 'border-slate-200 bg-white hover:border-slate-300'
+                        ? 'border-blue-600 bg-blue-50/60 shadow-xs ring-2 ring-blue-500 hover:bg-blue-50/70'
+                        : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'
                     }`}
                   >
                     <P className="text-sm font-semibold text-slate-900">Individual Mentees</P>
                     <Span className="mt-0.5 block text-xs text-slate-500">
                       Outside any batch (Admin only)
                     </Span>
-                  </button>
+                  </Button>
                 ) : null}
               </div>
             </div>
@@ -547,21 +550,25 @@ function AssignCourseModalDialog({
                 <div className="flex items-center justify-between">
                   <Label required>Pick Mentees ({selectedMenteeIds.length} selected)</Label>
                   <div className="space-x-2 text-xs">
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={selectAllMentees}
-                      className="font-semibold text-blue-600 hover:underline"
+                      className="h-auto p-0 font-semibold text-blue-600 hover:bg-transparent hover:underline"
                     >
                       Select all
-                    </button>
-                    <span className="text-slate-300">|</span>
-                    <button
+                    </Button>
+                    <Span className="text-slate-300">|</Span>
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={deselectAllMentees}
-                      className="text-slate-500 hover:underline"
+                      className="h-auto p-0 text-slate-500 hover:bg-transparent hover:underline"
                     >
                       Clear
-                    </button>
+                    </Button>
                   </div>
                 </div>
 
@@ -576,12 +583,12 @@ function AssignCourseModalDialog({
                           checked={selectedMenteeIds.includes(mentee.id)}
                           onChange={() => toggleMentee(mentee.id)}
                         />
-                        <label
+                        <Label
                           htmlFor={`batch-m-${mentee.id}`}
-                          className="cursor-pointer text-xs font-medium text-slate-800"
+                          className="cursor-pointer text-xs font-normal text-slate-800"
                         >
-                          {mentee.name} <span className="text-slate-400">({mentee.email})</span>
-                        </label>
+                          {mentee.name} <Span className="text-slate-400">({mentee.email})</Span>
+                        </Label>
                       </div>
                     ))
                   )}
@@ -597,21 +604,25 @@ function AssignCourseModalDialog({
                     Pick Independent Mentees ({selectedMenteeIds.length} selected)
                   </Label>
                   <div className="space-x-2 text-xs">
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={selectAllMentees}
-                      className="font-semibold text-blue-600 hover:underline"
+                      className="h-auto p-0 font-semibold text-blue-600 hover:bg-transparent hover:underline"
                     >
                       Select all
-                    </button>
-                    <span className="text-slate-300">|</span>
-                    <button
+                    </Button>
+                    <Span className="text-slate-300">|</Span>
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={deselectAllMentees}
-                      className="text-slate-500 hover:underline"
+                      className="h-auto p-0 text-slate-500 hover:bg-transparent hover:underline"
                     >
                       Clear
-                    </button>
+                    </Button>
                   </div>
                 </div>
 
@@ -628,12 +639,12 @@ function AssignCourseModalDialog({
                           checked={selectedMenteeIds.includes(mentee.id)}
                           onChange={() => toggleMentee(mentee.id)}
                         />
-                        <label
+                        <Label
                           htmlFor={`ind-m-${mentee.id}`}
-                          className="cursor-pointer text-xs font-medium text-slate-800"
+                          className="cursor-pointer text-xs font-normal text-slate-800"
                         >
-                          {mentee.name} <span className="text-slate-400">({mentee.email})</span>
-                        </label>
+                          {mentee.name} <Span className="text-slate-400">({mentee.email})</Span>
+                        </Label>
                       </div>
                     ))
                   )}
@@ -702,18 +713,18 @@ function AssignCourseModalDialog({
             </div>
 
             <div className="space-y-1.5 rounded-xl border border-slate-300 bg-slate-50 p-4 text-xs text-slate-700 shadow-2xs">
-              <p className="text-sm font-semibold text-slate-900">Deployment Policy Notice:</p>
-              <p className="leading-relaxed text-slate-700">
+              <P className="text-sm font-semibold text-slate-900">Deployment Policy Notice:</P>
+              <P className="leading-relaxed text-slate-700">
                 • Mentees who already hold an open allocation of this course will be safely skipped
                 (ALC-13).
-              </p>
-              <p className="leading-relaxed text-slate-700">
+              </P>
+              <P className="leading-relaxed text-slate-700">
                 • Creating this allocation automatically inserts topic progress rows for all active
                 course topics (M8).
-              </p>
-              <p className="leading-relaxed text-slate-700">
+              </P>
+              <P className="leading-relaxed text-slate-700">
                 • Mentees will receive automated allocation welcome emails with their due date.
-              </p>
+              </P>
             </div>
           </div>
         ) : null}

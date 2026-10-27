@@ -2,6 +2,7 @@
 
 import React from 'react';
 
+import { Span } from '@/components/ui/Typography';
 import type { CourseAllocationStatus } from '@/services/allocations.service';
 
 export interface AllocationStatusBadgeProps {
@@ -42,15 +43,15 @@ export function AllocationStatusBadge({ status, isOverdue }: AllocationStatusBad
 
   return (
     <div className="flex items-center gap-1.5">
-      <span
+      <Span
         className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${badgeStyle}`}
       >
         {label}
-      </span>
+      </Span>
       {isOverdue && status !== 'COMPLETED' && status !== 'REVOKED' ? (
-        <span className="inline-flex items-center rounded-full border border-red-300 bg-red-100 px-2 py-0.5 text-xs font-bold text-red-800">
+        <Span className="inline-flex items-center rounded-full border border-red-300 bg-red-100 px-2 py-0.5 text-xs font-bold text-red-800">
           OVERDUE
-        </span>
+        </Span>
       ) : null}
     </div>
   );

@@ -113,9 +113,9 @@ export function AssignmentOverridesModal({
                       Due: {new Date(ov.dueDate).toLocaleDateString()}
                     </Span>
                   </div>
-                  <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
+                  <Span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
                     Overridden
-                  </span>
+                  </Span>
                 </div>
               ))
             )}

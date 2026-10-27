@@ -97,17 +97,17 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
       <div className="flex flex-col gap-3">
         {userRole === 'MENTOR' ? (
           <div className="flex w-fit items-center gap-2 rounded-lg border border-blue-100 bg-blue-50/70 px-3 py-1.5 text-xs text-blue-900">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-600" />
-            <span className="font-semibold">Scoped to assigned cohorts & mapped mentees</span>
-            <span className="text-blue-300">|</span>
-            <span className="font-mono text-[11px] text-blue-700">Mentor Governance Active</span>
+            <Span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-600" />
+            <Span className="font-semibold">Scoped to assigned cohorts & mapped mentees</Span>
+            <Span className="text-blue-300">|</Span>
+            <Span className="font-mono text-[11px] text-blue-700">Mentor Governance Active</Span>
           </div>
         ) : (
           <div className="flex w-fit items-center gap-2 rounded-lg border border-purple-100 bg-purple-50/70 px-3 py-1.5 text-xs text-purple-900">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-purple-600" />
-            <span className="font-semibold">Super Admin Fleet Command</span>
-            <span className="text-purple-300">|</span>
-            <span className="font-mono text-[11px] text-purple-700">Enterprise Global Access</span>
+            <Span className="h-1.5 w-1.5 animate-pulse rounded-full bg-purple-600" />
+            <Span className="font-semibold">Super Admin Fleet Command</Span>
+            <Span className="text-purple-300">|</Span>
+            <Span className="font-mono text-[11px] text-purple-700">Enterprise Global Access</Span>
           </div>
         )}
 
@@ -125,8 +125,8 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
               onClick={() => setIsAssignModalOpen(true)}
               className="inline-flex items-center gap-2 bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-blue-700"
             >
-              <span>+</span>
-              <span>Assign Course</span>
+              <Span>+</Span>
+              <Span>Assign Course</Span>
             </Button>
           </div>
         </div>
@@ -228,50 +228,58 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
 
           {/* Status Tabs */}
           <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1 text-xs">
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => handleStatusFilter('')}
-              className={`rounded-lg px-3 py-1.5 font-semibold transition-all ${
+              className={`h-auto rounded-lg px-3 py-1.5 font-semibold transition-all ${
                 !filters.status
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white text-slate-900 shadow-xs hover:bg-white'
+                  : 'text-slate-600 hover:bg-slate-200/60 hover:text-slate-900'
               }`}
             >
-              All <span className="font-normal text-slate-400">{allocations.length}</span>
-            </button>
-            <button
+              All <Span className="font-normal text-slate-400">{allocations.length}</Span>
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => handleStatusFilter('IN_PROGRESS')}
-              className={`rounded-lg px-3 py-1.5 font-semibold transition-all ${
+              className={`h-auto rounded-lg px-3 py-1.5 font-semibold transition-all ${
                 filters.status === 'IN_PROGRESS'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white text-slate-900 shadow-xs hover:bg-white'
+                  : 'text-slate-600 hover:bg-slate-200/60 hover:text-slate-900'
               }`}
             >
               Active
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => handleStatusFilter('COMPLETED')}
-              className={`rounded-lg px-3 py-1.5 font-semibold transition-all ${
+              className={`h-auto rounded-lg px-3 py-1.5 font-semibold transition-all ${
                 filters.status === 'COMPLETED'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white text-slate-900 shadow-xs hover:bg-white'
+                  : 'text-slate-600 hover:bg-slate-200/60 hover:text-slate-900'
               }`}
             >
               Completed
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => handleStatusFilter('OVERDUE')}
-              className={`rounded-lg px-3 py-1.5 font-semibold transition-all ${
+              className={`h-auto rounded-lg px-3 py-1.5 font-semibold transition-all ${
                 filters.status === 'OVERDUE'
-                  ? 'bg-white text-rose-700 shadow-xs'
-                  : 'text-rose-600 hover:text-rose-700'
+                  ? 'bg-white text-rose-700 shadow-xs hover:bg-white'
+                  : 'text-rose-600 hover:bg-rose-100/60 hover:text-rose-700'
               }`}
             >
               Overdue
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -340,16 +348,18 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                         className={`transition-colors ${isExpanded ? 'bg-slate-50/70' : 'hover:bg-slate-50/60'}`}
                       >
                         <td className="py-4 pr-2 pl-6 align-middle">
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="sm"
                             onClick={() => toggleExpand(alloc.id)}
-                            className="flex h-6 w-6 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-200/60 hover:text-slate-700"
+                            className="flex h-6 w-6 items-center justify-center p-0 text-slate-400 transition-colors hover:bg-slate-200/60 hover:text-slate-700"
                             title={isExpanded ? 'Collapse breakdown' : 'Expand mentee breakdown'}
                           >
-                            <span className="font-mono text-sm font-bold">
+                            <Span className="font-mono text-sm font-bold">
                               {isExpanded ? '▼' : '▶'}
-                            </span>
-                          </button>
+                            </Span>
+                          </Button>
                         </td>
                         <td className="px-4 py-4 align-middle">
                           <div className="font-semibold text-slate-900">
@@ -399,9 +409,9 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                                 }}
                               />
                             </div>
-                            <span className="w-9 text-right font-mono text-xs font-bold text-slate-700">
+                            <Span className="w-9 text-right font-mono text-xs font-bold text-slate-700">
                               {alloc.progressPercent}%
-                            </span>
+                            </Span>
                           </div>
                         </td>
                         <td className="px-4 py-4 align-middle">
@@ -456,16 +466,16 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                             <div className="border-t border-b border-slate-200/80 px-10 py-4">
                               <div className="mb-3 flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                  <span className="font-mono text-xs font-bold text-slate-700 uppercase">
+                                  <Span className="font-mono text-xs font-bold text-slate-700 uppercase">
                                     Enrolled Mentee Milestone Telemetry
-                                  </span>
-                                  <span className="text-xs text-slate-400">
+                                  </Span>
+                                  <Span className="text-xs text-slate-400">
                                     • Active subscriber details
-                                  </span>
+                                  </Span>
                                 </div>
-                                <span className="font-mono text-xs text-slate-500">
+                                <Span className="font-mono text-xs text-slate-500">
                                   Allocation ID: {alloc.id.slice(0, 8)}...
-                                </span>
+                                </Span>
                               </div>
 
                               <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
@@ -504,9 +514,9 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                                         style={{ width: `${alloc.progressPercent}%` }}
                                       />
                                     </div>
-                                    <span className="w-9 text-right font-mono text-xs font-bold text-slate-600">
+                                    <Span className="w-9 text-right font-mono text-xs font-bold text-slate-600">
                                       {alloc.progressPercent}%
-                                    </span>
+                                    </Span>
                                   </div>
 
                                   <div className="w-28 text-center">
@@ -558,9 +568,9 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
               >
                 Previous
               </Button>
-              <span className="px-2 font-mono font-medium text-slate-700">
+              <Span className="px-2 font-mono font-medium text-slate-700">
                 Page {pagination.page} of {pagination.totalPages}
-              </span>
+              </Span>
               <Button
                 type="button"
                 variant="outline"
