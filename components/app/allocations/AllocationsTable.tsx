@@ -138,19 +138,17 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
               Manage course deployments, mentee timelines, deadlines, and assignment overrides (M7).
             </P>
           </div>
-          {userRole === 'SUPER_ADMIN' ? (
-            <div className="flex items-center gap-2.5">
-              <Button
-                type="button"
-                variant="primary"
-                onClick={() => setIsAssignModalOpen(true)}
-                className="inline-flex items-center gap-2 bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-blue-700"
-              >
-                <Span>+</Span>
-                <Span>Assign Course</Span>
-              </Button>
-            </div>
-          ) : null}
+          <div className="flex items-center gap-2.5">
+            <Button
+              type="button"
+              variant="primary"
+              onClick={() => setIsAssignModalOpen(true)}
+              className="inline-flex items-center gap-2 bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-blue-700"
+            >
+              <Span>+</Span>
+              <Span>Assign Course</Span>
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -448,30 +446,30 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                           />
                         </td>
                         <td className="py-4 pr-6 pl-4 text-right align-middle">
-                          {userRole === 'SUPER_ADMIN' ? (
-                            <div className="flex items-center justify-end gap-1.5">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setEditingAllocation(alloc)}
-                                disabled={isTerminalAllocationStatus(alloc.status)}
-                                className="h-8 px-2.5 text-xs text-slate-600 hover:text-slate-900"
-                                title="Edit dates & duration"
-                              >
-                                Dates
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setOverridingAllocation(alloc)}
-                                disabled={isTerminalAllocationStatus(alloc.status)}
-                                className="h-8 px-2.5 text-xs text-slate-600 hover:text-slate-900"
-                                title="Assignment due-date overrides"
-                              >
-                                Overrides
-                              </Button>
+                          <div className="flex items-center justify-end gap-1.5">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setEditingAllocation(alloc)}
+                              disabled={isTerminalAllocationStatus(alloc.status)}
+                              className="h-8 px-2.5 text-xs text-slate-600 hover:text-slate-900"
+                              title="Edit dates & duration"
+                            >
+                              Dates
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setOverridingAllocation(alloc)}
+                              disabled={isTerminalAllocationStatus(alloc.status)}
+                              className="h-8 px-2.5 text-xs text-slate-600 hover:text-slate-900"
+                              title="Assignment due-date overrides"
+                            >
+                              Overrides
+                            </Button>
+                            {userRole === 'SUPER_ADMIN' ? (
                               <Button
                                 type="button"
                                 variant="ghost"
@@ -483,10 +481,8 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                               >
                                 Revoke
                               </Button>
-                            </div>
-                          ) : (
-                            <Span className="font-mono text-xs text-slate-400">View only</Span>
-                          )}
+                            ) : null}
+                          </div>
                         </td>
                       </tr>
 
