@@ -111,6 +111,16 @@ function AssignCourseModalDialog({
     return due.toISOString().split('T')[0];
   }, [startDate, selectedCourse]);
 
+  const startDateError = useMemo(() => {
+    if (!dateError) return null;
+    return dateError.toLowerCase().startsWith('start date') ? dateError : null;
+  }, [dateError]);
+
+  const dueDateError = useMemo(() => {
+    if (!dateError) return null;
+    return !dateError.toLowerCase().startsWith('start date') ? dateError : null;
+  }, [dateError]);
+
   const availableBatchMentees = useMemo(() => {
     if (!batchDetailData?.members) return [];
     return batchDetailData.members
@@ -714,12 +724,15 @@ function AssignCourseModalDialog({
                   id="assign-start-date"
                   type="date"
                   value={startDate}
+                  hasError={Boolean(startDateError)}
+                  errorId="assign-start-date-error"
                   onChange={(e) => {
                     setStartDate(e.target.value);
                     if (dateError) setDateError(null);
                   }}
                   className="w-full text-sm"
                 />
+                <FieldError id="assign-start-date-error" error={startDateError} />
               </div>
 
               <div>
@@ -730,7 +743,7 @@ function AssignCourseModalDialog({
                   id="assign-due-date"
                   type="date"
                   value={dueDate || (estimatedDueDateText ?? '')}
-                  hasError={Boolean(dateError)}
+                  hasError={Boolean(dueDateError)}
                   errorId="assign-due-date-error"
                   onChange={(e) => {
                     setDueDate(e.target.value);
@@ -738,7 +751,7 @@ function AssignCourseModalDialog({
                   }}
                   className="w-full text-sm"
                 />
-                <FieldError id="assign-due-date-error" error={dateError} />
+                <FieldError id="assign-due-date-error" error={dueDateError} />
                 {estimatedDueDateText && !dueDate ? (
                   <P className="mt-1 text-xs text-slate-500">
                     Prefilled with start + estimated duration ({estimatedDueDateText})
