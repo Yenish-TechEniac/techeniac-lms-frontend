@@ -11,6 +11,8 @@ import {
   usersService,
 } from '@/services/users.service';
 
+export type { ApiUser, UserQueryFilters };
+
 export type BulkImportRowData = CreateUserFormData & { rowNumber?: number };
 
 export interface BulkImportFailure {
