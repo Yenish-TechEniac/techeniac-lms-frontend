@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useMemo, useState } from 'react';
 
+import { AssignCourseModal } from '@/components/app/allocations/AssignCourseModal';
 import { AddMemberModal } from '@/components/app/batches/AddMemberModal';
 import { BatchStatusModal } from '@/components/app/batches/BatchStatusModal';
 import { CreateBatchModal } from '@/components/app/batches/CreateBatchModal';
@@ -17,6 +18,7 @@ import { Modal } from '@/components/patterns/Modal';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { H1, H3, P, Span } from '@/components/ui/Typography';
+import { useBatchAllocations } from '@/hooks/useAllocations';
 import {
   useAvailableBatches,
   useBatchDetail,
@@ -173,6 +175,7 @@ export function BatchDashboardView({
   }>({ isOpen: false, targetMentee: null });
 
   const activeId = batchId ?? initialBatch?.id ?? '';
+  const [isAssignCourseModalOpen, setIsAssignCourseModalOpen] = useState(false);
   const {
     data: serverBatchDetail,
     isLoading,
@@ -180,6 +183,7 @@ export function BatchDashboardView({
     error: batchError,
     refetch: refetchBatch,
   } = useBatchDetail(activeId);
+  const { data: batchAllocationsData, refetch: refetchAllocations } = useBatchAllocations(activeId);
   const { data: availableBatchesList } = useAvailableBatches();
   const removeMemberMutation = useRemoveBatchMemberMutation();
 
@@ -201,6 +205,42 @@ export function BatchDashboardView({
     }
   };
 
+  const allocatedCourses = useMemo<AllocatedCourseItem[]>(() => {
+    const allocs = batchAllocationsData?.items ?? [];
+    if (allocs.length === 0) return [];
+
+    const map = new Map<
+      string,
+      { title: string; dueDate: string; totalProgress: number; count: number; status: string }
+    >();
+
+    for (const a of allocs) {
+      const cId = a.courseId;
+      const title = a.course?.title ?? 'Untitled Course';
+      const existing = map.get(cId);
+      if (!existing) {
+        map.set(cId, {
+          title,
+          dueDate: new Date(a.dueDate).toLocaleDateString(),
+          totalProgress: a.progressPercent,
+          count: 1,
+          status: a.status,
+        });
+      } else {
+        existing.totalProgress += a.progressPercent;
+        existing.count += 1;
+      }
+    }
+
+    return Array.from(map.entries()).map(([id, val]) => ({
+      id,
+      title: val.title,
+      dueDate: val.dueDate,
+      averageProgress: Math.round(val.totalProgress / val.count),
+      status: val.status,
+    }));
+  }, [batchAllocationsData]);
+
   const batch: BatchDetailData | null = useMemo(() => {
     if (serverBatchDetail) {
       return {
@@ -212,12 +252,12 @@ export function BatchDashboardView({
         endDate: serverBatchDetail.endDate,
         description: serverBatchDetail.description ?? initialBatch?.description,
         members: serverBatchDetail.members ?? [],
-        courses: [],
+        courses: allocatedCourses,
         history: serverBatchDetail.history ?? [],
       };
     }
     return initialBatch ?? null;
-  }, [serverBatchDetail, initialBatch]);
+  }, [serverBatchDetail, initialBatch, allocatedCourses]);
 
   const availableBatches: BatchOption[] = useMemo(() => {
     if (!availableBatchesList || !Array.isArray(availableBatchesList)) return [];
@@ -594,11 +634,20 @@ export function BatchDashboardView({
       {/* Tab 2: Courses */}
       {activeTab === 'courses' ? (
         <div className="space-y-4">
-          <Alert
-            variant="info"
-            title="Course Allocation Launches with Module 6"
-            message="Curriculum sequencing, syllabus assignment, and automated progress monitoring will become active when Module 6 (Course Management) is connected."
-          />
+          <div className="flex items-center justify-between">
+            <P className="text-xs text-slate-500">
+              Curriculum allocations assigned to members of this cohort.
+            </P>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsAssignCourseModalOpen(true)}
+              className="text-xs font-semibold"
+            >
+              + Allocate Course
+            </Button>
+          </div>
           {batch.courses.length > 0 ? (
             <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
               <div className="overflow-x-auto">
@@ -657,8 +706,18 @@ export function BatchDashboardView({
               <Span className="text-3xl">📚</Span>
               <H3 className="mt-3 text-base font-bold text-slate-900">No Courses Allocated Yet</H3>
               <P className="mx-auto mt-1 max-w-md text-xs text-slate-500">
-                Course allocation and track-level curriculum assignment will be enabled in Module 6.
+                Allocate active curriculum from the Course Library to this cohort.
               </P>
+              <div className="mt-4">
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  onClick={() => setIsAssignCourseModalOpen(true)}
+                >
+                  Allocate Course
+                </Button>
+              </div>
             </div>
           )}
         </div>
@@ -800,6 +859,15 @@ export function BatchDashboardView({
           </P>
         </div>
       </Modal>
+
+      <AssignCourseModal
+        isOpen={isAssignCourseModalOpen}
+        onClose={() => setIsAssignCourseModalOpen(false)}
+        userRole="SUPER_ADMIN"
+        onSuccess={() => {
+          void refetchAllocations();
+        }}
+      />
     </div>
   );
 }

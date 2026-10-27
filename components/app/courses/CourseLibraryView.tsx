@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useMemo, useState } from 'react';
 
+import { AssignCourseModal } from '@/components/app/allocations/AssignCourseModal';
 import { CourseCard } from '@/components/app/courses/CourseCard';
 import { ImpactNoticeModal } from '@/components/app/courses/ImpactNoticeModal';
 import {
@@ -16,7 +17,7 @@ import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { H1, H3, P } from '@/components/ui/Typography';
+import { H1, H3, P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { useCourses } from '@/hooks/useCourses';
 import { useDurationInput } from '@/hooks/useDurationInput';
@@ -83,6 +84,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
 
   // Impact & Action Modals State
   const [activeActionCourse, setActiveActionCourse] = useState<Course | null>(null);
+  const [assignModalCourse, setAssignModalCourse] = useState<Course | null>(null);
   const [courseImpact, setCourseImpact] = useState<CourseImpact | null>(null);
   const [impactStatus, setImpactStatus] = useState<'idle' | 'loading' | 'success' | 'error'>(
     'idle',
@@ -221,8 +223,8 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
               <Link href={`/${portal}`} className="transition-colors hover:text-slate-900">
                 {breadcrumbRoot}
               </Link>
-              <span className="text-slate-300">/</span>
-              <span className="font-semibold text-slate-900">Curriculum & Course Library</span>
+              <Span className="text-slate-300">/</Span>
+              <Span className="font-semibold text-slate-900">Curriculum & Course Library</Span>
             </div>
             <H1 className="mt-1.5 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
               Course Library
@@ -247,7 +249,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
               </svg>
-              <span>Create New Course</span>
+              <Span>Create New Course</Span>
             </Button>
           </div>
         </div>
@@ -256,9 +258,9 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all hover:border-slate-300 hover:shadow-sm">
             <div>
-              <span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
+              <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
                 Total Courses
-              </span>
+              </Span>
               <div className="mt-1.5 text-3xl font-extrabold tracking-tight text-slate-900">
                 {total}
               </div>
@@ -281,9 +283,9 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
           </div>
           <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all hover:border-slate-300 hover:shadow-sm">
             <div>
-              <span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
+              <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
                 Active Tracks
-              </span>
+              </Span>
               <div className="mt-1.5 text-3xl font-extrabold tracking-tight text-emerald-600">
                 {activeCount}
               </div>
@@ -306,9 +308,9 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
           </div>
           <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all hover:border-slate-300 hover:shadow-sm">
             <div>
-              <span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
+              <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
                 Draft / Inactive
-              </span>
+              </Span>
               <div className="mt-1.5 text-3xl font-extrabold tracking-tight text-slate-700">
                 {draftCount}
               </div>
@@ -409,6 +411,9 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                   }}
                   onRequestToggleStatus={(targetCourse) => {
                     void onRequestToggleStatus(targetCourse);
+                  }}
+                  onAssignCourse={(targetCourse) => {
+                    setAssignModalCourse(targetCourse);
                   }}
                 />
               ))}
@@ -512,9 +517,9 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                     placeholder="0"
                     className="h-9 w-full rounded-lg border border-slate-300 px-3 py-2 pr-10 text-xs text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
                   />
-                  <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
+                  <Span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
                     hrs
-                  </span>
+                  </Span>
                 </div>
               </div>
               <div>
@@ -531,32 +536,35 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                     placeholder="0"
                     className="h-9 w-full rounded-lg border border-slate-300 px-3 py-2 pr-10 text-xs text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
                   />
-                  <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
+                  <Span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
                     mins
-                  </span>
+                  </Span>
                 </div>
               </div>
             </div>
           </div>
 
           <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3">
-            <span className="text-xs font-bold text-slate-800">Initial Active State</span>
-            <button
+            <Span className="text-xs font-bold text-slate-800">Initial Active State</Span>
+            <Button
               type="button"
+              variant="ghost"
               role="switch"
               aria-checked={newIsActive}
               aria-label="Course active status"
               onClick={() => setNewIsActive(!newIsActive)}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
-                newIsActive ? 'bg-emerald-600' : 'bg-slate-300'
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent p-0 transition-colors duration-200 ease-in-out hover:opacity-90 focus:outline-hidden ${
+                newIsActive
+                  ? 'bg-emerald-600 hover:bg-emerald-700'
+                  : 'bg-slate-300 hover:bg-slate-400'
               }`}
             >
-              <span
+              <Span
                 className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
                   newIsActive ? 'translate-x-5' : 'translate-x-0'
                 }`}
               />
-            </button>
+            </Button>
           </div>
         </form>
       </Modal>
@@ -618,6 +626,14 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
           }}
         />
       )}
+
+      {/* Assign Course Modal */}
+      <AssignCourseModal
+        isOpen={Boolean(assignModalCourse)}
+        onClose={() => setAssignModalCourse(null)}
+        initialCourseId={assignModalCourse?.id}
+        userRole={portal === 'admin' ? 'SUPER_ADMIN' : 'MENTOR'}
+      />
     </div>
   );
 }

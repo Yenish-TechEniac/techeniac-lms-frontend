@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React from 'react';
 
 import { MENTEE_PORTAL_NAV } from '@/components/app/navigation/portal-nav.config';
@@ -247,25 +248,34 @@ export default function MenteePage() {
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           {/* Card 1: Course Progress */}
-          <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
+          <Link
+            href="/mentee/courses"
+            className="group flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs transition-all hover:border-blue-300 hover:shadow-md"
+          >
             <div>
               <div className="flex items-center justify-between">
-                <Span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                <Span className="text-[10px] font-bold tracking-wider text-blue-600 uppercase">
                   Curriculum
                 </Span>
-                <Span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
-                  Module 3
+                <Span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
+                  Active Tracks
                 </Span>
               </div>
-              <H3 className="mt-2 text-base font-bold text-slate-900">Courses & Topics</H3>
+              <H3 className="mt-2 text-base font-bold text-slate-900 transition-colors group-hover:text-blue-600">
+                My Courses & Topics
+              </H3>
               <P className="mt-1 text-xs leading-relaxed text-slate-600">
-                Access structured learning modules, topic checklists, and hands-on coding exercises.
+                Access your allocated curriculum tracks, topic checklists, deadlines, and hands-on
+                coding modules.
               </P>
             </div>
-            <div className="mt-4 border-t border-slate-100 pt-3">
-              <Span className="text-[11px] text-slate-400">Curriculum catalog upcoming</Span>
+            <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
+              <Span className="text-[11px] font-semibold text-blue-600 group-hover:underline">
+                View Enrolled Courses →
+              </Span>
+              <Span className="text-xs text-slate-400">M7 Allocation</Span>
             </div>
-          </div>
+          </Link>
 
           {/* Card 2: Assignments & Deadlines */}
           <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs">

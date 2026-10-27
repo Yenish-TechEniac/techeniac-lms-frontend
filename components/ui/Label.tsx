@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { Span } from '@/components/ui/Typography';
 import { cn } from '@/lib/cn';
 
 export interface LabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
@@ -10,7 +11,7 @@ export function Label({ required = false, children, className, ...props }: Label
   return (
     <label className={cn('block text-sm font-semibold text-slate-900', className)} {...props}>
       {children}
-      {required ? <span className="text-red-500"> *</span> : null}
+      {required ? <Span className="text-red-500"> *</Span> : null}
     </label>
   );
 }

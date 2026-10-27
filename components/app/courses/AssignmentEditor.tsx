@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { H2, H3, H4, P } from '@/components/ui/Typography';
+import { H2, H3, H4, P, Span } from '@/components/ui/Typography';
 import { useDurationInput } from '@/hooks/useDurationInput';
 import { formatErrorMessage, isConflictError } from '@/lib/errors';
 import { Assignment, ResourceItem, SubmissionMode, UpdateAssignmentInput } from '@/types/courses';
@@ -234,10 +234,10 @@ export function AssignmentEditor({
       <div className="flex flex-col gap-3 rounded-2xl border-b border-slate-200 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-bold tracking-wide text-purple-800 uppercase">
+            <Span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-bold tracking-wide text-purple-800 uppercase">
               {assignment.scope} Task
-            </span>
-            <span className="font-mono text-xs text-slate-400">#{assignment.id.slice(0, 8)}</span>
+            </Span>
+            <Span className="font-mono text-xs text-slate-400">#{assignment.id.slice(0, 8)}</Span>
           </div>
           <H2 className="mt-1.5 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
             {assignment.title}
@@ -246,10 +246,10 @@ export function AssignmentEditor({
 
         <div className="flex items-center gap-3">
           {saveSuccess && (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              <span>Saved Live</span>
-            </span>
+            <Span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+              <Span className="h-2 w-2 rounded-full bg-emerald-500" />
+              <Span>Saved Live</Span>
+            </Span>
           )}
 
           <Button
@@ -344,9 +344,9 @@ export function AssignmentEditor({
                       placeholder="0"
                       className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 pr-10 text-sm text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden sm:text-base"
                     />
-                    <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
+                    <Span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
                       hrs
-                    </span>
+                    </Span>
                   </div>
                   <div className="relative">
                     <Input
@@ -358,16 +358,16 @@ export function AssignmentEditor({
                       placeholder="0"
                       className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 pr-11 text-sm text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden sm:text-base"
                     />
-                    <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
+                    <Span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
                       mins
-                    </span>
+                    </Span>
                   </div>
                 </div>
-                <span className="mt-1.5 block text-xs text-slate-500">
+                <Span className="mt-1.5 block text-xs text-slate-500">
                   {totalDurationMinutes > 0
                     ? `${totalDurationMinutes} minutes total`
                     : 'Required (hrs/mins)'}
-                </span>
+                </Span>
               </div>
 
               <div>
@@ -385,7 +385,7 @@ export function AssignmentEditor({
                     className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-base text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
                   />
                 </div>
-                <span className="mt-1.5 block text-xs text-slate-500">Max score (e.g. 100)</span>
+                <Span className="mt-1.5 block text-xs text-slate-500">Max score (e.g. 100)</Span>
               </div>
 
               <div>
@@ -403,37 +403,40 @@ export function AssignmentEditor({
                     className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-base text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
                   />
                 </div>
-                <span className="mt-1.5 block text-xs text-slate-500">Must be &le; Max Marks</span>
+                <Span className="mt-1.5 block text-xs text-slate-500">Must be &le; Max Marks</Span>
               </div>
             </div>
 
             {/* Late Submission Flag */}
             <div className="flex items-center justify-between rounded-xl border border-slate-200/80 bg-slate-50 p-4">
               <div>
-                <span className="block text-sm font-semibold text-slate-900">
+                <Span className="block text-sm font-semibold text-slate-900">
                   Late Submissions Allowed
-                </span>
-                <span className="mt-0.5 block text-xs text-slate-500">
+                </Span>
+                <Span className="mt-0.5 block text-xs text-slate-500">
                   Allow cadets to turn in assignments after the scheduled allocation due date.
-                </span>
+                </Span>
               </div>
 
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 role="switch"
                 aria-checked={allowLate}
                 aria-label="Allow late submissions"
                 onClick={() => handleChange(() => setAllowLate(!allowLate))}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
-                  allowLate ? 'bg-purple-600' : 'bg-slate-300'
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent p-0 transition-colors duration-200 ease-in-out hover:opacity-90 focus:outline-hidden ${
+                  allowLate
+                    ? 'bg-purple-600 hover:bg-purple-700'
+                    : 'bg-slate-300 hover:bg-slate-400'
                 }`}
               >
-                <span
+                <Span
                   className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
                     allowLate ? 'translate-x-5' : 'translate-x-0'
                   }`}
                 />
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -451,25 +454,27 @@ export function AssignmentEditor({
               {/* PDF Mode */}
               <div className="flex flex-col gap-3 rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <span className="block text-sm font-semibold text-slate-900">PDF Document</span>
-                  <span className="text-xs text-slate-500">
+                  <Span className="block text-sm font-semibold text-slate-900">PDF Document</Span>
+                  <Span className="text-xs text-slate-500">
                     Design reports, architectural writeups, and diagrams
-                  </span>
+                  </Span>
                 </div>
                 <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 text-xs">
                   {(['OFF', 'OPTIONAL', 'REQUIRED'] as SubmissionMode[]).map((mode) => (
-                    <button
+                    <Button
                       key={mode}
                       type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={() => handleChange(() => setPdfMode(mode))}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                      className={`h-auto rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
                         pdfMode === mode
-                          ? 'bg-slate-900 text-white shadow-xs'
-                          : 'text-slate-600 hover:text-slate-900'
+                          ? 'bg-slate-900 text-white shadow-xs hover:bg-slate-900 hover:text-white'
+                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                       }`}
                     >
                       {mode}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -477,25 +482,27 @@ export function AssignmentEditor({
               {/* ZIP Mode */}
               <div className="flex flex-col gap-3 rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <span className="block text-sm font-semibold text-slate-900">ZIP Archive</span>
-                  <span className="text-xs text-slate-500">
+                  <Span className="block text-sm font-semibold text-slate-900">ZIP Archive</Span>
+                  <Span className="text-xs text-slate-500">
                     Source code bundles, compressed repositories, binaries
-                  </span>
+                  </Span>
                 </div>
                 <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 text-xs">
                   {(['OFF', 'OPTIONAL', 'REQUIRED'] as SubmissionMode[]).map((mode) => (
-                    <button
+                    <Button
                       key={mode}
                       type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={() => handleChange(() => setZipMode(mode))}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                      className={`h-auto rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
                         zipMode === mode
-                          ? 'bg-slate-900 text-white shadow-xs'
-                          : 'text-slate-600 hover:text-slate-900'
+                          ? 'bg-slate-900 text-white shadow-xs hover:bg-slate-900 hover:text-white'
+                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                       }`}
                     >
                       {mode}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -503,27 +510,29 @@ export function AssignmentEditor({
               {/* URL Mode */}
               <div className="flex flex-col gap-3 rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <span className="block text-sm font-semibold text-slate-900">
+                  <Span className="block text-sm font-semibold text-slate-900">
                     Repository / Demo URL
-                  </span>
-                  <span className="text-xs text-slate-500">
+                  </Span>
+                  <Span className="text-xs text-slate-500">
                     GitHub / GitLab pull request link or deployed site
-                  </span>
+                  </Span>
                 </div>
                 <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 text-xs">
                   {(['OFF', 'OPTIONAL', 'REQUIRED'] as SubmissionMode[]).map((mode) => (
-                    <button
+                    <Button
                       key={mode}
                       type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={() => handleChange(() => setUrlMode(mode))}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                      className={`h-auto rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
                         urlMode === mode
-                          ? 'bg-slate-900 text-white shadow-xs'
-                          : 'text-slate-600 hover:text-slate-900'
+                          ? 'bg-slate-900 text-white shadow-xs hover:bg-slate-900 hover:text-white'
+                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                       }`}
                     >
                       {mode}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -539,9 +548,9 @@ export function AssignmentEditor({
                   Starter code repositories, rubrics, and reference assets
                 </P>
               </div>
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
+              <Span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
                 {resources.length} {resources.length === 1 ? 'Resource' : 'Resources'}
-              </span>
+              </Span>
             </div>
 
             <div className="space-y-2.5">
@@ -551,10 +560,10 @@ export function AssignmentEditor({
                   className="flex items-center justify-between rounded-xl border border-slate-200/80 bg-slate-50/70 p-3.5 text-sm transition-all hover:bg-slate-50"
                 >
                   <div className="flex items-center gap-3 truncate">
-                    <span className="rounded-lg bg-purple-100 px-2 py-0.5 text-[10px] font-bold tracking-wide text-purple-800 uppercase">
+                    <Span className="rounded-lg bg-purple-100 px-2 py-0.5 text-[10px] font-bold tracking-wide text-purple-800 uppercase">
                       {item.type}
-                    </span>
-                    <span className="truncate font-semibold text-slate-900">{item.title}</span>
+                    </Span>
+                    <Span className="truncate font-semibold text-slate-900">{item.title}</Span>
                     {isValidWebUrl(item.url) ? (
                       <a
                         href={item.url}
@@ -565,12 +574,12 @@ export function AssignmentEditor({
                         {item.url}
                       </a>
                     ) : (
-                      <span
+                      <Span
                         className="truncate text-xs text-slate-400 italic"
                         title="Invalid or unverified URL"
                       >
                         {item.url}
-                      </span>
+                      </Span>
                     )}
                   </div>
                   <Button
@@ -640,8 +649,8 @@ export function AssignmentEditor({
                   onClick={handleAddResource}
                   className="h-10 w-full rounded-xl bg-purple-600 px-3 text-sm font-semibold text-white shadow-xs hover:bg-purple-700 focus-visible:ring-purple-500 active:bg-purple-800"
                 >
-                  <span className="sm:hidden">+ Add</span>
-                  <span className="hidden sm:inline">+</span>
+                  <Span className="sm:hidden">+ Add</Span>
+                  <Span className="hidden sm:inline">+</Span>
                 </Button>
               </div>
             </div>
@@ -652,12 +661,12 @@ export function AssignmentEditor({
         <div className="lg:col-span-5">
           <div className="sticky top-6 space-y-5 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
-              <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
+              <Span className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
                 Mentee Form Preview
-              </span>
-              <span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-700">
+              </Span>
+              <Span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-700">
                 Live Rendering
-              </span>
+              </Span>
             </div>
 
             <div className="space-y-4 text-sm">
@@ -681,46 +690,46 @@ export function AssignmentEditor({
               <div className="space-y-3.5 pt-1">
                 {pdfMode !== SubmissionMode.OFF && (
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700">
+                    <Label className="block text-xs font-semibold text-slate-700">
                       Upload PDF Document{' '}
                       {pdfMode === SubmissionMode.REQUIRED ? (
-                        <span className="text-rose-600">*</span>
+                        <Span className="text-rose-600">*</Span>
                       ) : (
-                        <span className="font-normal text-slate-400">(Optional)</span>
+                        <Span className="font-normal text-slate-400">(Optional)</Span>
                       )}
-                    </label>
+                    </Label>
                     <div className="mt-1.5 flex items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50/50 p-4 text-center">
-                      <span className="text-xs text-slate-400">Choose .pdf file to upload</span>
+                      <Span className="text-xs text-slate-400">Choose .pdf file to upload</Span>
                     </div>
                   </div>
                 )}
 
                 {zipMode !== SubmissionMode.OFF && (
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700">
+                    <Label className="block text-xs font-semibold text-slate-700">
                       Upload ZIP Archive{' '}
                       {zipMode === SubmissionMode.REQUIRED ? (
-                        <span className="text-rose-600">*</span>
+                        <Span className="text-rose-600">*</Span>
                       ) : (
-                        <span className="font-normal text-slate-400">(Optional)</span>
+                        <Span className="font-normal text-slate-400">(Optional)</Span>
                       )}
-                    </label>
+                    </Label>
                     <div className="mt-1.5 flex items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50/50 p-4 text-center">
-                      <span className="text-xs text-slate-400">Choose .zip archive to upload</span>
+                      <Span className="text-xs text-slate-400">Choose .zip archive to upload</Span>
                     </div>
                   </div>
                 )}
 
                 {urlMode !== SubmissionMode.OFF && (
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700">
+                    <Label className="block text-xs font-semibold text-slate-700">
                       Submission Repository URL{' '}
                       {urlMode === SubmissionMode.REQUIRED ? (
-                        <span className="text-rose-600">*</span>
+                        <Span className="text-rose-600">*</Span>
                       ) : (
-                        <span className="font-normal text-slate-400">(Optional)</span>
+                        <Span className="font-normal text-slate-400">(Optional)</Span>
                       )}
-                    </label>
+                    </Label>
                     <input
                       type="url"
                       disabled
@@ -733,7 +742,7 @@ export function AssignmentEditor({
 
               {/* Mandatory Mentee Completion Checkbox (FR-6.5) */}
               <div className="mt-5 rounded-xl border border-blue-200 bg-blue-50/60 p-4">
-                <label className="flex cursor-not-allowed items-start gap-3">
+                <Label className="flex cursor-not-allowed items-start gap-3">
                   <input
                     type="checkbox"
                     disabled
@@ -741,13 +750,13 @@ export function AssignmentEditor({
                     readOnly
                     className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600"
                   />
-                  <span className="text-xs leading-tight font-semibold text-blue-900">
+                  <Span className="text-xs leading-tight font-semibold text-blue-900">
                     &ldquo;I have completed this assignment&rdquo; confirmation
-                    <span className="mt-0.5 block text-[11px] font-normal text-blue-700">
+                    <Span className="mt-0.5 block text-[11px] font-normal text-blue-700">
                       Mandatory for all cadets (cannot be turned off)
-                    </span>
-                  </span>
-                </label>
+                    </Span>
+                  </Span>
+                </Label>
               </div>
             </div>
           </div>

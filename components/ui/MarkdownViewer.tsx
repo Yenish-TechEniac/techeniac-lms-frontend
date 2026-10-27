@@ -2,6 +2,9 @@
 
 import React, { useState } from 'react';
 
+import { Button } from '@/components/ui/Button';
+import { Span } from '@/components/ui/Typography';
+
 interface MarkdownViewerProps {
   content: string;
   className?: string | undefined;
@@ -106,16 +109,16 @@ function CodeBlock({ lang, code = '' }: { lang?: string | undefined; code?: stri
   return (
     <div className="relative my-3 overflow-hidden rounded-xl border border-slate-800 bg-slate-900 shadow-md">
       <div className="flex items-center justify-between border-b border-slate-800 bg-slate-950 px-3.5 py-1.5 text-[11px] font-medium text-slate-400">
-        <span className="font-mono text-[10px] font-bold tracking-wider text-slate-300 uppercase">
+        <Span className="font-mono text-[10px] font-bold tracking-wider text-slate-300 uppercase">
           {lang || 'CODE'}
-        </span>
-        <button
+        </Span>
+        <Button
           type="button"
           onClick={handleCopy}
           className="rounded px-2 py-0.5 text-[10px] font-semibold text-slate-300 transition-colors hover:bg-slate-800 hover:text-white"
         >
           {copied ? 'Copied!' : 'Copy'}
-        </button>
+        </Button>
       </div>
       <pre className="overflow-x-auto p-4 font-mono text-xs leading-relaxed text-slate-100">
         <code>{code}</code>

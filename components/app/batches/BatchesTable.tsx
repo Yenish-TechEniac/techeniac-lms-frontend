@@ -99,21 +99,21 @@ function BatchStatusFilterDropdown({
           <div className="flex items-center justify-between border-b border-slate-100 pb-2">
             <Span className="text-xs font-bold text-slate-900">Filter by Status</Span>
             <div className="flex items-center gap-2 text-[11px]">
-              <button
+              <Button
                 type="button"
                 onClick={() => onChange([...ALL_BATCH_STATUSES])}
                 className="font-medium text-blue-600 hover:underline"
               >
                 All
-              </button>
+              </Button>
               <Span className="text-slate-300">|</Span>
-              <button
+              <Button
                 type="button"
                 onClick={() => onChange([])}
                 className="font-medium text-slate-500 hover:underline"
               >
                 Clear
-              </button>
+              </Button>
             </div>
           </div>
 

@@ -4,7 +4,7 @@ import React from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
-import { P } from '@/components/ui/Typography';
+import { P, Span } from '@/components/ui/Typography';
 import type { CourseImpact } from '@/types/courses';
 
 interface ImpactNoticeModalProps {
@@ -70,7 +70,7 @@ export function ImpactNoticeModal({
       {hasAllocations && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs text-amber-900">
           <div className="flex items-center gap-2 font-semibold">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
+            <Span className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
             Live Impact Notice
           </div>
           <P className="mt-1 leading-relaxed">

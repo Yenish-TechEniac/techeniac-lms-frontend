@@ -96,7 +96,6 @@ function parseErrorPayload(response: Response, data: unknown): ApiError {
   const errData = isApiErrorResponse(data) ? data : null;
   const retryAfter = parseRetryAfter(response.headers.get('Retry-After'));
 
-  // Never leak internal backend details or unhandled exceptions on 5xx responses
   if (response.status >= 500) {
     return new ApiError(
       response.status,

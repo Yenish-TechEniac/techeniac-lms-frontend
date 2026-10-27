@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { H2, P } from '@/components/ui/Typography';
+import { H2, P, Span } from '@/components/ui/Typography';
 import { useDurationInput } from '@/hooks/useDurationInput';
 import { formatErrorMessage, isConflictError } from '@/lib/errors';
 import type { Course, CourseImpact, UpdateCourseInput } from '@/types/courses';
@@ -131,9 +131,9 @@ export function CourseDetailsEditor({
       {/* Header Command Bar */}
       <div className="flex flex-col gap-3 rounded-2xl border-b border-slate-200 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <span className="block text-xs font-semibold tracking-wider text-slate-400 uppercase">
+          <Span className="block text-xs font-semibold tracking-wider text-slate-400 uppercase">
             Course Root Settings
-          </span>
+          </Span>
           <H2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
             {course.title}
           </H2>
@@ -141,10 +141,10 @@ export function CourseDetailsEditor({
 
         <div className="flex items-center gap-3">
           {saveSuccess && (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              <span>Saved Live</span>
-            </span>
+            <Span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+              <Span className="h-2 w-2 rounded-full bg-emerald-500" />
+              <Span>Saved Live</Span>
+            </Span>
           )}
 
           <Button
@@ -165,8 +165,8 @@ export function CourseDetailsEditor({
       {affectedMentees > 0 && (
         <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-900 shadow-xs">
           <div className="flex items-center gap-2 text-sm font-bold">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
-            <span>Live Impact Notice</span>
+            <Span className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
+            <Span>Live Impact Notice</Span>
           </div>
           <P className="mt-1 text-xs leading-relaxed text-amber-800">
             This course is allocated to <strong>{affectedMentees} active mentees</strong>. Changes
@@ -250,9 +250,9 @@ export function CourseDetailsEditor({
                   placeholder="0"
                   className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 pr-11 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
                 />
-                <span className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-xs font-medium text-slate-400">
+                <Span className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-xs font-medium text-slate-400">
                   hrs
-                </span>
+                </Span>
               </div>
             </div>
             <div>
@@ -269,19 +269,19 @@ export function CourseDetailsEditor({
                   placeholder="0"
                   className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 pr-12 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
                 />
-                <span className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-xs font-medium text-slate-400">
+                <Span className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-xs font-medium text-slate-400">
                   mins
-                </span>
+                </Span>
               </div>
             </div>
           </div>
 
           <div className="pt-1">
-            <span className="block text-sm font-medium text-slate-600">
+            <Span className="block text-sm font-medium text-slate-600">
               {totalEstimatedMins !== null && totalEstimatedMins > 0
                 ? `${totalEstimatedMins} minutes total (${Math.floor(totalEstimatedMins / 60)}h ${totalEstimatedMins % 60}m)`
                 : 'Optional. Used to prefill allocation due dates.'}
-            </span>
+            </Span>
           </div>
 
           {topicsTotalMinutes > 0 && (
@@ -300,13 +300,13 @@ export function CourseDetailsEditor({
                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <span>
+              <Span>
                 Currently allocated across topics:{' '}
                 <strong>
                   {Math.floor(topicsTotalMinutes / 60)}h {topicsTotalMinutes % 60}m
                 </strong>
                 . Course duration cannot be lower than this total.
-              </span>
+              </Span>
             </div>
           )}
         </div>
@@ -314,30 +314,31 @@ export function CourseDetailsEditor({
         {/* Card 3: Visibility Status */}
         <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
           <div>
-            <span className="block text-base font-bold text-slate-900">
+            <Span className="block text-base font-bold text-slate-900">
               Course Visibility Status
-            </span>
-            <span className="mt-0.5 block text-xs text-slate-500">
+            </Span>
+            <Span className="mt-0.5 block text-xs text-slate-500">
               Inactive courses cannot be newly allocated. Existing allocations continue normally.
-            </span>
+            </Span>
           </div>
 
-          <button
+          <Button
             type="button"
+            variant="ghost"
             role="switch"
             aria-checked={isActive}
             aria-label="Course visibility status"
             onClick={() => handleChange(() => setIsActive(!isActive))}
-            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
-              isActive ? 'bg-emerald-600' : 'bg-slate-300'
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent p-0 transition-colors duration-200 ease-in-out hover:opacity-90 focus:outline-hidden ${
+              isActive ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-300 hover:bg-slate-400'
             }`}
           >
-            <span
+            <Span
               className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
                 isActive ? 'translate-x-5' : 'translate-x-0'
               }`}
             />
-          </button>
+          </Button>
         </div>
       </form>
     </div>

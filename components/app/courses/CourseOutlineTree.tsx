@@ -22,7 +22,8 @@ import { CSS } from '@dnd-kit/utilities';
 import React, { useEffect, useState } from 'react';
 
 import { ActiveNodeSelection } from '@/components/app/courses/types';
-import { H2 } from '@/components/ui/Typography';
+import { Button } from '@/components/ui/Button';
+import { H2, Span } from '@/components/ui/Typography';
 import type { Assignment, Course, Subtopic, Topic } from '@/types/courses';
 
 interface CourseOutlineTreeProps {
@@ -146,13 +147,14 @@ function SortableTopicItem({
           </div>
 
           {/* Expand / Collapse Chevron */}
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={(e) => {
               e.stopPropagation();
               onToggleCollapse(topic.id);
             }}
-            className="rounded p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
+            className="h-auto p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
             title={isCollapsed ? 'Expand topic' : 'Collapse topic'}
           >
             <svg
@@ -166,7 +168,7 @@ function SortableTopicItem({
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
-          </button>
+          </Button>
 
           {/* Topic Title Click Target with Hover Popup */}
           <div
@@ -174,22 +176,23 @@ function SortableTopicItem({
             className="group/name relative flex flex-1 cursor-pointer items-center gap-1.5 truncate"
             title={topic.title}
           >
-            <span className="truncate text-sm font-semibold text-slate-900">{topic.title}</span>
-            <span className="pointer-events-none absolute bottom-full left-0 z-50 mb-1 hidden max-w-xs rounded-md bg-slate-900/95 px-2.5 py-1 text-xs font-normal break-words whitespace-normal text-white shadow-xl ring-1 ring-white/10 group-hover/name:block">
+            <Span className="truncate text-sm font-semibold text-slate-900">{topic.title}</Span>
+            <Span className="pointer-events-none absolute bottom-full left-0 z-50 mb-1 hidden max-w-xs rounded-md bg-slate-900/95 px-2.5 py-1 text-xs font-normal break-words whitespace-normal text-white shadow-xl ring-1 ring-white/10 group-hover/name:block">
               {topic.title}
-            </span>
+            </Span>
           </div>
         </div>
 
         {/* Direct Topic Delete Action */}
         <div className="flex items-center gap-1">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={(e) => {
               e.stopPropagation();
               onRequestDeleteNode('TOPIC', topic.id, topic.title);
             }}
-            className="rounded p-1 text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
+            className="h-auto p-1 text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
             title="Delete Topic"
           >
             <svg
@@ -205,7 +208,7 @@ function SortableTopicItem({
                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
               />
             </svg>
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -310,41 +313,43 @@ function SortableSubtopicItem({
           className="group/name relative flex flex-1 items-center gap-1.5 truncate"
           title={subtopic.title}
         >
-          <span className="truncate text-sm font-medium">{subtopic.title}</span>
-          <span className="pointer-events-none absolute bottom-full left-0 z-50 mb-1 hidden max-w-xs rounded-md bg-slate-900/95 px-2 py-1 text-xs font-normal break-words whitespace-normal text-white shadow-xl ring-1 ring-white/10 group-hover/name:block">
+          <Span className="truncate text-sm font-medium">{subtopic.title}</Span>
+          <Span className="pointer-events-none absolute bottom-full left-0 z-50 mb-1 hidden max-w-xs rounded-md bg-slate-900/95 px-2 py-1 text-xs font-normal break-words whitespace-normal text-white shadow-xl ring-1 ring-white/10 group-hover/name:block">
             {subtopic.title}
-          </span>
+          </Span>
         </div>
       </div>
 
       <div className="flex items-center gap-1">
         <div className="relative" data-dropdown-container>
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={(e) => {
               e.stopPropagation();
               onToggleMenu(`subtopic-${subtopic.id}`);
             }}
-            className="rounded-md p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
+            className="h-auto rounded-md p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
             title="Subtopic options"
           >
             <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
               <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
             </svg>
-          </button>
+          </Button>
 
           {isMenuOpen && (
             <div
               onClick={(e) => e.stopPropagation()}
               className="absolute top-full right-0 z-50 mt-1 w-40 rounded-xl border border-slate-200 bg-white py-1 shadow-xl ring-1 ring-black/5"
             >
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={() => {
                   onToggleMenu('');
                   onRequestDeleteNode('SUBTOPIC', subtopic.id, subtopic.title);
                 }}
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50"
+                className="flex h-auto w-full items-center justify-start gap-2 px-3 py-2 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-600"
               >
                 <svg
                   className="h-3.5 w-3.5"
@@ -359,8 +364,8 @@ function SortableSubtopicItem({
                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                   />
                 </svg>
-                <span>Delete Subtopic</span>
-              </button>
+                <Span>Delete Subtopic</Span>
+              </Button>
             </div>
           )}
         </div>
@@ -465,41 +470,43 @@ function SortableAssignmentItem({
           className="group/name relative flex flex-1 items-center gap-1.5 truncate"
           title={assignment.title}
         >
-          <span className="truncate text-sm font-medium">{assignment.title}</span>
-          <span className="pointer-events-none absolute bottom-full left-0 z-50 mb-1 hidden max-w-xs rounded-md bg-slate-900/95 px-2 py-1 text-xs font-normal break-words whitespace-normal text-white shadow-xl ring-1 ring-white/10 group-hover/name:block">
+          <Span className="truncate text-sm font-medium">{assignment.title}</Span>
+          <Span className="pointer-events-none absolute bottom-full left-0 z-50 mb-1 hidden max-w-xs rounded-md bg-slate-900/95 px-2 py-1 text-xs font-normal break-words whitespace-normal text-white shadow-xl ring-1 ring-white/10 group-hover/name:block">
             {assignment.title}
-          </span>
+          </Span>
         </div>
       </div>
 
       <div className="flex items-center gap-1">
         <div className="relative" data-dropdown-container>
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={(e) => {
               e.stopPropagation();
               onToggleMenu(`assign-${assignment.id}`);
             }}
-            className="rounded-md p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
+            className="h-auto rounded-md p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
             title="Task options"
           >
             <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
               <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
             </svg>
-          </button>
+          </Button>
 
           {isMenuOpen && (
             <div
               onClick={(e) => e.stopPropagation()}
               className="absolute top-full right-0 z-50 mt-1 w-40 rounded-xl border border-slate-200 bg-white py-1 shadow-xl ring-1 ring-black/5"
             >
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={() => {
                   onToggleMenu('');
                   onRequestDeleteNode('ASSIGNMENT', assignment.id, assignment.title);
                 }}
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50"
+                className="flex h-auto w-full items-center justify-start gap-2 px-3 py-2 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-600"
               >
                 <svg
                   className="h-3.5 w-3.5"
@@ -514,8 +521,8 @@ function SortableAssignmentItem({
                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                   />
                 </svg>
-                <span>Delete Task</span>
-              </button>
+                <Span>Delete Task</Span>
+              </Button>
             </div>
           )}
         </div>
@@ -708,16 +715,16 @@ export function CourseOutlineTree({
         {/* Outline Header */}
         <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3.5">
           <div>
-            <span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
+            <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
               Curriculum Structure
-            </span>
+            </Span>
             <H2 className="text-sm font-bold text-slate-900">Course Outline</H2>
           </div>
           {hasActiveReorder && (
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600">
-              <span className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
-              <span>Saving order...</span>
-            </span>
+            <Span className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600">
+              <Span className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+              <Span>Saving order...</Span>
+            </Span>
           )}
         </div>
 
@@ -733,16 +740,16 @@ export function CourseOutlineTree({
             }`}
           >
             <div className="flex items-center gap-2 truncate">
-              <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs font-bold text-slate-500 uppercase">
+              <Span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs font-bold text-slate-500 uppercase">
                 Course
-              </span>
-              <span className="truncate text-sm font-bold text-slate-900">{course.title}</span>
+              </Span>
+              <Span className="truncate text-sm font-bold text-slate-900">{course.title}</Span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-slate-500">
+              <Span className="text-xs font-medium text-slate-500">
                 {course.isActive ? 'Active' : 'Draft'}
-              </span>
-              <span
+              </Span>
+              <Span
                 className={`h-2.5 w-2.5 rounded-full ${course.isActive ? 'bg-emerald-500' : 'bg-slate-300'}`}
               />
             </div>
@@ -752,18 +759,19 @@ export function CourseOutlineTree({
           <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold tracking-wider text-slate-700 uppercase">
+                <Span className="text-xs font-bold tracking-wider text-slate-700 uppercase">
                   Topics
-                </span>
-                <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700">
+                </Span>
+                <Span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700">
                   {topics.length}
-                </span>
+                </Span>
               </div>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 disabled={Boolean(isReorderingTopics)}
                 onClick={onAddTopic}
-                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-bold text-blue-700 hover:bg-blue-50 disabled:opacity-40"
+                className="inline-flex h-auto items-center gap-1 rounded-md px-2 py-1 text-xs font-bold text-blue-700 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-40"
                 title="Add a new topic"
               >
                 <svg
@@ -775,8 +783,8 @@ export function CourseOutlineTree({
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
-                <span>Topic</span>
-              </button>
+                <Span>Topic</Span>
+              </Button>
             </div>
 
             {/* Topics List with blur state when saving topics */}
@@ -834,18 +842,19 @@ export function CourseOutlineTree({
                             <div className="rounded-lg border border-slate-200/70 bg-white p-2 shadow-2xs">
                               <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
                                 <div className="flex items-center gap-1.5">
-                                  <span className="text-[11px] font-bold tracking-wider text-slate-600 uppercase">
+                                  <Span className="text-[11px] font-bold tracking-wider text-slate-600 uppercase">
                                     Subtopics
-                                  </span>
-                                  <span className="rounded-full bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600">
+                                  </Span>
+                                  <Span className="rounded-full bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600">
                                     {subtopics.length}
-                                  </span>
+                                  </Span>
                                 </div>
-                                <button
+                                <Button
                                   type="button"
+                                  variant="ghost"
                                   disabled={Boolean(isReorderingSubtopicsThisTopic)}
                                   onClick={() => onAddSubtopic(topic.id)}
-                                  className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-bold text-blue-700 transition-colors hover:bg-blue-50 disabled:opacity-40"
+                                  className="inline-flex h-auto items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-bold text-blue-700 transition-colors hover:bg-blue-50 hover:text-blue-700 disabled:opacity-40"
                                   title="Add Subtopic"
                                 >
                                   <svg
@@ -861,8 +870,8 @@ export function CourseOutlineTree({
                                       d="M12 4v16m8-8H4"
                                     />
                                   </svg>
-                                  <span>Subtopic</span>
-                                </button>
+                                  <Span>Subtopic</Span>
+                                </Button>
                               </div>
 
                               <div
@@ -917,18 +926,19 @@ export function CourseOutlineTree({
                             <div className="rounded-lg border border-slate-200/70 bg-white p-2 shadow-2xs">
                               <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
                                 <div className="flex items-center gap-1.5">
-                                  <span className="text-[11px] font-bold tracking-wider text-purple-700 uppercase">
+                                  <Span className="text-[11px] font-bold tracking-wider text-purple-700 uppercase">
                                     Tasks
-                                  </span>
-                                  <span className="rounded-full bg-purple-50 px-1.5 py-0.5 text-[10px] font-bold text-purple-700">
+                                  </Span>
+                                  <Span className="rounded-full bg-purple-50 px-1.5 py-0.5 text-[10px] font-bold text-purple-700">
                                     {topicAssignments.length}
-                                  </span>
+                                  </Span>
                                 </div>
-                                <button
+                                <Button
                                   type="button"
+                                  variant="ghost"
                                   disabled={Boolean(isReorderingTopicTasksThisTopic)}
                                   onClick={() => onAddTopicAssignment(topic.id)}
-                                  className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-bold text-purple-700 transition-colors hover:bg-purple-50 disabled:opacity-40"
+                                  className="inline-flex h-auto items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-bold text-purple-700 transition-colors hover:bg-purple-50 hover:text-purple-700 disabled:opacity-40"
                                   title="Add Task"
                                 >
                                   <svg
@@ -944,8 +954,8 @@ export function CourseOutlineTree({
                                       d="M12 4v16m8-8H4"
                                     />
                                   </svg>
-                                  <span>Task</span>
-                                </button>
+                                  <Span>Task</Span>
+                                </Button>
                               </div>
 
                               <div
@@ -1010,18 +1020,19 @@ export function CourseOutlineTree({
           <div className="mt-3.5 rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold tracking-wider text-slate-700 uppercase">
+                <Span className="text-xs font-bold tracking-wider text-slate-700 uppercase">
                   Course-Level Assignments
-                </span>
-                <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">
+                </Span>
+                <Span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">
                   {courseAssignments.length}
-                </span>
+                </Span>
               </div>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 disabled={Boolean(isReorderingCourseAssignments)}
                 onClick={onAddCourseAssignment}
-                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-bold text-purple-700 hover:bg-purple-50 disabled:opacity-40"
+                className="inline-flex h-auto items-center gap-1 rounded-md px-2 py-1 text-xs font-bold text-purple-700 hover:bg-purple-50 hover:text-purple-700 disabled:opacity-40"
               >
                 <svg
                   className="h-3.5 w-3.5"
@@ -1032,8 +1043,8 @@ export function CourseOutlineTree({
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
-                <span>Task</span>
-              </button>
+                <Span>Task</Span>
+              </Button>
             </div>
 
             <div

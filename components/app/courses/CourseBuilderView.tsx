@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
+import { P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { useCourseBuilder } from '@/hooks/useCourses';
 import { formatErrorMessage } from '@/lib/errors';
@@ -572,9 +573,9 @@ function AddAssignmentModal({
                 }}
                 className="h-8 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 pr-8 text-xs focus:border-blue-600 focus:outline-hidden"
               />
-              <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-[10px] font-medium text-slate-400">
+              <Span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-[10px] font-medium text-slate-400">
                 hrs
-              </span>
+              </Span>
             </div>
           </div>
           <div>
@@ -593,9 +594,9 @@ function AddAssignmentModal({
                 }}
                 className="h-8 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 pr-8 text-xs focus:border-blue-600 focus:outline-hidden"
               />
-              <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-[10px] font-medium text-slate-400">
+              <Span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-[10px] font-medium text-slate-400">
                 mins
-              </span>
+              </Span>
             </div>
           </div>
         </div>
@@ -886,7 +887,7 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-2">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-          <p className="text-xs font-medium text-slate-500">Loading Course Builder...</p>
+          <P className="text-xs font-medium text-slate-500">Loading Course Builder...</P>
         </div>
       </div>
     );
@@ -910,50 +911,52 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
             &larr; Library
           </Link>
 
-          <span className="h-4 w-px bg-slate-200" />
+          <Span className="h-4 w-px bg-slate-200" />
 
           <div className="flex items-center gap-1.5 truncate text-sm font-semibold text-slate-500 sm:gap-2">
-            <span className="hidden sm:inline">Course Builder</span>
-            <span className="hidden sm:inline">/</span>
-            <span className="truncate font-bold text-slate-900">{course.title}</span>
+            <Span className="hidden sm:inline">Course Builder</Span>
+            <Span className="hidden sm:inline">/</Span>
+            <Span className="truncate font-bold text-slate-900">{course.title}</Span>
           </div>
 
-          <span
+          <Span
             className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
               course.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'
             }`}
           >
             {course.isActive ? 'Active' : 'Inactive'}
-          </span>
+          </Span>
         </div>
 
         {/* View Switcher on < lg screens */}
         <div className="flex items-center rounded-lg bg-slate-100 p-0.5 text-xs font-medium lg:hidden">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => setMobileTab('outline')}
-            className={`rounded px-2.5 py-1 transition-colors ${
+            className={`h-auto rounded px-2.5 py-1 transition-colors ${
               mobileTab === 'outline'
                 ? 'bg-white font-bold text-slate-900 shadow-xs'
                 : 'text-slate-500 hover:text-slate-900'
             }`}
           >
             Outline
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => setMobileTab('editor')}
-            className={`flex items-center gap-1 rounded px-2.5 py-1 transition-colors ${
+            className={`flex h-auto items-center gap-1 rounded px-2.5 py-1 transition-colors ${
               mobileTab === 'editor'
                 ? 'bg-white font-bold text-slate-900 shadow-xs'
                 : 'text-slate-500 hover:text-slate-900'
             }`}
           >
-            <span>Editor</span>
+            <Span>Editor</Span>
             {isDirty && (
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" title="Unsaved changes" />
+              <Span className="h-1.5 w-1.5 rounded-full bg-amber-500" title="Unsaved changes" />
             )}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -1010,16 +1013,17 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
         >
           {/* Mobile quick-return banner (< lg) */}
           <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-4 py-2 lg:hidden">
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => setMobileTab('outline')}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800"
+              className="inline-flex h-auto items-center gap-1 p-0 text-xs font-semibold text-blue-600 hover:bg-transparent hover:text-blue-800"
             >
               &larr; Back to Outline
-            </button>
-            <span className="text-[11px] font-medium tracking-wide text-slate-500 uppercase">
+            </Button>
+            <Span className="text-[11px] font-medium tracking-wide text-slate-500 uppercase">
               {selectedNode.type}
-            </span>
+            </Span>
           </div>
           <div className="flex-1 overflow-hidden">
             <CourseActiveEditor
@@ -1115,7 +1119,7 @@ export function CourseBuilderView({ portal }: Readonly<CourseBuilderViewProps>) 
         <div className="flex min-h-screen items-center justify-center bg-slate-50">
           <div className="flex flex-col items-center gap-2">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-            <p className="text-xs font-medium text-slate-500">Loading Course Builder...</p>
+            <P className="text-xs font-medium text-slate-500">Loading Course Builder...</P>
           </div>
         </div>
       }

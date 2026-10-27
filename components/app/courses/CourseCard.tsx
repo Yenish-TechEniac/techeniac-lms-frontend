@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 
 import { formatDurationMinutes } from '@/components/app/courses/types';
 import { Button } from '@/components/ui/Button';
-import { H3, P } from '@/components/ui/Typography';
+import { H3, P, Span } from '@/components/ui/Typography';
 import type { Course } from '@/types/courses';
 
 interface CourseCardProps {
@@ -14,6 +14,7 @@ interface CourseCardProps {
   onCloneCourse: (course: Course) => Promise<void>;
   onRequestDelete: (course: Course) => void;
   onRequestToggleStatus: (course: Course) => void;
+  onAssignCourse?: (course: Course) => void;
 }
 
 export function CourseCard({
@@ -22,6 +23,7 @@ export function CourseCard({
   onCloneCourse,
   onRequestDelete,
   onRequestToggleStatus,
+  onAssignCourse,
 }: Readonly<CourseCardProps>) {
   const [isCloning, setIsCloning] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -51,18 +53,18 @@ export function CourseCard({
         {/* Top Header: Badges & Duration */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <span
+            <Span
               className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold tracking-wide ${
                 course.isActive
                   ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
                   : 'border border-slate-200 bg-slate-100 text-slate-600'
               }`}
             >
-              <span
+              <Span
                 className={`h-2 w-2 rounded-full ${course.isActive ? 'bg-emerald-500' : 'bg-slate-400'}`}
               />
               {course.isActive ? 'Active' : 'Inactive'}
-            </span>
+            </Span>
           </div>
 
           <div className="inline-flex items-center gap-1.5 rounded-full border border-slate-100 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-500">
@@ -80,7 +82,7 @@ export function CourseCard({
                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <span>{formatDurationMinutes(course.estimatedMinutes)}</span>
+            <Span>{formatDurationMinutes(course.estimatedMinutes)}</Span>
           </div>
         </div>
 
@@ -96,16 +98,16 @@ export function CourseCard({
         <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50/80 p-3">
           <div className="grid grid-cols-2 divide-x divide-slate-200/80 text-center">
             <div className="px-2">
-              <span className="block text-base font-bold text-slate-900">{topicCount}</span>
-              <span className="mt-0.5 block text-xs font-semibold tracking-wide text-slate-500 uppercase">
+              <Span className="block text-base font-bold text-slate-900">{topicCount}</Span>
+              <Span className="mt-0.5 block text-xs font-semibold tracking-wide text-slate-500 uppercase">
                 Topics
-              </span>
+              </Span>
             </div>
             <div className="px-2">
-              <span className="block text-base font-bold text-slate-900">{assignmentCount}</span>
-              <span className="mt-0.5 block text-xs font-semibold tracking-wide text-slate-500 uppercase">
+              <Span className="block text-base font-bold text-slate-900">{assignmentCount}</Span>
+              <Span className="mt-0.5 block text-xs font-semibold tracking-wide text-slate-500 uppercase">
                 Tasks
-              </span>
+              </Span>
             </div>
           </div>
         </div>
@@ -126,9 +128,9 @@ export function CourseCard({
               d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <span className="truncate">
+          <Span className="truncate">
             Updated {new Date(course.updatedAt).toLocaleDateString()}
-          </span>
+          </Span>
         </div>
 
         {errorMsg && (
@@ -145,19 +147,28 @@ export function CourseCard({
             href={`${basePath}/${course.id}/builder`}
             className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-slate-800"
           >
-            <span>Builder</span>
-            <span aria-hidden="true">&rarr;</span>
+            <Span>Builder</Span>
+            <Span aria-hidden="true">&rarr;</Span>
           </Link>
 
-          {/* Assign Button (Scheduled with Module 2: Batches & Cohorts) */}
+          {/* Assign Button (M7 Course Allocation) */}
           <Button
             type="button"
-            variant="outline"
-            disabled
-            title="Course allocation to batches will be available in Module 2 (Batches & Cohorts)"
-            className="h-auto cursor-not-allowed rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-xs font-medium text-slate-400"
+            variant={course.isActive ? 'primary' : 'outline'}
+            disabled={!course.isActive || !onAssignCourse}
+            onClick={() => onAssignCourse?.(course)}
+            title={
+              course.isActive
+                ? 'Assign this course to a batch or mentees'
+                : 'Only active courses can be allocated (Section 2.1, Section 7)'
+            }
+            className={
+              course.isActive
+                ? 'h-auto rounded-lg bg-blue-600 px-3.5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-blue-700'
+                : 'h-auto cursor-not-allowed rounded-lg border border-slate-200 bg-slate-100 px-3.5 py-2 text-xs font-medium text-slate-400'
+            }
           >
-            Assign (Soon)
+            Assign
           </Button>
         </div>
 
