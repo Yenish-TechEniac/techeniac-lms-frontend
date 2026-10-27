@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { H2, H3, P } from '@/components/ui/Typography';
+import { H2, H3, P, Span } from '@/components/ui/Typography';
 import { useDurationInput } from '@/hooks/useDurationInput';
 import { formatErrorMessage, isConflictError } from '@/lib/errors';
 import type { CourseImpact, ResourceItem, Topic, UpdateTopicInput } from '@/types/courses';
@@ -250,9 +250,9 @@ export function TopicEditor({
       {/* Top Header Command Bar */}
       <div className="flex flex-col gap-3 rounded-2xl border-b border-slate-200 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <span className="block text-xs font-semibold tracking-wider text-slate-400 uppercase">
+          <Span className="block text-xs font-semibold tracking-wider text-slate-400 uppercase">
             Topic Parameters
-          </span>
+          </Span>
           <H2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
             {topic.title}
           </H2>
@@ -260,10 +260,10 @@ export function TopicEditor({
 
         <div className="flex items-center gap-3">
           {saveSuccess && (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            <Span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+              <Span className="h-2 w-2 rounded-full bg-emerald-500" />
               Saved Live
-            </span>
+            </Span>
           )}
 
           <Button
@@ -283,7 +283,7 @@ export function TopicEditor({
       {affectedMentees > 0 && (
         <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-900 shadow-xs">
           <div className="flex items-center gap-2 text-sm font-bold">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
+            <Span className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
             Impact Notice
           </div>
           <P className="mt-1 text-xs leading-relaxed text-amber-800">
@@ -367,9 +367,9 @@ export function TopicEditor({
                   placeholder="0"
                   className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 pr-11 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
                 />
-                <span className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-xs font-medium text-slate-400">
+                <Span className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-xs font-medium text-slate-400">
                   hrs
-                </span>
+                </Span>
               </div>
             </div>
             <div>
@@ -386,19 +386,19 @@ export function TopicEditor({
                   placeholder="0"
                   className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 pr-12 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
                 />
-                <span className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-xs font-medium text-slate-400">
+                <Span className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-xs font-medium text-slate-400">
                   mins
-                </span>
+                </Span>
               </div>
             </div>
           </div>
 
           <div className="pt-1">
-            <span className="block text-sm font-medium text-slate-600">
+            <Span className="block text-sm font-medium text-slate-600">
               {totalEstimatedMins !== null && totalEstimatedMins > 0
                 ? `${totalEstimatedMins} minutes total (${Math.floor(totalEstimatedMins / 60)}h ${totalEstimatedMins % 60}m)`
                 : 'Optional'}
-            </span>
+            </Span>
           </div>
 
           {remainingBudget !== null && (
@@ -416,7 +416,7 @@ export function TopicEditor({
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <span>
+              <Span>
                 Available course budget:{' '}
                 <strong>
                   {Math.floor(remainingBudget / 60)}h {remainingBudget % 60}m remaining
@@ -424,7 +424,7 @@ export function TopicEditor({
                 (Course total: {Math.floor(courseEstimatedMinutes! / 60)}h{' '}
                 {courseEstimatedMinutes! % 60}m, other topics:{' '}
                 {Math.floor((otherTopicsMinutes || 0) / 60)}h {(otherTopicsMinutes || 0) % 60}m)
-              </span>
+              </Span>
             </div>
           )}
 
@@ -443,13 +443,13 @@ export function TopicEditor({
                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <span>
+              <Span>
                 Currently allocated across subtopics:{' '}
                 <strong>
                   {Math.floor(subtopicsTotalMinutes / 60)}h {subtopicsTotalMinutes % 60}m
                 </strong>
                 . Topic duration cannot be lower than this total.
-              </span>
+              </Span>
             </div>
           )}
         </div>
@@ -463,9 +463,9 @@ export function TopicEditor({
                 Supplementary links, documentation references, and download files.
               </P>
             </div>
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
+            <Span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
               {resources.length} {resources.length === 1 ? 'Resource' : 'Resources'}
-            </span>
+            </Span>
           </div>
 
           <div className="mt-5 space-y-2.5">
@@ -475,7 +475,7 @@ export function TopicEditor({
                 className="flex items-center justify-between rounded-xl border border-slate-200/80 bg-slate-50/70 p-3.5 text-sm transition-all hover:bg-slate-50"
               >
                 <div className="flex items-center gap-3 truncate">
-                  <span
+                  <Span
                     className={`rounded-lg px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase ${
                       resItem.type === 'LINK'
                         ? 'bg-blue-100 text-blue-700'
@@ -483,8 +483,8 @@ export function TopicEditor({
                     }`}
                   >
                     {resItem.type}
-                  </span>
-                  <span className="truncate font-semibold text-slate-900">{resItem.title}</span>
+                  </Span>
+                  <Span className="truncate font-semibold text-slate-900">{resItem.title}</Span>
                   {isValidWebUrl(resItem.url) ? (
                     <a
                       href={resItem.url}
@@ -495,12 +495,12 @@ export function TopicEditor({
                       {resItem.url}
                     </a>
                   ) : (
-                    <span
+                    <Span
                       className="truncate text-xs text-slate-400 italic"
                       title="Invalid or unverified URL"
                     >
                       {resItem.url}
-                    </span>
+                    </Span>
                   )}
                 </div>
 
@@ -571,8 +571,8 @@ export function TopicEditor({
                 onClick={handleAddResource}
                 className="h-10 w-full rounded-xl bg-slate-900 px-3 text-sm font-semibold text-white shadow-xs hover:bg-slate-800 focus-visible:ring-slate-800 active:bg-slate-950"
               >
-                <span className="sm:hidden">+ Add</span>
-                <span className="hidden sm:inline">+</span>
+                <Span className="sm:hidden">+ Add</Span>
+                <Span className="hidden sm:inline">+</Span>
               </Button>
             </div>
           </div>
@@ -581,28 +581,29 @@ export function TopicEditor({
         {/* Card 4: Visibility & Active Toggle */}
         <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
           <div>
-            <span className="block text-base font-bold text-slate-900">Topic Active Status</span>
-            <span className="mt-0.5 block text-xs text-slate-500">
+            <Span className="block text-base font-bold text-slate-900">Topic Active Status</Span>
+            <Span className="mt-0.5 block text-xs text-slate-500">
               When inactive, hidden from mentees and excluded from progress calculations.
-            </span>
+            </Span>
           </div>
 
-          <button
+          <Button
             type="button"
+            variant="ghost"
             role="switch"
             aria-checked={isActive}
             aria-label="Topic active status"
             onClick={() => handleChange(() => setIsActive(!isActive))}
-            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
-              isActive ? 'bg-emerald-600' : 'bg-slate-300'
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent p-0 transition-colors duration-200 ease-in-out hover:opacity-90 focus:outline-hidden ${
+              isActive ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-300 hover:bg-slate-400'
             }`}
           >
-            <span
+            <Span
               className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
                 isActive ? 'translate-x-5' : 'translate-x-0'
               }`}
             />
-          </button>
+          </Button>
         </div>
       </form>
     </div>

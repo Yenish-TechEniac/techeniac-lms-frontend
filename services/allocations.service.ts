@@ -1,0 +1,285 @@
+import { apiClient } from '@/services/api.client';
+
+export type CourseAllocationStatus =
+  | 'ASSIGNED'
+  | 'IN_PROGRESS'
+  | 'COMPLETED'
+  | 'REVOKED'
+  | 'CLOSED_ROLE_CHANGE'
+  | 'CLOSED_BATCH_CHANGE';
+
+export type AllocationTargetType = 'BATCH' | 'SELECTED_MENTEES' | 'INDIVIDUAL_MENTEES';
+
+export interface AssignmentDueOverride {
+  readonly id: string;
+  readonly courseAllocationId: string;
+  readonly assignmentId: string;
+  readonly dueDate: string;
+  readonly estimatedMinutes?: number | null | undefined;
+  readonly setBy: string;
+  readonly assignment?:
+    | {
+        readonly id: string;
+        readonly title: string;
+        readonly maxMarks: number;
+      }
+    | undefined;
+}
+
+export interface CourseAllocation {
+  readonly id: string;
+  readonly courseId: string;
+  readonly batchId?: string | null | undefined;
+  readonly userId: string;
+  readonly startDate: string;
+  readonly dueDate: string;
+  readonly estimatedMinutes?: number | null | undefined;
+  readonly status: CourseAllocationStatus;
+  readonly completedAt?: string | null | undefined;
+  readonly progressPercent: number;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+  readonly course?:
+    | {
+        readonly id: string;
+        readonly title: string;
+        readonly estimatedMinutes?: number | null | undefined;
+      }
+    | undefined;
+  readonly batch?:
+    | {
+        readonly id: string;
+        readonly name: string;
+        readonly code: string;
+      }
+    | null
+    | undefined;
+  readonly user?:
+    | {
+        readonly id: string;
+        readonly name: string;
+        readonly email: string;
+      }
+    | undefined;
+  readonly isOverdue?: boolean | undefined;
+  readonly assignmentOverrides?: readonly AssignmentDueOverride[] | undefined;
+}
+
+export interface CreateAllocationsPayload {
+  readonly courseId: string;
+  readonly targetType: AllocationTargetType;
+  readonly batchId?: string | undefined;
+  readonly menteeIds?: readonly string[] | undefined;
+  readonly startDate: string;
+  readonly dueDate?: string | undefined;
+}
+
+export interface CreateAllocationsResponse {
+  readonly created: readonly CourseAllocation[];
+  readonly skipped: ReadonlyArray<{ readonly menteeId: string; readonly reason: string }>;
+}
+
+export interface AllocationFilters {
+  readonly page?: number | undefined;
+  readonly limit?: number | undefined;
+  readonly courseId?: string | undefined;
+  readonly batchId?: string | undefined;
+  readonly menteeId?: string | undefined;
+  readonly status?: string | undefined;
+  readonly search?: string | undefined;
+  readonly dueDateFrom?: string | undefined;
+  readonly dueDateTo?: string | undefined;
+}
+
+export interface AllocationListResponse {
+  readonly items: readonly CourseAllocation[];
+  readonly pagination: {
+    readonly page: number;
+    readonly limit: number;
+    readonly total: number;
+    readonly totalPages: number;
+  };
+}
+
+export interface UpdateAllocationDatesPayload {
+  readonly startDate?: string | undefined;
+  readonly dueDate?: string | undefined;
+}
+
+export interface BulkUpdateAllocationDatesPayload {
+  readonly allocationIds: readonly string[];
+  readonly startDate?: string | undefined;
+  readonly dueDate?: string | undefined;
+}
+
+export interface AddMenteesPayload {
+  readonly menteeIds: readonly string[];
+  readonly startDate?: string | undefined;
+  readonly dueDate?: string | undefined;
+}
+
+export interface AssignmentDueOverridePayload {
+  readonly assignmentId: string;
+  readonly dueDate: string;
+}
+
+export interface BulkAssignmentDueOverridePayload {
+  readonly allocationIds: readonly string[];
+  readonly assignmentId: string;
+  readonly dueDate: string;
+}
+
+interface ApiResponse<T> {
+  readonly success?: boolean | undefined;
+  readonly data: T;
+  readonly meta?:
+    | {
+        readonly page?: number | undefined;
+        readonly limit?: number | undefined;
+        readonly total?: number | undefined;
+      }
+    | undefined;
+  readonly message?: string | undefined;
+}
+
+const BASE = '/course-allocations';
+
+export const allocationsService = {
+  async listAllocations(filters: AllocationFilters = {}): Promise<AllocationListResponse> {
+    const params: Record<string, string | number> = {};
+    if (filters.page !== undefined) params.page = filters.page;
+    if (filters.limit !== undefined) params.limit = filters.limit;
+    if (filters.courseId) params.courseId = filters.courseId;
+    if (filters.batchId) params.batchId = filters.batchId;
+    if (filters.menteeId) params.menteeId = filters.menteeId;
+    if (filters.status) params.status = filters.status;
+    if (filters.search) params.search = filters.search;
+    if (filters.dueDateFrom) params.dueDateFrom = filters.dueDateFrom;
+    if (filters.dueDateTo) params.dueDateTo = filters.dueDateTo;
+
+    const res = await apiClient<ApiResponse<readonly CourseAllocation[]>>(BASE, {
+      method: 'GET',
+      params,
+    });
+
+    const items = Array.isArray(res.data) ? res.data : [];
+    const page = res.meta?.page ?? filters.page ?? 1;
+    const limit = res.meta?.limit ?? filters.limit ?? 20;
+    const total = res.meta?.total ?? items.length;
+    const totalPages = Math.ceil(total / limit) || 1;
+
+    return {
+      items,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
+    };
+  },
+
+  async getAllocationById(id: string): Promise<CourseAllocation> {
+    const res = await apiClient<ApiResponse<{ readonly allocation: CourseAllocation }>>(
+      `${BASE}/${id}`,
+      {
+        method: 'GET',
+      },
+    );
+    return res.data.allocation;
+  },
+
+  async createAllocations(payload: CreateAllocationsPayload): Promise<CreateAllocationsResponse> {
+    const res = await apiClient<ApiResponse<CreateAllocationsResponse>>(BASE, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return res.data;
+  },
+
+  async updateAllocationDates(
+    id: string,
+    payload: UpdateAllocationDatesPayload,
+  ): Promise<CourseAllocation> {
+    const res = await apiClient<ApiResponse<{ readonly allocation: CourseAllocation }>>(
+      `${BASE}/${id}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      },
+    );
+    return res.data.allocation;
+  },
+
+  async bulkUpdateAllocationDates(
+    payload: BulkUpdateAllocationDatesPayload,
+  ): Promise<readonly CourseAllocation[]> {
+    const res = await apiClient<ApiResponse<{ readonly allocations: readonly CourseAllocation[] }>>(
+      `${BASE}/bulk`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      },
+    );
+    return res.data.allocations;
+  },
+
+  async revokeAllocation(id: string): Promise<CourseAllocation> {
+    const res = await apiClient<ApiResponse<{ readonly allocation: CourseAllocation }>>(
+      `${BASE}/${id}/revoke`,
+      {
+        method: 'POST',
+      },
+    );
+    return res.data.allocation;
+  },
+
+  async addMenteesToAllocation(
+    id: string,
+    payload: AddMenteesPayload,
+  ): Promise<CreateAllocationsResponse> {
+    const res = await apiClient<ApiResponse<CreateAllocationsResponse>>(
+      `${BASE}/${id}/add-mentees`,
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      },
+    );
+    return res.data;
+  },
+
+  async getAssignmentOverrides(id: string): Promise<readonly AssignmentDueOverride[]> {
+    const res = await apiClient<
+      ApiResponse<{ readonly overrides: readonly AssignmentDueOverride[] }>
+    >(`${BASE}/${id}/assignment-overrides`, {
+      method: 'GET',
+    });
+    return res.data.overrides;
+  },
+
+  async setAssignmentOverride(
+    id: string,
+    payload: AssignmentDueOverridePayload,
+  ): Promise<AssignmentDueOverride> {
+    const res = await apiClient<ApiResponse<{ readonly override: AssignmentDueOverride }>>(
+      `${BASE}/${id}/assignment-overrides`,
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      },
+    );
+    return res.data.override;
+  },
+
+  async bulkSetAssignmentOverrides(
+    payload: BulkAssignmentDueOverridePayload,
+  ): Promise<readonly AssignmentDueOverride[]> {
+    const res = await apiClient<
+      ApiResponse<{ readonly overrides: readonly AssignmentDueOverride[] }>
+    >(`${BASE}/bulk-assignment-overrides`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return res.data.overrides;
+  },
+};

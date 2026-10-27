@@ -3,9 +3,9 @@
 import React, { useState } from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
-import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/Checkbox';
+import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Form } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
@@ -103,7 +103,7 @@ export function AddMemberModal({
   const [role, setRole] = useState<'MENTEE' | 'MENTOR'>('MENTEE');
   const [search, setSearch] = useState('');
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<unknown>(null);
 
   const {
     users: candidates,
@@ -159,7 +159,7 @@ export function AddMemberModal({
       onSuccess();
       onClose();
     } catch (err: unknown) {
-      setSubmitError(err instanceof Error ? err.message : 'Failed to add members to batch.');
+      setSubmitError(err);
     }
   };
 
@@ -218,7 +218,11 @@ export function AddMemberModal({
         className="space-y-4"
       >
         {submitError ? (
-          <Alert variant="error" title="Enrollment Failed" message={submitError} />
+          <ErrorMessage
+            error={submitError}
+            title="Enrollment Failed"
+            onDismiss={() => setSubmitError(null)}
+          />
         ) : null}
 
         {/* Role toggle */}
