@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
-import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/Checkbox';
+import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Select } from '@/components/ui/Select';
@@ -27,7 +27,12 @@ export interface AssignCourseModalProps {
   readonly onSuccess?: (() => void) | undefined;
 }
 
-export function AssignCourseModal({
+export function AssignCourseModal(props: AssignCourseModalProps) {
+  if (!props.isOpen) return null;
+  return <AssignCourseModalDialog {...props} />;
+}
+
+function AssignCourseModalDialog({
   isOpen,
   onClose,
   initialCourseId,
@@ -40,12 +45,17 @@ export function AssignCourseModal({
   const [targetType, setTargetType] = useState<AllocationTargetType>('BATCH');
   const [selectedBatchId, setSelectedBatchId] = useState<string>('');
   const [selectedMenteeIds, setSelectedMenteeIds] = useState<string[]>([]);
-  const [startDate, setStartDate] = useState<string>(
-    () => new Date().toISOString().split('T')[0] ?? '',
-  );
+  const [startDate, setStartDate] = useState<string>('');
   const [dueDate, setDueDate] = useState<string>('');
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<unknown>(null);
   const [result, setResult] = useState<CreateAllocationsResponse | null>(null);
+
+  useEffect(() => {
+    const frameId = requestAnimationFrame(() => {
+      setStartDate((prev) => prev || (new Date().toISOString().split('T')[0] ?? ''));
+    });
+    return () => cancelAnimationFrame(frameId);
+  }, []);
 
   // Queries
   const { courses, isLoading: isLoadingCourses } = useCourses();
@@ -124,6 +134,9 @@ export function AssignCourseModal({
         setErrorMsg('Please select an active course to allocate.');
         return;
       }
+      if (!startDate) {
+        setStartDate(new Date().toISOString().split('T')[0] ?? '');
+      }
       setCurrentStep(2);
     } else if (currentStep === 2) {
       if (targetType !== 'INDIVIDUAL_MENTEES' && !selectedBatchId) {
@@ -187,8 +200,8 @@ export function AssignCourseModal({
 
       setResult(res);
       onSuccess?.();
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Failed to allocate course');
+    } catch (err: unknown) {
+      setErrorMsg(err);
     }
   };
 
@@ -378,7 +391,13 @@ export function AssignCourseModal({
           </div>
         </div>
 
-        {errorMsg ? <Alert variant="error" title="Allocation Error" message={errorMsg} /> : null}
+        {errorMsg ? (
+          <ErrorMessage
+            error={errorMsg}
+            title="Allocation Request Failed"
+            onDismiss={() => setErrorMsg(null)}
+          />
+        ) : null}
 
         {/* STEP 1: Select Course */}
         {currentStep === 1 ? (
@@ -682,17 +701,19 @@ export function AssignCourseModal({
               </div>
             </div>
 
-            <div className="space-y-1 rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-xs text-slate-600">
-              <P className="font-semibold text-slate-800">Deployment Policy Notice:</P>
-              <P>
+            <div className="space-y-1.5 rounded-xl border border-slate-300 bg-slate-50 p-4 text-xs text-slate-700 shadow-2xs">
+              <p className="text-sm font-semibold text-slate-900">Deployment Policy Notice:</p>
+              <p className="leading-relaxed text-slate-700">
                 • Mentees who already hold an open allocation of this course will be safely skipped
                 (ALC-13).
-              </P>
-              <P>
+              </p>
+              <p className="leading-relaxed text-slate-700">
                 • Creating this allocation automatically inserts topic progress rows for all active
                 course topics (M8).
-              </P>
-              <P>• Mentees will receive automated allocation welcome emails with their due date.</P>
+              </p>
+              <p className="leading-relaxed text-slate-700">
+                • Mentees will receive automated allocation welcome emails with their due date.
+              </p>
             </div>
           </div>
         ) : null}

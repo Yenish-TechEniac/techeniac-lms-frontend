@@ -7,8 +7,8 @@ import { AssignCourseModal } from '@/components/app/allocations/AssignCourseModa
 import { AssignmentOverridesModal } from '@/components/app/allocations/AssignmentOverridesModal';
 import { EditAllocationModal } from '@/components/app/allocations/EditAllocationModal';
 import { RevokeAllocationModal } from '@/components/app/allocations/RevokeAllocationModal';
-import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
+import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { H1, P, Span } from '@/components/ui/Typography';
@@ -277,10 +277,11 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
       </div>
 
       {isError ? (
-        <Alert
-          variant="error"
+        <ErrorMessage
+          error={error}
           title="Failed to load allocations"
-          message={error instanceof Error ? error.message : 'Unknown error occurred'}
+          onRetry={() => void refetch()}
+          className="mb-4"
         />
       ) : null}
 

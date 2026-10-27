@@ -38,16 +38,16 @@ export function getTypographyClassName(
   className?: string,
 ): string {
   const variants: Record<TypographyVariant, string> = {
-    h1: 'text-3xl font-bold tracking-tight text-foreground sm:text-4xl',
-    h2: 'text-2xl font-semibold tracking-tight text-foreground',
-    h3: 'text-xl font-semibold tracking-tight text-foreground',
-    h4: 'text-lg font-semibold tracking-tight text-foreground',
-    p: 'text-base leading-7 text-foreground',
-    lead: 'text-lg leading-8 text-zinc-600 dark:text-zinc-400',
-    large: 'text-lg font-semibold text-foreground',
-    small: 'text-sm font-medium leading-none text-foreground',
-    muted: 'text-sm text-zinc-600 dark:text-zinc-400',
-    code: 'rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] font-semibold text-foreground dark:bg-white/[.08]',
+    h1: 'text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl',
+    h2: 'text-2xl font-semibold tracking-tight text-slate-900',
+    h3: 'text-xl font-semibold tracking-tight text-slate-900',
+    h4: 'text-lg font-semibold tracking-tight text-slate-900',
+    p: 'text-base leading-7 text-slate-700',
+    lead: 'text-lg leading-8 text-slate-600',
+    large: 'text-lg font-semibold text-slate-900',
+    small: 'text-sm font-medium leading-none text-slate-700',
+    muted: 'text-sm text-slate-500',
+    code: 'rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[0.9em] font-semibold text-slate-800',
   };
 
   return cn(variants[variant], className);

@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
-import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
+import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { P } from '@/components/ui/Typography';
 import { useRevokeAllocationMutation } from '@/hooks/useAllocations';
 import type { CourseAllocation } from '@/services/allocations.service';
@@ -22,7 +22,7 @@ export function RevokeAllocationModal({
   onClose,
   onSuccess,
 }: RevokeAllocationModalProps) {
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<unknown>(null);
   const revokeMutation = useRevokeAllocationMutation();
 
   if (!allocation) return null;
@@ -33,8 +33,8 @@ export function RevokeAllocationModal({
       await revokeMutation.mutateAsync(allocation.id);
       onSuccess?.();
       onClose();
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Failed to revoke allocation');
+    } catch (err: unknown) {
+      setErrorMsg(err);
     }
   };
 
@@ -67,7 +67,13 @@ export function RevokeAllocationModal({
       }
     >
       <div className="space-y-4">
-        {errorMsg ? <Alert variant="error" title="Error" message={errorMsg} /> : null}
+        {errorMsg ? (
+          <ErrorMessage
+            error={errorMsg}
+            title="Failed to revoke allocation"
+            onDismiss={() => setErrorMsg(null)}
+          />
+        ) : null}
 
         <div className="rounded-xl border border-rose-200 bg-rose-50 p-4">
           <P className="text-sm font-semibold text-rose-900">Warning: Revoking Allocation</P>

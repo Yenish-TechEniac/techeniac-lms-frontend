@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
-import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
+import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Form } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
@@ -29,7 +29,7 @@ export function AssignmentOverridesModal({
 }: AssignmentOverridesModalProps) {
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string>('');
   const [overrideDueDate, setOverrideDueDate] = useState<string>('');
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<unknown>(null);
 
   const { data: overrides, isLoading: isLoadingOverrides } = useAssignmentOverrides(
     allocation?.id ?? '',
@@ -70,8 +70,8 @@ export function AssignmentOverridesModal({
       setSelectedAssignmentId('');
       setOverrideDueDate('');
       onSuccess?.();
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Failed to save assignment override');
+    } catch (err: unknown) {
+      setErrorMsg(err);
     }
   };
 
@@ -130,7 +130,13 @@ export function AssignmentOverridesModal({
           <P className="text-xs font-bold tracking-wider text-slate-700 uppercase">
             Add or Update Assignment Override
           </P>
-          {errorMsg ? <Alert variant="error" title="Error" message={errorMsg} /> : null}
+          {errorMsg ? (
+            <ErrorMessage
+              error={errorMsg}
+              title="Override Failed"
+              onDismiss={() => setErrorMsg(null)}
+            />
+          ) : null}
 
           <div>
             <Label htmlFor="override-assignment-select" required>

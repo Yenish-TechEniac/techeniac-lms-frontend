@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
-import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
+import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Form } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
@@ -32,7 +32,7 @@ export function EditAllocationModal({
     () => allocation?.startDate.split('T')[0] ?? '',
   );
   const [dueDate, setDueDate] = useState<string>(() => allocation?.dueDate.split('T')[0] ?? '');
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<unknown>(null);
   const [isConfirmingRevoke, setIsConfirmingRevoke] = useState(false);
 
   const updateMutation = useUpdateAllocationDatesMutation();
@@ -66,8 +66,8 @@ export function EditAllocationModal({
       });
       onSuccess?.();
       onClose();
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Failed to update dates');
+    } catch (err: unknown) {
+      setErrorMsg(err);
     }
   };
 
@@ -112,7 +112,13 @@ export function EditAllocationModal({
       }
     >
       <Form className="space-y-6" onSubmit={(e) => void handleSubmit(e)}>
-        {errorMsg ? <Alert variant="error" title="Action Error" message={errorMsg} /> : null}
+        {errorMsg ? (
+          <ErrorMessage
+            error={errorMsg}
+            title="Failed to update allocation dates"
+            onDismiss={() => setErrorMsg(null)}
+          />
+        ) : null}
 
         {/* Top Scope / Context Card */}
         <div className="flex items-center justify-between rounded-xl border border-slate-200/80 bg-slate-50/70 p-3.5">
