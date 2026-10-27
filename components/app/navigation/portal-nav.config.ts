@@ -91,8 +91,6 @@ export const ADMIN_PROGRESS_NAV: PortalNavConfig = {
   ],
 };
 
-export const ADMIN_NAV_CONFIG = ADMIN_PROGRESS_NAV;
-
 export const MENTOR_PORTAL_NAV: PortalNavConfig = {
   subtitle: 'Mentor Portal',
   homeUrl: '/mentor',
@@ -148,8 +146,6 @@ export const MENTOR_PROGRESS_NAV: PortalNavConfig = {
     { label: 'Progress Tracker', href: '/mentor/progress', active: true },
   ],
 };
-
-export const MENTOR_NAV_CONFIG = MENTOR_PROGRESS_NAV;
 
 export const MENTEE_PORTAL_NAV: PortalNavConfig = {
   subtitle: 'Learning Portal',

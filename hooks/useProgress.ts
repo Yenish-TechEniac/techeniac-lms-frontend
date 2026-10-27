@@ -7,6 +7,8 @@ import {
   progressService,
   type ProgressTrackerFilters,
   type ProgressTrackerItem,
+  type ProgressTrackerPagination,
+  type ProgressTrackerResponse,
   type TopicProgressItem,
   type TopicProgressStatus,
   type UpdateTopicDeadlinePayload,
@@ -20,6 +22,8 @@ export {
   progressService,
   type ProgressTrackerFilters,
   type ProgressTrackerItem,
+  type ProgressTrackerPagination,
+  type ProgressTrackerResponse,
   type TopicProgressItem,
   type TopicProgressStatus,
   type UpdateTopicDeadlinePayload,
@@ -48,7 +52,7 @@ export function useAllocationProgress(allocationId: string | undefined) {
 }
 
 export function useProgressTrackers(filters: ProgressTrackerFilters = {}) {
-  return useQuery<ProgressTrackerItem[]>({
+  return useQuery<ProgressTrackerResponse>({
     queryKey: progressKeys.trackers(filters),
     queryFn: () => progressService.getProgressTrackers(filters),
   });

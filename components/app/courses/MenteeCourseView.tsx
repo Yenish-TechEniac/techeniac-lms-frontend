@@ -9,6 +9,8 @@ import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { MarkdownViewer } from '@/components/ui/MarkdownViewer';
 import { H1, H2, H3, H4, Muted, P, Span } from '@/components/ui/Typography';
 import { useCourseDetail } from '@/hooks/useCourses';
 import {
@@ -377,13 +379,18 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
                       }`}
                     >
                       {/* Topic Trigger */}
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         type="button"
+                        aria-pressed={isCurrent}
                         onClick={() => {
                           setSelectedTopicId(topic.id);
                           setSelectedSubtopicId(null);
+                          setStudyNote('');
+                          setActionSuccessMessage(null);
                         }}
-                        className="flex w-full items-center justify-between p-3 text-left"
+                        className="flex h-auto w-full items-center justify-between p-3 text-left font-normal"
                       >
                         <div className="flex min-w-0 flex-1 items-center gap-2.5">
                           <div
@@ -424,7 +431,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
                             {isCompleted ? 'Done' : isInProgress ? 'Active' : 'Unstarted'}
                           </Span>
                         </div>
-                      </button>
+                      </Button>
 
                       {/* Subtopics List under Selected Topic */}
                       {isCurrent && subtopics.length > 0 && (
@@ -432,11 +439,18 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
                           {subtopics.map((sub, sIdx) => {
                             const isSubActive = currentSubtopic?.id === sub.id;
                             return (
-                              <button
+                              <Button
                                 key={sub.id}
+                                variant="ghost"
+                                size="sm"
                                 type="button"
-                                onClick={() => setSelectedSubtopicId(sub.id)}
-                                className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-xs transition-colors ${
+                                aria-pressed={isSubActive}
+                                onClick={() => {
+                                  setSelectedSubtopicId(sub.id);
+                                  setStudyNote('');
+                                  setActionSuccessMessage(null);
+                                }}
+                                className={`flex h-auto w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-xs font-normal transition-colors ${
                                   isSubActive
                                     ? 'bg-white font-semibold text-blue-600 shadow-xs'
                                     : 'text-slate-600 hover:bg-white/80 hover:text-slate-900'
@@ -450,7 +464,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
                                     {sub.estimatedMinutes}m
                                   </Span>
                                 )}
-                              </button>
+                              </Button>
                             );
                           })}
                         </div>
@@ -538,9 +552,9 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
               {/* Subtopic Reading Prose */}
               <div className="mt-6 flex flex-col gap-6 text-sm leading-relaxed text-slate-700 sm:text-base">
                 {currentSubtopic?.content ? (
-                  <div
-                    className="prose max-w-none leading-7 text-slate-700"
-                    dangerouslySetInnerHTML={{ __html: currentSubtopic.content }}
+                  <MarkdownViewer
+                    content={currentSubtopic.content}
+                    className="max-w-none leading-7 text-slate-700"
                   />
                 ) : (
                   <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-8 text-center">
@@ -600,16 +614,24 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
                   </div>
 
                   {/* Segmented Status Selector */}
-                  <div className="flex items-center rounded-xl border border-slate-200 bg-white p-1 shadow-xs">
+                  <div
+                    role="radiogroup"
+                    aria-label="Topic Progress Status"
+                    className="flex items-center rounded-xl border border-slate-200 bg-white p-1 shadow-xs"
+                  >
                     {(['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED'] as const).map((st) => {
                       const isSelected = currentTopicStatus === st;
                       return (
-                        <button
+                        <Button
                           key={st}
                           type="button"
+                          variant={isSelected ? 'primary' : 'ghost'}
+                          size="sm"
+                          role="radio"
+                          aria-checked={isSelected}
                           disabled={isReadOnly || updateStatusMutation.isPending}
                           onClick={() => void handleStatusChange(st)}
-                          className={`rounded-lg px-3 py-1.5 font-mono text-xs font-medium transition-all ${
+                          className={`h-auto rounded-lg px-3 py-1.5 font-mono text-xs transition-all ${
                             isSelected
                               ? 'bg-blue-600 font-bold text-white shadow-xs'
                               : 'text-slate-600 hover:text-slate-900 disabled:opacity-40'
@@ -620,7 +642,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
                             : st === 'IN_PROGRESS'
                               ? 'In Progress'
                               : 'Completed'}
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
@@ -629,9 +651,9 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
                 {/* Optional Study Note Input & Quick Action Button */}
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                   <div className="flex-1">
-                    <label htmlFor={studyNoteInputId} className="sr-only">
+                    <Label htmlFor={studyNoteInputId} className="sr-only">
                       Optional study note or question for mentor
-                    </label>
+                    </Label>
                     <Input
                       id={studyNoteInputId}
                       type="text"

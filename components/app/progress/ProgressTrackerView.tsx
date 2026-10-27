@@ -3,9 +3,13 @@
 import React, { useMemo, useState } from 'react';
 
 import { AllocationStatusBadge } from '@/components/app/allocations/AllocationStatusBadge';
-import { ADMIN_NAV_CONFIG, MENTOR_NAV_CONFIG } from '@/components/app/navigation/portal-nav.config';
+import {
+  ADMIN_PROGRESS_NAV,
+  MENTOR_PROGRESS_NAV,
+} from '@/components/app/navigation/portal-nav.config';
 import { TopicDeadlineModal } from '@/components/app/progress/TopicDeadlineModal';
 import { Header } from '@/components/layout/Header';
+import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Input } from '@/components/ui/Input';
@@ -28,16 +32,18 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
   const [selectedBatchId, setSelectedBatchId] = useState<string>('');
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
   const [search, setSearch] = useState<string>('');
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(20);
   const [selectedItem, setSelectedItem] = useState<ProgressTrackerItem | null>(null);
 
   // Modal state for deadline adjustment
   const [deadlineModalTopic, setDeadlineModalTopic] = useState<TopicProgressItem | null>(null);
 
-  const navConfig = portalType === 'admin' ? ADMIN_NAV_CONFIG : MENTOR_NAV_CONFIG;
+  const navConfig = portalType === 'admin' ? ADMIN_PROGRESS_NAV : MENTOR_PROGRESS_NAV;
 
-  // 1. Fetch Trackers Telemetry (M8 Backend Endpoint)
+  // 1. Fetch Trackers Telemetry (M8 Backend Endpoint with Pagination)
   const {
-    data: rawTrackers,
+    data: trackersResponse,
     isLoading: isTrackersLoading,
     isError: isTrackersError,
     error: trackersError,
@@ -45,29 +51,36 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
   } = useProgressTrackers({
     batchId: selectedBatchId || undefined,
     courseId: selectedCourseId || undefined,
+    search: search.trim() || undefined,
+    page,
+    limit,
   });
 
-  const trackers = useMemo(() => rawTrackers ?? [], [rawTrackers]);
+  const trackers = useMemo<ProgressTrackerItem[]>(
+    () => trackersResponse?.trackers ?? [],
+    [trackersResponse],
+  );
+  const pagination = useMemo(
+    () =>
+      trackersResponse?.pagination ?? {
+        page,
+        limit,
+        total: trackers.length,
+        totalPages: Math.ceil(trackers.length / limit) || 1,
+      },
+    [trackersResponse, page, limit, trackers.length],
+  );
 
   // 2. Fetch Batches for Filter Dropdown
   const { data: batchesData } = useBatchesList({ limit: 100 });
   const batches = useMemo(() => batchesData?.items ?? [], [batchesData]);
+  const batchesTotal = batchesData?.pagination?.total ?? batches.length;
 
   // 3. Fetch Courses for Filter Dropdown
-  const { courses } = useCourses({ limit: 100 });
+  const { courses, total: coursesTotal } = useCourses({ limit: 100 });
 
-  // Client-side search filtering
-  const filteredTrackers = useMemo(() => {
-    if (!search.trim()) return trackers;
-    const term = search.toLowerCase().trim();
-    return trackers.filter((item) => {
-      return (
-        item.menteeName.toLowerCase().includes(term) ||
-        item.courseTitle.toLowerCase().includes(term) ||
-        (item.batchName?.toLowerCase().includes(term) ?? false)
-      );
-    });
-  }, [trackers, search]);
+  // Filtered trackers from paginated query
+  const filteredTrackers = trackers;
 
   // Aggregated Telemetry Metrics
   const meanCompletion = useMemo(() => {
@@ -85,9 +98,13 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
   }, [trackers]);
 
   // Detail query for active drawer allocation
-  const { data: drawerProgressData, refetch: refetchDrawerProgress } = useAllocationProgress(
-    selectedItem?.allocationId,
-  );
+  const {
+    data: drawerProgressData,
+    isLoading: isDrawerLoading,
+    isError: isDrawerError,
+    error: drawerError,
+    refetch: refetchDrawerProgress,
+  } = useAllocationProgress(selectedItem?.allocationId);
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased">
@@ -192,10 +209,13 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
           <div className="flex flex-1 flex-wrap items-center gap-3">
             {/* Batch Selector */}
-            <div className="min-w-[180px]">
+            <div className="flex min-w-[180px] flex-col gap-1">
               <Select
                 value={selectedBatchId}
-                onChange={(e) => setSelectedBatchId(e.target.value)}
+                onChange={(e) => {
+                  setSelectedBatchId(e.target.value);
+                  setPage(1);
+                }}
                 className="h-9 w-full bg-slate-50 text-xs"
               >
                 <option value="">All Cohorts / Batches</option>
@@ -204,14 +224,27 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                     {b.name} ({b.code})
                   </option>
                 ))}
+                {batchesTotal > batches.length && (
+                  <option disabled value="">
+                    Showing first {batches.length} of {batchesTotal} cohorts
+                  </option>
+                )}
               </Select>
+              {batchesTotal > batches.length && (
+                <Span className="text-[10px] text-slate-400">
+                  Showing first {batches.length} of {batchesTotal} cohorts
+                </Span>
+              )}
             </div>
 
             {/* Course Selector */}
-            <div className="min-w-[200px]">
+            <div className="flex min-w-[200px] flex-col gap-1">
               <Select
                 value={selectedCourseId}
-                onChange={(e) => setSelectedCourseId(e.target.value)}
+                onChange={(e) => {
+                  setSelectedCourseId(e.target.value);
+                  setPage(1);
+                }}
                 className="h-9 w-full bg-slate-50 text-xs"
               >
                 <option value="">All Courses</option>
@@ -220,7 +253,17 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                     {c.title}
                   </option>
                 ))}
+                {coursesTotal > courses.length && (
+                  <option disabled value="">
+                    Showing first {courses.length} of {coursesTotal} courses
+                  </option>
+                )}
               </Select>
+              {coursesTotal > courses.length && (
+                <Span className="text-[10px] text-slate-400">
+                  Showing first {courses.length} of {coursesTotal} courses
+                </Span>
+              )}
             </div>
 
             {/* Search Input */}
@@ -229,7 +272,10 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                 type="search"
                 placeholder="Search cadet or course title..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
                 className="h-9 w-full bg-slate-50 text-xs"
               />
             </div>
@@ -243,6 +289,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                 setSelectedBatchId('');
                 setSelectedCourseId('');
                 setSearch('');
+                setPage(1);
               }}
               className="text-xs"
             >
@@ -378,6 +425,20 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
               </table>
             </div>
           )}
+
+          {/* Pagination Controls */}
+          <PaginationControls
+            page={pagination.page}
+            limit={pagination.limit}
+            total={pagination.total}
+            totalPages={pagination.totalPages}
+            onPageChange={setPage}
+            onLimitChange={(newLimit) => {
+              setLimit(newLimit);
+              setPage(1);
+            }}
+            itemLabel="cadets"
+          />
         </div>
       </main>
 
@@ -399,13 +460,16 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                 </div>
               </div>
 
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 type="button"
                 onClick={() => setSelectedItem(null)}
-                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                aria-label="Close panel"
+                className="h-8 w-8 p-0 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
               >
                 ✕
-              </button>
+              </Button>
             </div>
 
             {/* Quick Metrics Strip */}
@@ -432,9 +496,24 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                 Active Topic Milestones & Deadlines
               </H4>
 
-              {!drawerProgressData?.topics.length ? (
-                <div className="flex h-40 items-center justify-center text-xs text-slate-400">
-                  Loading syllabus topics...
+              {isDrawerLoading ? (
+                <div className="flex h-40 flex-col items-center justify-center gap-2.5">
+                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+                  <Span className="font-mono text-xs text-slate-400">
+                    Loading syllabus topics...
+                  </Span>
+                </div>
+              ) : isDrawerError ? (
+                <div className="p-4">
+                  <ErrorMessage error={drawerError} onRetry={() => void refetchDrawerProgress()} />
+                </div>
+              ) : !drawerProgressData?.topics.length ? (
+                <div className="flex h-40 flex-col items-center justify-center p-6 text-center">
+                  <Span className="text-2xl">📚</Span>
+                  <H4 className="mt-2 text-xs font-bold text-slate-800">No Active Topics</H4>
+                  <P className="mt-1 text-[11px] text-slate-500">
+                    This course currently has no active syllabus topics configured.
+                  </P>
                 </div>
               ) : (
                 <div className="flex flex-col gap-3">
@@ -498,13 +577,15 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                             </Span>
 
                             {/* Deadline Editor Button */}
-                            <button
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               type="button"
                               onClick={() => setDeadlineModalTopic(t)}
-                              className="font-mono text-[10.5px] font-semibold text-blue-600 hover:underline"
+                              className="h-auto p-0 font-mono text-[10.5px] font-semibold text-blue-600 hover:underline"
                             >
                               {t.deadline ? 'Edit Target Date' : '+ Set Target'}
-                            </button>
+                            </Button>
                           </div>
                         </div>
                       </div>

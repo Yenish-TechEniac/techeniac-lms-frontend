@@ -76,11 +76,25 @@ export interface ProgressTrackerItem {
   readonly isOverdue: boolean;
 }
 
+export interface ProgressTrackerPagination {
+  readonly page: number;
+  readonly limit: number;
+  readonly total: number;
+  readonly totalPages: number;
+}
+
+export interface ProgressTrackerResponse {
+  readonly trackers: ProgressTrackerItem[];
+  readonly pagination: ProgressTrackerPagination;
+}
+
 export interface ProgressTrackerFilters {
   readonly batchId?: string | undefined;
   readonly menteeId?: string | undefined;
   readonly courseId?: string | undefined;
   readonly search?: string | undefined;
+  readonly page?: number | undefined;
+  readonly limit?: number | undefined;
 }
 
 interface ApiResponse<T> {
@@ -139,19 +153,35 @@ export const progressService = {
     return res.data;
   },
 
-  async getProgressTrackers(filters: ProgressTrackerFilters = {}): Promise<ProgressTrackerItem[]> {
+  async getProgressTrackers(
+    filters: ProgressTrackerFilters = {},
+  ): Promise<ProgressTrackerResponse> {
     const params: Record<string, string> = {};
     if (filters.batchId) params.batchId = filters.batchId;
     if (filters.menteeId) params.menteeId = filters.menteeId;
     if (filters.courseId) params.courseId = filters.courseId;
+    if (filters.search) params.search = filters.search;
+    if (filters.page) params.page = String(filters.page);
+    if (filters.limit) params.limit = String(filters.limit);
 
-    const res = await apiClient<ApiResponse<{ trackers: ProgressTrackerItem[] }>>(
-      '/progress/trackers',
-      {
-        method: 'GET',
-        params,
-      },
-    );
-    return res.data?.trackers ?? [];
+    const res = await apiClient<
+      ApiResponse<{
+        trackers: ProgressTrackerItem[];
+        pagination?: ProgressTrackerPagination;
+      }>
+    >('/progress/trackers', {
+      method: 'GET',
+      params,
+    });
+
+    const trackers = res.data?.trackers ?? [];
+    const pagination = res.data?.pagination ?? {
+      page: filters.page ?? 1,
+      limit: filters.limit ?? 20,
+      total: trackers.length,
+      totalPages: Math.ceil(trackers.length / (filters.limit ?? 20)) || 1,
+    };
+
+    return { trackers, pagination };
   },
 };
