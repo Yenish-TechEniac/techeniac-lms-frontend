@@ -14,6 +14,9 @@ export const ALLOWED_STATUS_TRANSITIONS: Record<BatchStatus, BatchStatus[]> = {
   ARCHIVED: [],
 };
 
+export const isBatchLocked = (status: BatchStatus): boolean =>
+  ALLOWED_STATUS_TRANSITIONS[status].length === 0;
+
 export const createBatchSchema = z
   .object({
     name: createTrimmedStringSchema('Batch name', 3, 100),
