@@ -11,9 +11,10 @@ import { EditUserModal } from '@/components/app/users/EditUserModal';
 import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 import { H1, P, Span, Typography } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
-import { useUsers } from '@/hooks/useUsers';
+import { type UserQueryFilters, useUsers } from '@/hooks/useUsers';
 import {
   type ChangeRoleFormData,
   type CreateUserFormData,
@@ -109,11 +110,23 @@ function UserSearchInput({ value, onSearchChange }: Readonly<UserSearchInputProp
   const [localValue, setLocalValue] = useState(value);
   const [prevValue, setPrevValue] = useState(value);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const onSearchChangeRef = useRef(onSearchChange);
+
+  useEffect(() => {
+    onSearchChangeRef.current = onSearchChange;
+  });
 
   if (prevValue !== value) {
     setPrevValue(value);
     setLocalValue(value);
   }
+
+  useEffect(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  }, [value]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const nextVal = e.target.value;
@@ -122,7 +135,7 @@ function UserSearchInput({ value, onSearchChange }: Readonly<UserSearchInputProp
       clearTimeout(timerRef.current);
     }
     timerRef.current = setTimeout(() => {
-      onSearchChange(nextVal);
+      onSearchChangeRef.current(nextVal);
     }, 300);
   };
 
@@ -150,6 +163,18 @@ function UserSearchInput({ value, onSearchChange }: Readonly<UserSearchInputProp
   );
 }
 
+const MENTOR_ROSTER_FILTERS: UserQueryFilters = {
+  role: 'MENTOR',
+  limit: 100,
+};
+
+interface FilterUpdateOptions {
+  role?: string;
+  status?: string;
+  search?: string;
+  mentorId?: string;
+}
+
 export function UsersTable() {
   const router = useRouter();
   const { user: currentUser, isAuthenticated, isLoading: isAuthLoading } = useAuth();
@@ -157,6 +182,23 @@ export function UsersTable() {
   const [search, setSearch] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
+  const [selectedMentor, setSelectedMentor] = useState<string>('ALL');
+
+  const filtersRef = useRef({
+    role: selectedRole,
+    status: selectedStatus,
+    search,
+    mentorId: selectedMentor,
+  });
+
+  useEffect(() => {
+    filtersRef.current = {
+      role: selectedRole,
+      status: selectedStatus,
+      search,
+      mentorId: selectedMentor,
+    };
+  }, [selectedRole, selectedStatus, search, selectedMentor]);
 
   useEffect(() => {
     if (!isAuthLoading) {
@@ -184,6 +226,8 @@ export function UsersTable() {
     toggleStatus,
     resendInvite,
   } = useUsers();
+
+  const { users: mentorUsers, isLoading: isMentorsLoading } = useUsers(MENTOR_ROSTER_FILTERS);
 
   // Modal controls
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -237,17 +281,41 @@ export function UsersTable() {
     }));
   }, [apiUsers, activeAdminsCount]);
 
-  const handleFilterUpdate = (newRole: string, newStatus: string, newSearch: string) => {
+  const mentors = useMemo(() => {
+    return mentorUsers.map((m) => ({
+      id: m.id,
+      name: m.name,
+      email: m.email,
+      isActive: m.isActive,
+    }));
+  }, [mentorUsers]);
+
+  const isMentorFilterDisabled = selectedRole === 'SUPER_ADMIN' || selectedRole === 'MENTOR';
+
+  const handleFilterUpdate = ({
+    role = filtersRef.current.role,
+    status = filtersRef.current.status,
+    search: searchVal = filtersRef.current.search,
+    mentorId = filtersRef.current.mentorId,
+  }: FilterUpdateOptions = {}) => {
+    filtersRef.current = {
+      role,
+      status,
+      search: searchVal,
+      mentorId,
+    };
+
     void fetchUsers({
-      role: newRole !== 'ALL' ? newRole : undefined,
-      status: newStatus !== 'ALL' ? newStatus : undefined,
-      search: newSearch.trim() || undefined,
+      role: role !== 'ALL' ? role : undefined,
+      status: status !== 'ALL' ? status : undefined,
+      search: searchVal.trim() || undefined,
+      mentorId: mentorId !== 'ALL' ? mentorId : undefined,
     });
   };
 
   const handleSearchChange = (val: string) => {
     setSearch(val);
-    handleFilterUpdate(selectedRole, selectedStatus, val);
+    handleFilterUpdate({ search: val });
   };
 
   const isInitialLoading = isLoading && apiUsers.length === 0;
@@ -416,7 +484,7 @@ export function UsersTable() {
           size="sm"
           onClick={() => {
             setSelectedStatus('ALL');
-            handleFilterUpdate(selectedRole, 'ALL', search);
+            handleFilterUpdate({ status: 'ALL' });
           }}
           className={`h-8 gap-2 rounded-lg px-3 text-xs ${
             selectedStatus === 'ALL'
@@ -435,7 +503,7 @@ export function UsersTable() {
           size="sm"
           onClick={() => {
             setSelectedStatus('ACTIVE');
-            handleFilterUpdate(selectedRole, 'ACTIVE', search);
+            handleFilterUpdate({ status: 'ACTIVE' });
           }}
           className={`h-8 gap-2 rounded-lg px-3 text-xs ${
             selectedStatus === 'ACTIVE'
@@ -453,7 +521,7 @@ export function UsersTable() {
           size="sm"
           onClick={() => {
             setSelectedStatus('INACTIVE');
-            handleFilterUpdate(selectedRole, 'INACTIVE', search);
+            handleFilterUpdate({ status: 'INACTIVE' });
           }}
           className={`h-8 gap-2 rounded-lg px-3 text-xs ${
             selectedStatus === 'INACTIVE'
@@ -477,32 +545,71 @@ export function UsersTable() {
 
           {/* Role Filter */}
           <div className="md:col-span-2">
-            <select
+            <Select
               value={selectedRole}
               onChange={(e) => {
                 const val = e.target.value;
                 setSelectedRole(val);
-                handleFilterUpdate(val, selectedStatus, search);
+                const isMentorRestricted = val === 'SUPER_ADMIN' || val === 'MENTOR';
+                if (isMentorRestricted && selectedMentor !== 'ALL') {
+                  setSelectedMentor('ALL');
+                  handleFilterUpdate({ role: val, mentorId: 'ALL' });
+                } else {
+                  handleFilterUpdate({ role: val });
+                }
               }}
-              className="h-10 w-full cursor-pointer rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-900 transition-all focus:border-blue-500 focus:outline-none"
+              aria-label="Filter by role"
+              className="h-10 text-sm font-normal"
             >
               <option value="ALL">All Roles</option>
               <option value="SUPER_ADMIN">Super Admin</option>
               <option value="MENTOR">Mentor</option>
               <option value="MENTEE">Mentee</option>
-            </select>
+            </Select>
           </div>
 
-          {/* Batch Filter (Coming Soon) */}
+          {/* Mentor Filter */}
           <div className="md:col-span-3">
-            <select
-              value="ALL"
-              disabled
-              aria-label="Batch filter coming soon"
-              className="h-10 w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-100 px-3 text-sm text-slate-400 focus:outline-none"
+            <Select
+              value={selectedMentor}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedMentor(val);
+                handleFilterUpdate({ mentorId: val });
+              }}
+              aria-label="Filter by mentor"
+              disabled={isMentorFilterDisabled}
+              title={
+                isMentorFilterDisabled
+                  ? `Mentor filter is not applicable for ${selectedRole === 'SUPER_ADMIN' ? 'Super Admins' : 'Mentors'}`
+                  : undefined
+              }
+              className="h-10 text-sm font-normal"
             >
-              <option value="ALL">Batches (Coming soon)</option>
-            </select>
+              {isMentorFilterDisabled ? (
+                <option value="ALL">
+                  N/A for {selectedRole === 'SUPER_ADMIN' ? 'Super Admins' : 'Mentors'}
+                </option>
+              ) : (
+                <>
+                  <option value="ALL">
+                    {isMentorsLoading && mentorUsers.length === 0
+                      ? 'Loading mentors...'
+                      : 'All Mentors'}
+                  </option>
+                  {selectedMentor !== 'ALL' && !mentors.some((m) => m.id === selectedMentor) && (
+                    <option value={selectedMentor} disabled>
+                      Selected Mentor
+                    </option>
+                  )}
+                  {mentors.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.name} ({m.email}){!m.isActive ? ' (Inactive)' : ''}
+                    </option>
+                  ))}
+                </>
+              )}
+            </Select>
           </div>
 
           {/* Reset Filters */}
@@ -515,7 +622,13 @@ export function UsersTable() {
                 setSearch('');
                 setSelectedRole('ALL');
                 setSelectedStatus('ALL');
-                handleFilterUpdate('ALL', 'ALL', '');
+                setSelectedMentor('ALL');
+                handleFilterUpdate({
+                  role: 'ALL',
+                  status: 'ALL',
+                  search: '',
+                  mentorId: 'ALL',
+                });
               }}
               className="p-2 text-xs font-semibold text-blue-600 hover:text-blue-700"
             >
@@ -576,11 +689,7 @@ export function UsersTable() {
                         variant="primary"
                         size="sm"
                         onClick={() => {
-                          void fetchUsers({
-                            role: selectedRole !== 'ALL' ? selectedRole : undefined,
-                            status: selectedStatus !== 'ALL' ? selectedStatus : undefined,
-                            search: search.trim() || undefined,
-                          });
+                          handleFilterUpdate();
                         }}
                       >
                         Retry Fetch
