@@ -47,6 +47,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
     isLoading: isCourseLoading,
     isError: isCourseError,
     error: courseError,
+    refetch: refetchCourse,
   } = useCourseDetail(courseId ?? '');
 
   // Mutation for updating topic progress status
@@ -165,6 +166,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
               error={progressError || courseError || new Error('Failed to load course workspace')}
               onRetry={() => {
                 void refetchProgress();
+                void refetchCourse();
               }}
             />
             <div className="mt-6 flex justify-start">
@@ -257,7 +259,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
                 <div className="flex items-center gap-1.5">
                   <Span className="text-slate-400">⏱</Span>
                   <Span className="font-mono">
-                    {courseData?.estimatedMinutes
+                    {courseData?.estimatedMinutes != null
                       ? `${Math.floor(courseData.estimatedMinutes / 60)}h ${courseData.estimatedMinutes % 60}m duration`
                       : 'Self-paced'}
                   </Span>
@@ -443,7 +445,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
                                 <Span className="truncate pr-2">
                                   {index + 1}.{sIdx + 1} {sub.title}
                                 </Span>
-                                {sub.estimatedMinutes && (
+                                {sub.estimatedMinutes != null && (
                                   <Span className="font-mono text-[10px] text-slate-400">
                                     {sub.estimatedMinutes}m
                                   </Span>
@@ -515,7 +517,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
                   <div className="flex items-center gap-2">
                     <Span className="font-mono text-xs text-slate-400">
                       ⏱{' '}
-                      {currentTopic?.estimatedMinutes
+                      {currentTopic?.estimatedMinutes != null
                         ? `${currentTopic.estimatedMinutes} mins`
                         : 'Flexible'}
                     </Span>
