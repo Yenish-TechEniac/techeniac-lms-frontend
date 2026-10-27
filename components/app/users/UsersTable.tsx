@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { H1, P, Span, Typography } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
-import { useUsers } from '@/hooks/useUsers';
+import { DEFAULT_USERS_PAGE_SIZE, useUsers } from '@/hooks/useUsers';
 import {
   type ChangeRoleFormData,
   type CreateUserFormData,
@@ -159,7 +159,7 @@ export function UsersTable() {
   const [selectedRole, setSelectedRole] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
   const [page, setPage] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(20);
+  const [limit, setLimit] = useState<number>(DEFAULT_USERS_PAGE_SIZE);
 
   useEffect(() => {
     if (!isAuthLoading) {
@@ -606,13 +606,7 @@ export function UsersTable() {
                         variant="primary"
                         size="sm"
                         onClick={() => {
-                          void fetchUsers({
-                            page,
-                            limit,
-                            role: selectedRole !== 'ALL' ? selectedRole : undefined,
-                            status: selectedStatus !== 'ALL' ? selectedStatus : undefined,
-                            search: search.trim() || undefined,
-                          });
+                          void handleFilterUpdate(selectedRole, selectedStatus, search);
                         }}
                       >
                         Retry Fetch
@@ -775,16 +769,18 @@ export function UsersTable() {
         </div>
 
         {/* Pagination Controls */}
-        <PaginationControls
-          page={page}
-          limit={limit}
-          total={totalCount}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-          onLimitChange={handleLimitChange}
-          itemLabel="users"
-          pageSizeOptions={[10, 20, 50, 100]}
-        />
+        {!usersError && (
+          <PaginationControls
+            page={page}
+            limit={limit}
+            total={totalCount}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            onLimitChange={handleLimitChange}
+            itemLabel="users"
+            pageSizeOptions={[10, 20, 50, 100]}
+          />
+        )}
       </div>
 
       {/* Drawers and Modals */}
