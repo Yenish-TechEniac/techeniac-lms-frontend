@@ -97,14 +97,12 @@ function parseErrorPayload(response: Response, data: unknown): ApiError {
   const errData = isApiErrorResponse(data) ? data : null;
   const retryAfter = parseRetryAfter(response.headers.get('Retry-After'));
 
-  // Use backend error message if provided, otherwise default to user-friendly server error
-  const backendServerMsg = errData?.error?.message || errData?.message;
   if (response.status >= 500) {
     return new ApiError(
       response.status,
-      backendServerMsg || 'A server error occurred. Please try again later.',
-      errData?.error?.code || 'SERVER_ERROR',
-      errData?.error?.details,
+      'A server error occurred. Please try again later.',
+      'SERVER_ERROR',
+      undefined,
       retryAfter,
     );
   }

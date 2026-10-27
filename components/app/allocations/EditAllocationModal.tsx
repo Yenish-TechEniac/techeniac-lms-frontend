@@ -5,15 +5,16 @@ import React, { useState } from 'react';
 import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
+import { FieldError } from '@/components/ui/FieldError';
 import { Form } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { H3, P, Span } from '@/components/ui/Typography';
 import {
+  type CourseAllocation,
   useRevokeAllocationMutation,
   useUpdateAllocationDatesMutation,
 } from '@/hooks/useAllocations';
-import type { CourseAllocation } from '@/services/allocations.service';
 
 export interface EditAllocationModalProps {
   readonly allocation: CourseAllocation | null;
@@ -22,23 +23,29 @@ export interface EditAllocationModalProps {
   readonly onSuccess?: (() => void) | undefined;
 }
 
-export function EditAllocationModal({
+export function EditAllocationModal(props: EditAllocationModalProps) {
+  if (!props.isOpen || !props.allocation) return null;
+  return (
+    <EditAllocationModalDialog key={props.allocation.id} {...props} allocation={props.allocation} />
+  );
+}
+
+function EditAllocationModalDialog({
   allocation,
   isOpen,
   onClose,
   onSuccess,
-}: EditAllocationModalProps) {
+}: Readonly<EditAllocationModalProps & { allocation: CourseAllocation }>) {
   const [startDate, setStartDate] = useState<string>(
-    () => allocation?.startDate.split('T')[0] ?? '',
+    () => allocation.startDate.split('T')[0] ?? '',
   );
-  const [dueDate, setDueDate] = useState<string>(() => allocation?.dueDate.split('T')[0] ?? '');
+  const [dueDate, setDueDate] = useState<string>(() => allocation.dueDate.split('T')[0] ?? '');
   const [errorMsg, setErrorMsg] = useState<unknown>(null);
+  const [dateError, setDateError] = useState<string | null>(null);
   const [isConfirmingRevoke, setIsConfirmingRevoke] = useState(false);
 
   const updateMutation = useUpdateAllocationDatesMutation();
   const revokeMutation = useRevokeAllocationMutation();
-
-  if (!allocation) return null;
 
   const durationDays = (() => {
     if (!startDate || !dueDate) return null;
@@ -50,9 +57,10 @@ export function EditAllocationModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    setDateError(null);
 
     if (startDate && dueDate && new Date(dueDate).getTime() < new Date(startDate).getTime()) {
-      setErrorMsg('Due date cannot be earlier than start date (ALC-12).');
+      setDateError('Due date cannot be earlier than start date (ALC-12).');
       return;
     }
 
@@ -78,8 +86,8 @@ export function EditAllocationModal({
       setIsConfirmingRevoke(false);
       onSuccess?.();
       onClose();
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Failed to revoke allocation');
+    } catch (err: unknown) {
+      setErrorMsg(err);
     }
   };
 
@@ -104,7 +112,8 @@ export function EditAllocationModal({
             type="button"
             variant="primary"
             onClick={(e) => void handleSubmit(e)}
-            isLoading={updateMutation.isPending}
+            isLoading={updateMutation.isPending || revokeMutation.isPending}
+            disabled={updateMutation.isPending || revokeMutation.isPending}
           >
             Save Changes
           </Button>
@@ -181,9 +190,15 @@ export function EditAllocationModal({
                 id="edit-due-date"
                 type="date"
                 value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
+                hasError={Boolean(dateError)}
+                errorId="edit-due-date-error"
+                onChange={(e) => {
+                  setDueDate(e.target.value);
+                  if (dateError) setDateError(null);
+                }}
                 className="w-full text-xs font-semibold"
               />
+              <FieldError id="edit-due-date-error" error={dateError} />
             </div>
           </div>
 

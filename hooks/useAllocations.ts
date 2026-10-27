@@ -7,15 +7,38 @@ import {
   type AllocationFilters,
   type AllocationListResponse,
   allocationsService,
+  type AllocationTargetType,
   type AssignmentDueOverride,
   type AssignmentDueOverridePayload,
   type BulkAssignmentDueOverridePayload,
   type BulkUpdateAllocationDatesPayload,
   type CourseAllocation,
+  type CourseAllocationStatus,
   type CreateAllocationsPayload,
   type CreateAllocationsResponse,
+  getLocalDateString,
+  isTerminalAllocationStatus,
   type UpdateAllocationDatesPayload,
 } from '@/services/allocations.service';
+
+export {
+  type AddMenteesPayload,
+  type AllocationFilters,
+  type AllocationListResponse,
+  allocationsService,
+  type AllocationTargetType,
+  type AssignmentDueOverride,
+  type AssignmentDueOverridePayload,
+  type BulkAssignmentDueOverridePayload,
+  type BulkUpdateAllocationDatesPayload,
+  type CourseAllocation,
+  type CourseAllocationStatus,
+  type CreateAllocationsPayload,
+  type CreateAllocationsResponse,
+  getLocalDateString,
+  isTerminalAllocationStatus,
+  type UpdateAllocationDatesPayload,
+};
 
 export const allocationKeys = {
   all: ['allocations'] as const,

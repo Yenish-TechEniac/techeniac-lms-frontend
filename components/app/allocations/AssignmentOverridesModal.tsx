@@ -5,14 +5,18 @@ import React, { useState } from 'react';
 import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
+import { FieldError } from '@/components/ui/FieldError';
 import { Form } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Select } from '@/components/ui/Select';
 import { P, Span } from '@/components/ui/Typography';
-import { useAssignmentOverrides, useSetAssignmentOverrideMutation } from '@/hooks/useAllocations';
+import {
+  type CourseAllocation,
+  useAssignmentOverrides,
+  useSetAssignmentOverrideMutation,
+} from '@/hooks/useAllocations';
 import { useCourseDetail } from '@/hooks/useCourses';
-import type { CourseAllocation } from '@/services/allocations.service';
 
 export interface AssignmentOverridesModalProps {
   readonly allocation: CourseAllocation | null;
@@ -29,6 +33,7 @@ export function AssignmentOverridesModal({
 }: AssignmentOverridesModalProps) {
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string>('');
   const [overrideDueDate, setOverrideDueDate] = useState<string>('');
+  const [dateError, setDateError] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<unknown>(null);
 
   const { data: overrides, isLoading: isLoadingOverrides } = useAssignmentOverrides(
@@ -49,13 +54,28 @@ export function AssignmentOverridesModal({
   const handleSaveOverride = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    setDateError(null);
 
     if (!selectedAssignmentId) {
       setErrorMsg('Please select an assignment.');
       return;
     }
     if (!overrideDueDate) {
-      setErrorMsg('Please specify an override due date.');
+      setDateError('Please specify an override due date.');
+      return;
+    }
+    if (
+      allocation.startDate &&
+      new Date(overrideDueDate).getTime() < new Date(allocation.startDate).getTime()
+    ) {
+      setDateError('Override due date cannot be earlier than allocation start date.');
+      return;
+    }
+    if (
+      allocation.dueDate &&
+      new Date(overrideDueDate).getTime() > new Date(allocation.dueDate).getTime()
+    ) {
+      setDateError('Override due date cannot exceed overall course allocation due date.');
       return;
     }
 
@@ -165,9 +185,15 @@ export function AssignmentOverridesModal({
               id="override-due-date"
               type="date"
               value={overrideDueDate}
-              onChange={(e) => setOverrideDueDate(e.target.value)}
+              hasError={Boolean(dateError)}
+              errorId="override-due-date-error"
+              onChange={(e) => {
+                setOverrideDueDate(e.target.value);
+                if (dateError) setDateError(null);
+              }}
               className="w-full bg-white"
             />
+            <FieldError id="override-due-date-error" error={dateError} />
           </div>
 
           <div className="flex justify-end pt-2">
@@ -177,6 +203,7 @@ export function AssignmentOverridesModal({
               size="sm"
               onClick={(e) => void handleSaveOverride(e)}
               isLoading={setOverrideMutation.isPending}
+              disabled={setOverrideMutation.isPending}
             >
               Apply Override
             </Button>

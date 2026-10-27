@@ -12,6 +12,8 @@ import { Label } from '@/components/ui/Label';
 import { Select } from '@/components/ui/Select';
 import { P, Span } from '@/components/ui/Typography';
 import { useMapMenteesMutation, useReassignMenteeMutation } from '@/hooks/useBatches';
+import { formatErrorMessage } from '@/lib/errors';
+import { type BatchStatus, isBatchLocked } from '@/lib/validation';
 
 export interface MentorOption {
   id: string;
@@ -31,6 +33,7 @@ export interface MapMenteeModalProps {
   onSuccess: () => void;
   batchId: string;
   batchName: string;
+  batchStatus?: BatchStatus | undefined;
   mentors: MentorOption[];
   targetMentee?:
     { id: string; name: string; currentMentorName?: string | undefined } | null | undefined;
@@ -53,10 +56,12 @@ function BulkMenteeSelector({
   unmappedMentees,
   selectedMenteeIds,
   onToggleMentee,
+  disabled = false,
 }: Readonly<{
   unmappedMentees: MenteeOption[];
   selectedMenteeIds: string[];
   onToggleMentee: (id: string) => void;
+  disabled?: boolean | undefined;
 }>) {
   return (
     <div className="space-y-1.5">
@@ -72,14 +77,20 @@ function BulkMenteeSelector({
             return (
               <Label
                 key={mentee.id}
-                className={`flex cursor-pointer items-center justify-between rounded-lg p-2 text-xs font-normal transition-colors ${
+                className={`flex items-center justify-between rounded-lg p-2 text-xs font-normal transition-colors ${
+                  disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                } ${
                   isChecked
                     ? 'border border-blue-200 bg-blue-50 text-blue-900'
                     : 'bg-white text-slate-800 hover:bg-slate-100'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <Checkbox checked={isChecked} onChange={() => onToggleMentee(mentee.id)} />
+                  <Checkbox
+                    checked={isChecked}
+                    disabled={disabled}
+                    onChange={() => onToggleMentee(mentee.id)}
+                  />
                   <div>
                     <P className="font-semibold text-slate-900">{mentee.name}</P>
                     <Span className="text-[11px] text-slate-500">{mentee.email}</Span>
@@ -100,10 +111,12 @@ export function MapMenteeModal({
   onSuccess,
   batchId,
   batchName,
+  batchStatus,
   mentors,
   targetMentee,
   unmappedMentees = [],
 }: Readonly<MapMenteeModalProps>) {
+  const isArchived = Boolean(batchStatus && isBatchLocked(batchStatus));
   const isReassign = Boolean(targetMentee?.currentMentorName);
   const [selectedMentorId, setSelectedMentorId] = useState<string>(mentors[0]?.id || '');
   const [selectedMenteeIds, setSelectedMenteeIds] = useState<string[]>(() =>
@@ -119,6 +132,7 @@ export function MapMenteeModal({
   if (!isOpen) return null;
 
   const toggleMentee = (id: string) => {
+    if (isArchived) return;
     setSelectedMenteeIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
     );
@@ -127,6 +141,11 @@ export function MapMenteeModal({
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
+
+    if (isArchived) {
+      setError('Cannot modify mentor assignments in an archived batch.');
+      return;
+    }
 
     if (!selectedMentorId) {
       setError('Please select an active mentor.');
@@ -161,7 +180,7 @@ export function MapMenteeModal({
       onSuccess();
       onClose();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to update mentor mapping.');
+      setError(formatErrorMessage(err, 'Failed to update mentor mapping.'));
     }
   };
 
@@ -188,9 +207,9 @@ export function MapMenteeModal({
             type="submit"
             form="map-mentee-form"
             variant="primary"
-            disabled={isSubmitting || !selectedMentorId}
+            disabled={isSubmitting || !selectedMentorId || isArchived}
           >
-            {submitLabel}
+            {isArchived ? "Can't Map (Archived)" : submitLabel}
           </Button>
         </div>
       }
@@ -202,6 +221,14 @@ export function MapMenteeModal({
         }}
         className="space-y-4"
       >
+        {isArchived ? (
+          <Alert
+            variant="warning"
+            title="Batch Archived"
+            message="This batch is archived. Mentor assignments cannot be modified on an archived batch."
+          />
+        ) : null}
+
         {error ? <Alert variant="error" title="Mapping Validation Error" message={error} /> : null}
 
         {isReassign && targetMentee ? (
@@ -231,6 +258,7 @@ export function MapMenteeModal({
             <Select
               id="target-mentor"
               value={selectedMentorId}
+              disabled={isSubmitting || isArchived}
               onChange={(e) => setSelectedMentorId(e.target.value)}
             >
               {mentors.map((mentor) => (
@@ -253,7 +281,7 @@ export function MapMenteeModal({
               placeholder="e.g., Mentor workload redistribution, domain expertise alignment"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isArchived}
             />
             <P className="text-[11px] text-slate-500">
               Pending review assignments will transition to the new mentor (FR-4.2).
@@ -267,6 +295,7 @@ export function MapMenteeModal({
             unmappedMentees={unmappedMentees}
             selectedMenteeIds={selectedMenteeIds}
             onToggleMentee={toggleMentee}
+            disabled={isArchived}
           />
         ) : null}
       </Form>

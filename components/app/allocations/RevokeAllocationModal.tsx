@@ -6,8 +6,7 @@ import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { P } from '@/components/ui/Typography';
-import { useRevokeAllocationMutation } from '@/hooks/useAllocations';
-import type { CourseAllocation } from '@/services/allocations.service';
+import { type CourseAllocation, useRevokeAllocationMutation } from '@/hooks/useAllocations';
 
 export interface RevokeAllocationModalProps {
   readonly allocation: CourseAllocation | null;

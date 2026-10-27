@@ -6,18 +6,25 @@ import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
+import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Select } from '@/components/ui/Select';
 import { H3, P, Span } from '@/components/ui/Typography';
-import { useCreateAllocationsMutation } from '@/hooks/useAllocations';
-import { useBatchDetail, useBatchesList } from '@/hooks/useBatches';
+import {
+  type AllocationTargetType,
+  type CreateAllocationsResponse,
+  getLocalDateString,
+  useCreateAllocationsMutation,
+} from '@/hooks/useAllocations';
+import {
+  type ApiBatchSummary,
+  useBatchDetail,
+  useBatchesList,
+  useMentorBatches,
+} from '@/hooks/useBatches';
 import { useCourses } from '@/hooks/useCourses';
 import { useUsers } from '@/hooks/useUsers';
-import type {
-  AllocationTargetType,
-  CreateAllocationsResponse,
-} from '@/services/allocations.service';
 
 export interface AssignCourseModalProps {
   readonly isOpen: boolean;
@@ -36,7 +43,7 @@ function AssignCourseModalDialog({
   isOpen,
   onClose,
   initialCourseId,
-  userRole = 'SUPER_ADMIN',
+  userRole = 'MENTOR',
   onSuccess,
 }: AssignCourseModalProps) {
   // Wizard step: 1 = Course, 2 = Targets, 3 = Schedule & Review
@@ -47,19 +54,29 @@ function AssignCourseModalDialog({
   const [selectedMenteeIds, setSelectedMenteeIds] = useState<string[]>([]);
   const [startDate, setStartDate] = useState<string>('');
   const [dueDate, setDueDate] = useState<string>('');
+  const [dateError, setDateError] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<unknown>(null);
   const [result, setResult] = useState<CreateAllocationsResponse | null>(null);
 
   useEffect(() => {
     const frameId = requestAnimationFrame(() => {
-      setStartDate((prev) => prev || (new Date().toISOString().split('T')[0] ?? ''));
+      setStartDate((prev) => prev || getLocalDateString());
     });
     return () => cancelAnimationFrame(frameId);
   }, []);
 
   // Queries
   const { courses, isLoading: isLoadingCourses } = useCourses();
-  const { data: batchesData, isLoading: isLoadingBatches } = useBatchesList({ limit: 100 });
+  const isMentor = userRole === 'MENTOR';
+  const { data: adminBatchesData, isLoading: isLoadingAdminBatches } = useBatchesList(
+    { limit: 100 },
+    { enabled: !isMentor },
+  );
+  const { data: mentorBatchesData, isLoading: isLoadingMentorBatches } = useMentorBatches(
+    { limit: 100 },
+    { enabled: isMentor },
+  );
+  const isLoadingBatches = isMentor ? isLoadingMentorBatches : isLoadingAdminBatches;
   const { data: batchDetailData } = useBatchDetail(selectedBatchId);
   const { users: allUsers, isLoading: isLoadingUsers } = useUsers(
     targetType === 'INDIVIDUAL_MENTEES' ? { role: 'MENTEE', status: 'ACTIVE', limit: 100 } : {},
@@ -71,9 +88,16 @@ function AssignCourseModalDialog({
     return courses.filter((c) => c.isActive);
   }, [courses]);
 
+  const batchesList = useMemo<ApiBatchSummary[]>(() => {
+    if (isMentor) {
+      return mentorBatchesData ?? [];
+    }
+    return adminBatchesData?.items ?? [];
+  }, [isMentor, mentorBatchesData, adminBatchesData]);
+
   const activeBatches = useMemo(() => {
-    return (batchesData?.items ?? []).filter((b) => b.status === 'LIVE' || b.status === 'DRAFT');
-  }, [batchesData?.items]);
+    return batchesList.filter((b) => b.status === 'LIVE' || b.status === 'DRAFT');
+  }, [batchesList]);
 
   const selectedCourse = useMemo(() => {
     return activeCourses.find((c) => c.id === selectedCourseId);
@@ -86,6 +110,16 @@ function AssignCourseModalDialog({
     const due = new Date(start.getTime() + selectedCourse.estimatedMinutes * 60 * 1000);
     return due.toISOString().split('T')[0];
   }, [startDate, selectedCourse]);
+
+  const startDateError = useMemo(() => {
+    if (!dateError) return null;
+    return dateError.toLowerCase().startsWith('start date') ? dateError : null;
+  }, [dateError]);
+
+  const dueDateError = useMemo(() => {
+    if (!dateError) return null;
+    return !dateError.toLowerCase().startsWith('start date') ? dateError : null;
+  }, [dateError]);
 
   const availableBatchMentees = useMemo(() => {
     if (!batchDetailData?.members) return [];
@@ -135,7 +169,7 @@ function AssignCourseModalDialog({
         return;
       }
       if (!startDate) {
-        setStartDate(new Date().toISOString().split('T')[0] ?? '');
+        setStartDate(getLocalDateString());
       }
       setCurrentStep(2);
     } else if (currentStep === 2) {
@@ -156,6 +190,7 @@ function AssignCourseModalDialog({
 
   const handleBack = () => {
     setErrorMsg(null);
+    setDateError(null);
     if (currentStep === 3) {
       setCurrentStep(2);
     } else if (currentStep === 2 && !initialCourseId) {
@@ -165,6 +200,7 @@ function AssignCourseModalDialog({
 
   const handleSubmit = async () => {
     setErrorMsg(null);
+    setDateError(null);
 
     if (!selectedCourseId) {
       setErrorMsg('Please select a course to allocate.');
@@ -172,19 +208,19 @@ function AssignCourseModalDialog({
     }
 
     if (!startDate) {
-      setErrorMsg('Start date is required.');
+      setDateError('Start date is required.');
       return;
     }
 
     if (!dueDate && (!selectedCourse?.estimatedMinutes || selectedCourse.estimatedMinutes <= 0)) {
-      setErrorMsg(
+      setDateError(
         'Due date is required because this course has no estimated duration (CRS-30, ALC-11).',
       );
       return;
     }
 
     if (dueDate && new Date(dueDate).getTime() < new Date(startDate).getTime()) {
-      setErrorMsg('Due date cannot be earlier than start date (ALC-12).');
+      setDateError('Due date cannot be earlier than start date (ALC-12).');
       return;
     }
 
@@ -688,9 +724,15 @@ function AssignCourseModalDialog({
                   id="assign-start-date"
                   type="date"
                   value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
+                  hasError={Boolean(startDateError)}
+                  errorId="assign-start-date-error"
+                  onChange={(e) => {
+                    setStartDate(e.target.value);
+                    if (dateError) setDateError(null);
+                  }}
                   className="w-full text-sm"
                 />
+                <FieldError id="assign-start-date-error" error={startDateError} />
               </div>
 
               <div>
@@ -701,9 +743,15 @@ function AssignCourseModalDialog({
                   id="assign-due-date"
                   type="date"
                   value={dueDate || (estimatedDueDateText ?? '')}
-                  onChange={(e) => setDueDate(e.target.value)}
+                  hasError={Boolean(dueDateError)}
+                  errorId="assign-due-date-error"
+                  onChange={(e) => {
+                    setDueDate(e.target.value);
+                    if (dateError) setDateError(null);
+                  }}
                   className="w-full text-sm"
                 />
+                <FieldError id="assign-due-date-error" error={dueDateError} />
                 {estimatedDueDateText && !dueDate ? (
                   <P className="mt-1 text-xs text-slate-500">
                     Prefilled with start + estimated duration ({estimatedDueDateText})

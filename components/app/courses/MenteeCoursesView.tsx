@@ -7,16 +7,25 @@ import { AllocationStatusBadge } from '@/components/app/allocations/AllocationSt
 import { MENTEE_COURSES_NAV } from '@/components/app/navigation/portal-nav.config';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
+import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Input } from '@/components/ui/Input';
 import { H1, H3, P, Span } from '@/components/ui/Typography';
-import { useAllocationsList } from '@/hooks/useAllocations';
-import type { CourseAllocation } from '@/services/allocations.service';
+import {
+  type CourseAllocation,
+  isTerminalAllocationStatus,
+  useAllocationsList,
+} from '@/hooks/useAllocations';
+import { useAuth } from '@/hooks/useAuth';
 
 export function MenteeCoursesView() {
+  const { user } = useAuth();
   const [search, setSearch] = useState('');
   const [statusTab, setStatusTab] = useState<'all' | 'active' | 'completed' | 'closed'>('active');
 
-  const { data, isLoading } = useAllocationsList({ limit: 100 });
+  const { data, isLoading, isError, error, refetch } = useAllocationsList({
+    menteeId: user?.id,
+    limit: 100,
+  });
   const rawAllocations = data?.items;
   const allocations = useMemo(() => rawAllocations ?? [], [rawAllocations]);
 
@@ -38,11 +47,7 @@ export function MenteeCoursesView() {
         return alloc.status === 'COMPLETED';
       }
       if (statusTab === 'closed') {
-        return (
-          alloc.status === 'REVOKED' ||
-          alloc.status === 'CLOSED_ROLE_CHANGE' ||
-          alloc.status === 'CLOSED_BATCH_CHANGE'
-        );
+        return isTerminalAllocationStatus(alloc.status) && alloc.status !== 'COMPLETED';
       }
       return true;
     });
@@ -53,10 +58,7 @@ export function MenteeCoursesView() {
   ).length;
   const completedCount = allocations.filter((a) => a.status === 'COMPLETED').length;
   const closedCount = allocations.filter(
-    (a) =>
-      a.status === 'REVOKED' ||
-      a.status === 'CLOSED_ROLE_CHANGE' ||
-      a.status === 'CLOSED_BATCH_CHANGE',
+    (a) => isTerminalAllocationStatus(a.status) && a.status !== 'COMPLETED',
   ).length;
 
   return (
@@ -182,6 +184,15 @@ export function MenteeCoursesView() {
             <div className="flex h-64 items-center justify-center rounded-2xl border border-slate-200 bg-white">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
             </div>
+          ) : isError ? (
+            <div className="rounded-2xl border border-rose-200 bg-white p-6">
+              <ErrorMessage
+                error={error}
+                onRetry={() => {
+                  void refetch();
+                }}
+              />
+            </div>
           ) : filteredAllocations.length === 0 ? (
             <div className="flex h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
               <Span className="text-3xl">📚</Span>
@@ -209,10 +220,7 @@ export function MenteeCoursesView() {
 
 function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAllocation }>) {
   const isCompleted = allocation.status === 'COMPLETED';
-  const isRevokedOrClosed =
-    allocation.status === 'REVOKED' ||
-    allocation.status === 'CLOSED_ROLE_CHANGE' ||
-    allocation.status === 'CLOSED_BATCH_CHANGE';
+  const isRevokedOrClosed = isTerminalAllocationStatus(allocation.status) && !isCompleted;
 
   const isOverdue = Boolean(allocation.isOverdue) && !isCompleted && !isRevokedOrClosed;
 
@@ -257,9 +265,11 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
         </div>
 
         {/* Title & Description */}
-        <H3 className="line-clamp-1 text-lg font-bold tracking-tight text-slate-900">
-          {allocation.course?.title ?? 'Course Track'}
-        </H3>
+        <Link href={`/mentee/courses/${allocation.id}`} className="group">
+          <H3 className="line-clamp-1 text-lg font-bold tracking-tight text-slate-900 transition-colors group-hover:text-blue-600">
+            {allocation.course?.title ?? 'Course Track'}
+          </H3>
+        </Link>
         <P className="mt-1 line-clamp-2 min-h-[2rem] text-xs text-slate-500">
           Structured learning modules, milestone task submissions, and topic reviews.
         </P>
@@ -317,17 +327,26 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
           <Span>View Course Assignments →</Span>
         </Link>
         {isRevokedOrClosed ? (
-          <div className="flex items-center justify-center rounded-xl bg-slate-100 p-2 text-xs font-medium text-slate-500">
-            <Span>Course Closed • Read-Only (M7)</Span>
-          </div>
+          <Link
+            href={`/mentee/courses/${allocation.id}`}
+            className="flex items-center justify-center rounded-xl bg-slate-100 p-2.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-200"
+          >
+            <Span>Course Closed • View Syllabus</Span>
+          </Link>
         ) : isCompleted ? (
-          <div className="flex items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 p-2 text-xs font-bold text-emerald-700">
-            <Span>✓ Track Completed (100%)</Span>
-          </div>
+          <Link
+            href={`/mentee/courses/${allocation.id}`}
+            className="flex items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 p-2.5 text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-100"
+          >
+            <Span>✓ Track Completed • Review Material</Span>
+          </Link>
         ) : (
-          <div className="flex items-center justify-center rounded-xl bg-blue-600 p-2 text-xs font-bold text-white shadow-xs transition-colors hover:bg-blue-700">
-            <Span>In Progress • Active Milestone</Span>
-          </div>
+          <Link
+            href={`/mentee/courses/${allocation.id}`}
+            className="flex items-center justify-center rounded-xl bg-blue-600 p-2.5 text-xs font-bold text-white shadow-xs transition-colors hover:bg-blue-700"
+          >
+            <Span>Continue Learning →</Span>
+          </Link>
         )}
       </div>
     </div>
