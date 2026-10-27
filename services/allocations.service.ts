@@ -92,6 +92,7 @@ export interface CreateAllocationsPayload {
 
 export interface CreateAllocationsResponse {
   readonly created: readonly CourseAllocation[];
+  readonly allocations?: readonly CourseAllocation[] | undefined;
   readonly skipped: ReadonlyArray<{ readonly menteeId: string; readonly reason: string }>;
 }
 
@@ -208,11 +209,24 @@ export const allocationsService = {
   },
 
   async createAllocations(payload: CreateAllocationsPayload): Promise<CreateAllocationsResponse> {
-    const res = await apiClient<ApiResponse<CreateAllocationsResponse>>(BASE, {
+    const res = await apiClient<
+      ApiResponse<{
+        readonly allocations?: readonly CourseAllocation[] | undefined;
+        readonly created?: readonly CourseAllocation[] | undefined;
+        readonly skipped?:
+          ReadonlyArray<{ readonly menteeId: string; readonly reason: string }> | undefined;
+      }>
+    >(BASE, {
       method: 'POST',
       body: JSON.stringify(payload),
     });
-    return res.data;
+    const created = res.data?.created ?? res.data?.allocations ?? [];
+    const skipped = res.data?.skipped ?? [];
+    return {
+      created,
+      allocations: created,
+      skipped,
+    };
   },
 
   async updateAllocationDates(
@@ -256,14 +270,24 @@ export const allocationsService = {
     id: string,
     payload: AddMenteesPayload,
   ): Promise<CreateAllocationsResponse> {
-    const res = await apiClient<ApiResponse<CreateAllocationsResponse>>(
-      `${BASE}/${id}/add-mentees`,
-      {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      },
-    );
-    return res.data;
+    const res = await apiClient<
+      ApiResponse<{
+        readonly allocations?: readonly CourseAllocation[] | undefined;
+        readonly created?: readonly CourseAllocation[] | undefined;
+        readonly skipped?:
+          ReadonlyArray<{ readonly menteeId: string; readonly reason: string }> | undefined;
+      }>
+    >(`${BASE}/${id}/add-mentees`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    const created = res.data?.created ?? res.data?.allocations ?? [];
+    const skipped = res.data?.skipped ?? [];
+    return {
+      created,
+      allocations: created,
+      skipped,
+    };
   },
 
   async getAssignmentOverrides(id: string): Promise<readonly AssignmentDueOverride[]> {

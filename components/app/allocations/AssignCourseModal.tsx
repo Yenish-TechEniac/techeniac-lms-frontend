@@ -242,6 +242,9 @@ function AssignCourseModalDialog({
   };
 
   if (result) {
+    const createdAllocations = result.created ?? result.allocations ?? [];
+    const skippedAllocations = result.skipped ?? [];
+
     return (
       <Modal
         isOpen={isOpen}
@@ -268,24 +271,24 @@ function AssignCourseModalDialog({
         <div className="space-y-4">
           <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
             <P className="text-sm font-semibold text-emerald-900">
-              Successfully Created: {result.created.length} allocation(s)
+              Successfully Created: {createdAllocations.length} allocation(s)
             </P>
             <P className="mt-1 text-xs text-emerald-700">
               Course is now available for the allocated mentees.
             </P>
           </div>
 
-          {result.skipped.length > 0 ? (
+          {skippedAllocations.length > 0 ? (
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
               <P className="text-sm font-semibold text-amber-900">
-                Skipped Mentees: {result.skipped.length}
+                Skipped Mentees: {skippedAllocations.length}
               </P>
               <P className="mt-0.5 text-xs text-amber-700">
                 These mentees already hold an open allocation of this course and were safely skipped
                 (ALC-13, ALC-21).
               </P>
               <ul className="mt-2 max-h-32 divide-y divide-amber-100 overflow-y-auto rounded-lg border border-amber-200/60 bg-white/70 text-xs text-amber-900">
-                {result.skipped.map((s, idx) => (
+                {skippedAllocations.map((s, idx) => (
                   <li key={idx} className="flex items-center justify-between p-2">
                     <Span className="truncate font-mono text-[11px]">{s.menteeId}</Span>
                     <Span className="text-[10px] font-medium text-amber-700">{s.reason}</Span>
