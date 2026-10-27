@@ -13,7 +13,7 @@ import { P, Span } from '@/components/ui/Typography';
 import { useAddBatchMembersMutation } from '@/hooks/useBatches';
 import { useUsers } from '@/hooks/useUsers';
 import { formatErrorMessage } from '@/lib/errors';
-import type { BatchStatus } from '@/lib/validation';
+import { type BatchStatus, isBatchLocked } from '@/lib/validation';
 
 export interface AddMemberModalProps {
   batchId: string;
@@ -31,12 +31,14 @@ function AddMemberCandidateList({
   role,
   selectedUserIds,
   onToggleUser,
+  disabled = false,
 }: Readonly<{
   isLoading: boolean;
   candidates: Array<{ id: string; name: string; email: string; role: string }>;
   role: 'MENTEE' | 'MENTOR';
   selectedUserIds: string[];
   onToggleUser: (userId: string) => void;
+  disabled?: boolean | undefined;
 }>) {
   if (isLoading) {
     return (
@@ -62,7 +64,9 @@ function AddMemberCandidateList({
           <Label
             key={user.id}
             htmlFor={`user-select-${user.id}`}
-            className={`flex cursor-pointer items-center justify-between rounded-xl border p-2.5 text-xs font-normal transition-all ${
+            className={`flex items-center justify-between rounded-xl border p-2.5 text-xs font-normal transition-all ${
+              disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+            } ${
               isSelected
                 ? 'border-blue-400 bg-blue-50/90 text-blue-900 shadow-xs ring-1 ring-blue-300'
                 : 'border-slate-200 bg-white text-slate-800 shadow-xs hover:border-slate-300 hover:bg-slate-50'
@@ -72,6 +76,7 @@ function AddMemberCandidateList({
               <Checkbox
                 id={`user-select-${user.id}`}
                 checked={isSelected}
+                disabled={disabled}
                 onChange={() => onToggleUser(user.id)}
               />
               <div>
@@ -104,7 +109,7 @@ export function AddMemberModal({
   onSuccess,
   existingMemberUserIds,
 }: Readonly<AddMemberModalProps>) {
-  const isArchived = batchStatus === 'ARCHIVED';
+  const isArchived = Boolean(batchStatus && isBatchLocked(batchStatus));
   const [role, setRole] = useState<'MENTEE' | 'MENTOR'>('MENTEE');
   const [search, setSearch] = useState('');
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
@@ -123,6 +128,7 @@ export function AddMemberModal({
   const { mutateAsync: addMembers, isPending: isSubmitting } = useAddBatchMembersMutation();
 
   const handleRoleChange = (newRole: 'MENTEE' | 'MENTOR') => {
+    if (isArchived) return;
     setRole(newRole);
     setSelectedUserIds([]);
     setSubmitError(null);
@@ -139,6 +145,7 @@ export function AddMemberModal({
   });
 
   const toggleUser = (userId: string) => {
+    if (isArchived) return;
     setSelectedUserIds((prev) =>
       prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId],
     );
@@ -246,6 +253,7 @@ export function AddMemberModal({
               type="button"
               variant={role === 'MENTEE' ? 'primary' : 'secondary'}
               size="sm"
+              disabled={isArchived}
               onClick={() => handleRoleChange('MENTEE')}
               className={
                 role === 'MENTEE'
@@ -259,6 +267,7 @@ export function AddMemberModal({
               type="button"
               variant={role === 'MENTOR' ? 'primary' : 'secondary'}
               size="sm"
+              disabled={isArchived}
               onClick={() => handleRoleChange('MENTOR')}
               className={
                 role === 'MENTOR'
@@ -279,6 +288,7 @@ export function AddMemberModal({
             type="text"
             placeholder={`Search ${role.toLowerCase()}s by name or email...`}
             value={search}
+            disabled={isArchived}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
@@ -289,7 +299,7 @@ export function AddMemberModal({
             <Label>
               Eligible {role === 'MENTEE' ? 'Mentees' : 'Mentors'} ({filteredCandidates.length})
             </Label>
-            {filteredCandidates.length > 0 ? (
+            {filteredCandidates.length > 0 && !isArchived ? (
               <Span className="text-[11px] text-slate-500">Click to select</Span>
             ) : null}
           </div>
@@ -300,6 +310,7 @@ export function AddMemberModal({
               role={role}
               selectedUserIds={selectedUserIds}
               onToggleUser={toggleUser}
+              disabled={isArchived}
             />
           </div>
         </div>

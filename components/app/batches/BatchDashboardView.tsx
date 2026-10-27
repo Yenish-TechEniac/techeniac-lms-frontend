@@ -23,7 +23,8 @@ import {
   useRemoveBatchMemberMutation,
 } from '@/hooks/useBatches';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
-import { type BatchStatus } from '@/lib/validation';
+import { formatErrorMessage } from '@/lib/errors';
+import { type BatchStatus, isBatchLocked } from '@/lib/validation';
 
 export interface BatchMemberItem {
   id: string;
@@ -80,6 +81,7 @@ function getBatchStatusBadgeClass(status: BatchStatus): string {
 function MentorMappingCell({
   member,
   onOpenMapping,
+  isArchived = false,
 }: Readonly<{
   member: BatchMemberItem;
   onOpenMapping: (targetMentee: {
@@ -87,6 +89,7 @@ function MentorMappingCell({
     name: string;
     currentMentorName?: string | undefined;
   }) => void;
+  isArchived?: boolean | undefined;
 }>) {
   if (member.memberRole !== 'MENTEE') {
     return <Span className="text-slate-400">—</Span>;
@@ -96,21 +99,23 @@ function MentorMappingCell({
     return (
       <div className="flex items-center gap-2">
         <Span className="font-semibold text-slate-900">{member.mappedToName}</Span>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() =>
-            onOpenMapping({
-              id: member.id,
-              name: member.name,
-              currentMentorName: member.mappedToName,
-            })
-          }
-          className="h-6 px-1.5 text-[11px] font-bold text-blue-600 hover:bg-blue-50"
-        >
-          Reassign
-        </Button>
+        {!isArchived ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() =>
+              onOpenMapping({
+                id: member.id,
+                name: member.name,
+                currentMentorName: member.mappedToName,
+              })
+            }
+            className="h-6 px-1.5 text-[11px] font-bold text-blue-600 hover:bg-blue-50"
+          >
+            Reassign
+          </Button>
+        ) : null}
       </div>
     );
   }
@@ -120,20 +125,22 @@ function MentorMappingCell({
       <Span className="rounded-md bg-amber-100 px-2 py-0.5 font-mono text-[10px] font-bold text-amber-800">
         Unmapped
       </Span>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={() =>
-          onOpenMapping({
-            id: member.id,
-            name: member.name,
-          })
-        }
-        className="h-6 px-1.5 text-[11px] font-bold text-blue-600 hover:bg-blue-50"
-      >
-        Assign Mentor
-      </Button>
+      {!isArchived ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() =>
+            onOpenMapping({
+              id: member.id,
+              name: member.name,
+            })
+          }
+          className="h-6 px-1.5 text-[11px] font-bold text-blue-600 hover:bg-blue-50"
+        >
+          Assign Mentor
+        </Button>
+      ) : null}
     </div>
   );
 }
@@ -190,7 +197,7 @@ export function BatchDashboardView({
       await removeMemberMutation.mutateAsync({ batchId: activeId, userId: memberToRemove.id });
       setMemberToRemove(null);
     } catch (err: unknown) {
-      setRemoveError(err instanceof Error ? err.message : 'Failed to remove member from batch.');
+      setRemoveError(formatErrorMessage(err, 'Failed to remove member from batch.'));
     }
   };
 
@@ -242,7 +249,7 @@ export function BatchDashboardView({
     return mentors.map((m) => ({ id: m.id, name: m.name, email: m.email }));
   }, [mentors]);
 
-  const isArchived = batch?.status === 'ARCHIVED';
+  const isArchived = Boolean(batch && isBatchLocked(batch.status));
 
   const handleStatusSuccess = () => {
     // TanStack Query invalidation automatically synchronizes batch state
@@ -470,10 +477,10 @@ export function BatchDashboardView({
                 disabled={isArchived}
                 title={isArchived ? "Can't add in archived batch" : undefined}
                 onClick={() => setIsAddMemberOpen(true)}
-                className={`flex items-center gap-1.5 ${isArchived ? 'cursor-not-allowed opacity-60' : ''}`}
+                className="flex items-center gap-1.5"
               >
-                <Span>{isArchived ? '🚫' : '+'}</Span>
-                <Span>{isArchived ? "Can't add in archived batch" : 'Add Members'}</Span>
+                <Span>+</Span>
+                <Span>Add Members</Span>
               </Button>
             </div>
           </div>
@@ -531,6 +538,7 @@ export function BatchDashboardView({
                       <td className="px-4 py-3.5 text-xs text-slate-700">
                         <MentorMappingCell
                           member={m}
+                          isArchived={isArchived}
                           onOpenMapping={(target) =>
                             setMapMenteeTarget({ isOpen: true, targetMentee: target })
                           }
@@ -707,7 +715,7 @@ export function BatchDashboardView({
       />
 
       <AddMemberModal
-        key={`add-member-${batch.id}-${isAddMemberOpen ? 'open' : 'closed'}`}
+        key={`add-member-${batch.id}-${batch.status}-${isAddMemberOpen ? 'open' : 'closed'}`}
         batchId={batch.id}
         batchName={batch.name}
         batchStatus={batch.status}
@@ -718,12 +726,13 @@ export function BatchDashboardView({
       />
 
       <MapMenteeModal
-        key={mapMenteeTarget.targetMentee?.id ?? 'batch-map'}
+        key={`map-mentee-${batch.id}-${batch.status}-${mapMenteeTarget.targetMentee?.id ?? 'batch-map'}`}
         isOpen={mapMenteeTarget.isOpen}
         onClose={() => setMapMenteeTarget({ isOpen: false, targetMentee: null })}
         onSuccess={() => setMapMenteeTarget({ isOpen: false, targetMentee: null })}
         batchId={batch.id}
         batchName={batch.name}
+        batchStatus={batch.status}
         mentors={mentorOptions}
         targetMentee={mapMenteeTarget.targetMentee}
         unmappedMentees={unmappedMentees}
