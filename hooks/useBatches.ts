@@ -26,10 +26,11 @@ export const batchKeys = {
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-export function useBatchesList(filters: BatchQueryFilters = {}) {
+export function useBatchesList(filters: BatchQueryFilters = {}, options?: { enabled?: boolean }) {
   return useQuery<ApiBatchListResponse>({
     queryKey: batchKeys.list(filters),
     queryFn: () => batchesService.listBatches(filters),
+    ...options,
   });
 }
 
@@ -180,10 +181,11 @@ export function useReassignMenteeMutation() {
   });
 }
 
-export function useMentorBatches(filters: BatchQueryFilters = {}) {
+export function useMentorBatches(filters: BatchQueryFilters = {}, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: batchKeys.mentorBatches(filters),
     queryFn: () => batchesService.listMentorBatches(filters),
+    ...options,
   });
 }
 

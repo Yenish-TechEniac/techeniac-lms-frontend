@@ -158,29 +158,27 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
           <div className="font-mono text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            Active Allocations
+            Total Allocations
           </div>
           <div className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900">
-            {kpis.active}
+            {pagination?.total ?? allocations.length}
           </div>
-          <div className="mt-1 text-xs text-slate-500">
-            {pagination?.total ?? allocations.length} total across cohorts
-          </div>
+          <div className="mt-1 text-xs text-slate-500">{kpis.active} active on current page</div>
         </div>
 
         <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
           <div className="font-mono text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            Total Cadets / Mentees
+            Mentees (This Page)
           </div>
           <div className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900">
             {kpis.uniqueCadets}
           </div>
-          <div className="mt-1 text-xs text-slate-500">Active learning subscribers (page)</div>
+          <div className="mt-1 text-xs text-slate-500">Unique learners on current page</div>
         </div>
 
         <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
           <div className="font-mono text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            Avg Velocity (Page Sample)
+            Avg Velocity (This Page)
           </div>
           <div className="mt-2 text-2xl font-extrabold tracking-tight text-emerald-600">
             {kpis.avgProgress}%
@@ -192,7 +190,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
 
         <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
           <div className="font-mono text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            Action Required (Page)
+            Action Required (This Page)
           </div>
           <div
             className={`mt-2 text-2xl font-extrabold tracking-tight ${kpis.overdue > 0 ? 'text-rose-600' : 'text-slate-800'}`}
@@ -202,7 +200,9 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
           <div
             className={`mt-1 text-xs font-medium ${kpis.overdue > 0 ? 'text-rose-500' : 'text-slate-500'}`}
           >
-            {kpis.overdue > 0 ? 'Overdue milestone allocations' : 'All milestones on schedule'}
+            {kpis.overdue > 0
+              ? 'Overdue milestone allocations on page'
+              : 'All page records on schedule'}
           </div>
         </div>
       </div>

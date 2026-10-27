@@ -69,10 +69,12 @@ function AssignCourseModalDialog({
   const { courses, isLoading: isLoadingCourses } = useCourses();
   const isMentor = userRole === 'MENTOR';
   const { data: adminBatchesData, isLoading: isLoadingAdminBatches } = useBatchesList(
-    isMentor ? undefined : { limit: 100 },
+    { limit: 100 },
+    { enabled: !isMentor },
   );
   const { data: mentorBatchesData, isLoading: isLoadingMentorBatches } = useMentorBatches(
-    isMentor ? { limit: 100 } : undefined,
+    { limit: 100 },
+    { enabled: isMentor },
   );
   const isLoadingBatches = isMentor ? isLoadingMentorBatches : isLoadingAdminBatches;
   const { data: batchDetailData } = useBatchDetail(selectedBatchId);

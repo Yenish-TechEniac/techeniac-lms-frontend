@@ -112,7 +112,7 @@ function EditAllocationModalDialog({
             type="button"
             variant="primary"
             onClick={(e) => void handleSubmit(e)}
-            isLoading={updateMutation.isPending}
+            isLoading={updateMutation.isPending || revokeMutation.isPending}
             disabled={updateMutation.isPending || revokeMutation.isPending}
           >
             Save Changes
