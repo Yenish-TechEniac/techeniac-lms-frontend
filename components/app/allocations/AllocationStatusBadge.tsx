@@ -3,7 +3,7 @@
 import React from 'react';
 
 import { Span } from '@/components/ui/Typography';
-import type { CourseAllocationStatus } from '@/services/allocations.service';
+import { type CourseAllocationStatus, isTerminalAllocationStatus } from '@/hooks/useAllocations';
 
 export interface AllocationStatusBadgeProps {
   readonly status: CourseAllocationStatus;
@@ -39,6 +39,12 @@ export function AllocationStatusBadge({ status, isOverdue }: AllocationStatusBad
       badgeStyle = 'bg-slate-100 text-slate-600 border-slate-300';
       label = 'Closed (Transfer)';
       break;
+    default: {
+      const _exhaustiveCheck: never = status;
+      badgeStyle = 'bg-slate-100 text-slate-700 border-slate-300';
+      label = String(_exhaustiveCheck);
+      break;
+    }
   }
 
   return (
@@ -48,7 +54,7 @@ export function AllocationStatusBadge({ status, isOverdue }: AllocationStatusBad
       >
         {label}
       </Span>
-      {isOverdue && status !== 'COMPLETED' && status !== 'REVOKED' ? (
+      {isOverdue && !isTerminalAllocationStatus(status) ? (
         <Span className="inline-flex items-center rounded-full border border-red-300 bg-red-100 px-2 py-0.5 text-xs font-bold text-red-800">
           OVERDUE
         </Span>

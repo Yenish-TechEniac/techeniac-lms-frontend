@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { AllocationStatusBadge } from '@/components/app/allocations/AllocationStatusBadge';
 import { AssignCourseModal } from '@/components/app/allocations/AssignCourseModal';
@@ -12,10 +12,14 @@ import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { H1, P, Span } from '@/components/ui/Typography';
-import { useAllocationsList } from '@/hooks/useAllocations';
+import {
+  type AllocationFilters,
+  type CourseAllocation,
+  isTerminalAllocationStatus,
+  useAllocationsList,
+} from '@/hooks/useAllocations';
 import { useBatchesList } from '@/hooks/useBatches';
 import { useCourses } from '@/hooks/useCourses';
-import type { AllocationFilters, CourseAllocation } from '@/services/allocations.service';
 
 export interface AllocationsTableProps {
   readonly userRole: 'SUPER_ADMIN' | 'MENTOR';
@@ -23,6 +27,9 @@ export interface AllocationsTableProps {
 
 export function AllocationsTable({ userRole }: AllocationsTableProps) {
   const [filters, setFilters] = useState<AllocationFilters>({ page: 1, limit: 15 });
+  const [statusTab, setStatusTab] = useState<'ALL' | 'IN_PROGRESS' | 'COMPLETED' | 'OVERDUE'>(
+    'ALL',
+  );
   const [searchInput, setSearchInput] = useState<string>('');
   const [expandedAllocId, setExpandedAllocId] = useState<string | null>(null);
 
@@ -58,15 +65,28 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
     return { active, completed, overdue, avgProgress, uniqueCadets };
   }, [allocations]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setFilters((prev) => {
+        const nextSearch = searchInput.trim() || undefined;
+        if (prev.search === nextSearch) return prev;
+        return { ...prev, search: nextSearch, page: 1 };
+      });
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setFilters((prev) => ({ ...prev, search: searchInput || undefined, page: 1 }));
+    setFilters((prev) => ({ ...prev, search: searchInput.trim() || undefined, page: 1 }));
   };
 
-  const handleStatusFilter = (status: string) => {
+  const handleStatusTabChange = (tab: 'ALL' | 'IN_PROGRESS' | 'COMPLETED' | 'OVERDUE') => {
+    setStatusTab(tab);
     setFilters((prev) => ({
       ...prev,
-      status: status || undefined,
+      status: tab === 'IN_PROGRESS' || tab === 'COMPLETED' ? tab : undefined,
+      isOverdue: tab === 'OVERDUE' ? true : undefined,
       page: 1,
     }));
   };
@@ -118,17 +138,19 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
               Manage course deployments, mentee timelines, deadlines, and assignment overrides (M7).
             </P>
           </div>
-          <div className="flex items-center gap-2.5">
-            <Button
-              type="button"
-              variant="primary"
-              onClick={() => setIsAssignModalOpen(true)}
-              className="inline-flex items-center gap-2 bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-blue-700"
-            >
-              <Span>+</Span>
-              <Span>Assign Course</Span>
-            </Button>
-          </div>
+          {userRole === 'SUPER_ADMIN' ? (
+            <div className="flex items-center gap-2.5">
+              <Button
+                type="button"
+                variant="primary"
+                onClick={() => setIsAssignModalOpen(true)}
+                className="inline-flex items-center gap-2 bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-blue-700"
+              >
+                <Span>+</Span>
+                <Span>Assign Course</Span>
+              </Button>
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -142,7 +164,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
             {kpis.active}
           </div>
           <div className="mt-1 text-xs text-slate-500">
-            {allocations.length} total across cohorts
+            {pagination?.total ?? allocations.length} total across cohorts
           </div>
         </div>
 
@@ -153,24 +175,24 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
           <div className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900">
             {kpis.uniqueCadets}
           </div>
-          <div className="mt-1 text-xs text-slate-500">Active learning subscribers</div>
+          <div className="mt-1 text-xs text-slate-500">Active learning subscribers (page)</div>
         </div>
 
         <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
           <div className="font-mono text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            Avg Velocity / Progress
+            Avg Velocity (Page Sample)
           </div>
           <div className="mt-2 text-2xl font-extrabold tracking-tight text-emerald-600">
             {kpis.avgProgress}%
           </div>
           <div className="mt-1 text-xs font-medium text-emerald-600">
-            {kpis.completed} completed tracks
+            {kpis.completed} completed tracks on page
           </div>
         </div>
 
         <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
           <div className="font-mono text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            Action Required
+            Action Required (Page)
           </div>
           <div
             className={`mt-2 text-2xl font-extrabold tracking-tight ${kpis.overdue > 0 ? 'text-rose-600' : 'text-slate-800'}`}
@@ -232,22 +254,25 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => handleStatusFilter('')}
+              onClick={() => handleStatusTabChange('ALL')}
               className={`h-auto rounded-lg px-3 py-1.5 font-semibold transition-all ${
-                !filters.status
+                statusTab === 'ALL'
                   ? 'bg-white text-slate-900 shadow-xs hover:bg-white'
                   : 'text-slate-600 hover:bg-slate-200/60 hover:text-slate-900'
               }`}
             >
-              All <Span className="font-normal text-slate-400">{allocations.length}</Span>
+              All{' '}
+              <Span className="font-normal text-slate-400">
+                {pagination?.total ?? allocations.length}
+              </Span>
             </Button>
             <Button
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => handleStatusFilter('IN_PROGRESS')}
+              onClick={() => handleStatusTabChange('IN_PROGRESS')}
               className={`h-auto rounded-lg px-3 py-1.5 font-semibold transition-all ${
-                filters.status === 'IN_PROGRESS'
+                statusTab === 'IN_PROGRESS'
                   ? 'bg-white text-slate-900 shadow-xs hover:bg-white'
                   : 'text-slate-600 hover:bg-slate-200/60 hover:text-slate-900'
               }`}
@@ -258,9 +283,9 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => handleStatusFilter('COMPLETED')}
+              onClick={() => handleStatusTabChange('COMPLETED')}
               className={`h-auto rounded-lg px-3 py-1.5 font-semibold transition-all ${
-                filters.status === 'COMPLETED'
+                statusTab === 'COMPLETED'
                   ? 'bg-white text-slate-900 shadow-xs hover:bg-white'
                   : 'text-slate-600 hover:bg-slate-200/60 hover:text-slate-900'
               }`}
@@ -271,9 +296,9 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => handleStatusFilter('OVERDUE')}
+              onClick={() => handleStatusTabChange('OVERDUE')}
               className={`h-auto rounded-lg px-3 py-1.5 font-semibold transition-all ${
-                filters.status === 'OVERDUE'
+                statusTab === 'OVERDUE'
                   ? 'bg-white text-rose-700 shadow-xs hover:bg-white'
                   : 'text-rose-600 hover:bg-rose-100/60 hover:text-rose-700'
               }`}
@@ -283,15 +308,6 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
           </div>
         </div>
       </div>
-
-      {isError ? (
-        <ErrorMessage
-          error={error}
-          title="Failed to load allocations"
-          onRetry={() => void refetch()}
-          className="mb-4"
-        />
-      ) : null}
 
       {/* Data Table */}
       <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs">
@@ -327,6 +343,16 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                     Loading course allocations...
                   </td>
                 </tr>
+              ) : isError ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-8 text-center">
+                    <ErrorMessage
+                      error={error}
+                      title="Failed to load allocations"
+                      onRetry={() => void refetch()}
+                    />
+                  </td>
+                </tr>
               ) : allocations.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center">
@@ -334,8 +360,9 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                       No course allocations found.
                     </P>
                     <Span className="mt-1 text-xs text-slate-400">
-                      Use the &quot;Assign Course&quot; button above to allocate an active course to
-                      a batch or mentee.
+                      {userRole === 'SUPER_ADMIN'
+                        ? 'Use the "Assign Course" button above to allocate an active course to a batch or mentee.'
+                        : 'No course allocations match your current filters.'}
                     </Span>
                   </td>
                 </tr>
@@ -421,41 +448,45 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                           />
                         </td>
                         <td className="py-4 pr-6 pl-4 text-right align-middle">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setEditingAllocation(alloc)}
-                              disabled={alloc.status === 'REVOKED' || alloc.status === 'COMPLETED'}
-                              className="h-8 px-2.5 text-xs text-slate-600 hover:text-slate-900"
-                              title="Edit dates & duration"
-                            >
-                              Dates
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setOverridingAllocation(alloc)}
-                              disabled={alloc.status === 'REVOKED' || alloc.status === 'COMPLETED'}
-                              className="h-8 px-2.5 text-xs text-slate-600 hover:text-slate-900"
-                              title="Assignment due-date overrides"
-                            >
-                              Overrides
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setRevokingAllocation(alloc)}
-                              disabled={alloc.status === 'REVOKED' || alloc.status === 'COMPLETED'}
-                              className="h-8 px-2.5 text-xs text-rose-600 hover:bg-rose-50 hover:text-rose-700"
-                              title="Soft revoke allocation"
-                            >
-                              Revoke
-                            </Button>
-                          </div>
+                          {userRole === 'SUPER_ADMIN' ? (
+                            <div className="flex items-center justify-end gap-1.5">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setEditingAllocation(alloc)}
+                                disabled={isTerminalAllocationStatus(alloc.status)}
+                                className="h-8 px-2.5 text-xs text-slate-600 hover:text-slate-900"
+                                title="Edit dates & duration"
+                              >
+                                Dates
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setOverridingAllocation(alloc)}
+                                disabled={isTerminalAllocationStatus(alloc.status)}
+                                className="h-8 px-2.5 text-xs text-slate-600 hover:text-slate-900"
+                                title="Assignment due-date overrides"
+                              >
+                                Overrides
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setRevokingAllocation(alloc)}
+                                disabled={isTerminalAllocationStatus(alloc.status)}
+                                className="h-8 px-2.5 text-xs text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                                title="Soft revoke allocation"
+                              >
+                                Revoke
+                              </Button>
+                            </div>
+                          ) : (
+                            <Span className="font-mono text-xs text-slate-400">View only</Span>
+                          )}
                         </td>
                       </tr>
 
@@ -591,36 +622,27 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
         isOpen={isAssignModalOpen}
         onClose={() => setIsAssignModalOpen(false)}
         userRole={userRole}
-        onSuccess={() => {
-          void refetch();
-        }}
       />
 
       <EditAllocationModal
+        key={editingAllocation?.id}
         allocation={editingAllocation}
         isOpen={Boolean(editingAllocation)}
         onClose={() => setEditingAllocation(null)}
-        onSuccess={() => {
-          void refetch();
-        }}
       />
 
       <AssignmentOverridesModal
+        key={overridingAllocation?.id}
         allocation={overridingAllocation}
         isOpen={Boolean(overridingAllocation)}
         onClose={() => setOverridingAllocation(null)}
-        onSuccess={() => {
-          void refetch();
-        }}
       />
 
       <RevokeAllocationModal
+        key={revokingAllocation?.id}
         allocation={revokingAllocation}
         isOpen={Boolean(revokingAllocation)}
         onClose={() => setRevokingAllocation(null)}
-        onSuccess={() => {
-          void refetch();
-        }}
       />
     </div>
   );

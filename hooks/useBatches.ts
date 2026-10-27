@@ -234,3 +234,5 @@ export function useBatchesMentors(batchIds: string[]) {
     enabled: uniqueBatchIds.length > 0,
   });
 }
+
+export type { ApiBatchDetailData, ApiBatchListResponse, ApiBatchSummary, BatchQueryFilters };
