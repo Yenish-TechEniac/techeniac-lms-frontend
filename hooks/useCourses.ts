@@ -90,6 +90,14 @@ export function useCourses(initialQuery?: ListCoursesQuery) {
   };
 }
 
+export function useCourseDetail(courseId: string) {
+  return useQuery<Course | null>({
+    queryKey: ['course', courseId],
+    queryFn: () => coursesService.getCourseById(courseId, true),
+    enabled: Boolean(courseId),
+  });
+}
+
 export function useCourseBuilder(courseId: string) {
   const queryClient = useQueryClient();
 

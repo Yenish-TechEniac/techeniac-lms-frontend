@@ -14,6 +14,7 @@ interface CourseCardProps {
   onCloneCourse: (course: Course) => Promise<void>;
   onRequestDelete: (course: Course) => void;
   onRequestToggleStatus: (course: Course) => void;
+  onAssignCourse?: (course: Course) => void;
 }
 
 export function CourseCard({
@@ -22,6 +23,7 @@ export function CourseCard({
   onCloneCourse,
   onRequestDelete,
   onRequestToggleStatus,
+  onAssignCourse,
 }: Readonly<CourseCardProps>) {
   const [isCloning, setIsCloning] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -149,15 +151,24 @@ export function CourseCard({
             <span aria-hidden="true">&rarr;</span>
           </Link>
 
-          {/* Assign Button (Scheduled with Module 2: Batches & Cohorts) */}
+          {/* Assign Button (M7 Course Allocation) */}
           <Button
             type="button"
-            variant="outline"
-            disabled
-            title="Course allocation to batches will be available in Module 2 (Batches & Cohorts)"
-            className="h-auto cursor-not-allowed rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-xs font-medium text-slate-400"
+            variant={course.isActive ? 'primary' : 'outline'}
+            disabled={!course.isActive || !onAssignCourse}
+            onClick={() => onAssignCourse?.(course)}
+            title={
+              course.isActive
+                ? 'Assign this course to a batch or mentees'
+                : 'Only active courses can be allocated (Section 2.1, Section 7)'
+            }
+            className={
+              course.isActive
+                ? 'h-auto rounded-lg bg-blue-600 px-3.5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-blue-700'
+                : 'h-auto cursor-not-allowed rounded-lg border border-slate-200 bg-slate-100 px-3.5 py-2 text-xs font-medium text-slate-400'
+            }
           >
-            Assign (Soon)
+            Assign
           </Button>
         </div>
 

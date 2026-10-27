@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useMemo, useState } from 'react';
 
+import { AssignCourseModal } from '@/components/app/allocations/AssignCourseModal';
 import { CourseCard } from '@/components/app/courses/CourseCard';
 import { ImpactNoticeModal } from '@/components/app/courses/ImpactNoticeModal';
 import {
@@ -83,6 +84,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
 
   // Impact & Action Modals State
   const [activeActionCourse, setActiveActionCourse] = useState<Course | null>(null);
+  const [assignModalCourse, setAssignModalCourse] = useState<Course | null>(null);
   const [courseImpact, setCourseImpact] = useState<CourseImpact | null>(null);
   const [impactStatus, setImpactStatus] = useState<'idle' | 'loading' | 'success' | 'error'>(
     'idle',
@@ -410,6 +412,9 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                   onRequestToggleStatus={(targetCourse) => {
                     void onRequestToggleStatus(targetCourse);
                   }}
+                  onAssignCourse={(targetCourse) => {
+                    setAssignModalCourse(targetCourse);
+                  }}
                 />
               ))}
             </div>
@@ -618,6 +623,14 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
           }}
         />
       )}
+
+      {/* Assign Course Modal */}
+      <AssignCourseModal
+        isOpen={Boolean(assignModalCourse)}
+        onClose={() => setAssignModalCourse(null)}
+        initialCourseId={assignModalCourse?.id}
+        userRole={portal === 'admin' ? 'SUPER_ADMIN' : 'MENTOR'}
+      />
     </div>
   );
 }

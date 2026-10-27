@@ -1,0 +1,57 @@
+'use client';
+
+import React from 'react';
+
+import type { CourseAllocationStatus } from '@/services/allocations.service';
+
+export interface AllocationStatusBadgeProps {
+  readonly status: CourseAllocationStatus;
+  readonly isOverdue?: boolean | undefined;
+}
+
+export function AllocationStatusBadge({ status, isOverdue }: AllocationStatusBadgeProps) {
+  let badgeStyle = 'bg-slate-100 text-slate-700 border-slate-300';
+  let label = status as string;
+
+  switch (status) {
+    case 'ASSIGNED':
+      badgeStyle = 'bg-blue-50 text-blue-700 border-blue-300';
+      label = 'Assigned';
+      break;
+    case 'IN_PROGRESS':
+      badgeStyle = 'bg-indigo-50 text-indigo-700 border-indigo-300';
+      label = 'In Progress';
+      break;
+    case 'COMPLETED':
+      badgeStyle = 'bg-emerald-50 text-emerald-800 border-emerald-300';
+      label = 'Completed';
+      break;
+    case 'REVOKED':
+      badgeStyle = 'bg-rose-50 text-rose-700 border-rose-300';
+      label = 'Revoked';
+      break;
+    case 'CLOSED_ROLE_CHANGE':
+      badgeStyle = 'bg-slate-100 text-slate-600 border-slate-300';
+      label = 'Closed (Role)';
+      break;
+    case 'CLOSED_BATCH_CHANGE':
+      badgeStyle = 'bg-slate-100 text-slate-600 border-slate-300';
+      label = 'Closed (Transfer)';
+      break;
+  }
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <span
+        className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${badgeStyle}`}
+      >
+        {label}
+      </span>
+      {isOverdue && status !== 'COMPLETED' && status !== 'REVOKED' ? (
+        <span className="inline-flex items-center rounded-full border border-red-300 bg-red-100 px-2 py-0.5 text-xs font-bold text-red-800">
+          OVERDUE
+        </span>
+      ) : null}
+    </div>
+  );
+}
