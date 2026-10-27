@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React from 'react';
 
 import { MENTEE_PORTAL_NAV } from '@/components/app/navigation/portal-nav.config';
@@ -284,8 +285,14 @@ export default function MenteePage() {
                 history.
               </P>
             </div>
-            <div className="mt-4 border-t border-slate-100 pt-3">
-              <Span className="text-[11px] text-slate-400">No active assignment deadlines</Span>
+            <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
+              <Span className="text-[11px] text-slate-400">View and submit deliverables</Span>
+              <Link
+                href="/mentee/assignments"
+                className="text-xs font-semibold text-blue-600 hover:text-blue-700"
+              >
+                Go to Assignments →
+              </Link>
             </div>
           </div>
         </div>

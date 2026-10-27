@@ -85,8 +85,20 @@ export const MENTEE_PORTAL_NAV: PortalNavConfig = {
   badgeColor: 'bg-blue-100 text-blue-800',
   nav: [
     { label: 'My Learning', href: '/mentee', active: true },
-    { label: 'Courses', href: '#', active: false },
-    { label: 'Assignments', href: '#', active: false },
+    { label: 'Courses', href: '/mentee', active: false },
+    { label: 'Assignments', href: '/mentee/assignments', active: false },
+    { label: 'Progress', href: '#', active: false },
+  ],
+};
+
+export const MENTEE_ASSIGNMENTS_NAV: PortalNavConfig = {
+  subtitle: 'Learning Portal',
+  homeUrl: '/mentee',
+  badgeColor: 'bg-blue-100 text-blue-800',
+  nav: [
+    { label: 'My Learning', href: '/mentee', active: false },
+    { label: 'Courses', href: '/mentee', active: false },
+    { label: 'Assignments', href: '/mentee/assignments', active: true },
     { label: 'Progress', href: '#', active: false },
   ],
 };
