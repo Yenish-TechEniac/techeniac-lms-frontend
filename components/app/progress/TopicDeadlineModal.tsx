@@ -77,8 +77,18 @@ function TopicDeadlineModalDialog({
     }
 
     try {
-      // Send as ISO 8601 string
-      const isoDeadline = new Date(`${deadline}T23:59:59.000Z`).toISOString();
+      // Send as ISO 8601 string clamped to allocation boundaries (prevents exceeding due instant when end-of-day is used)
+      const targetTime = new Date(`${deadline}T23:59:59.000Z`).getTime();
+      const dueTime = new Date(allocationDueDate).getTime();
+      const startTime = new Date(allocationStartDate).getTime();
+
+      const isoDeadline =
+        targetTime > dueTime
+          ? allocationDueDate
+          : targetTime < startTime
+            ? allocationStartDate
+            : new Date(targetTime).toISOString();
+
       await deadlineMutation.mutateAsync({
         allocationId,
         topicId,
