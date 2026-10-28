@@ -23,6 +23,7 @@ import {
   useAllocationProgress,
   useProgressTrackers,
 } from '@/hooks/useProgress';
+import { formatDateIST } from '@/lib/date';
 
 interface ProgressTrackerViewProps {
   readonly portalType?: 'mentor' | 'admin';
@@ -34,7 +35,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
   const [search, setSearch] = useState<string>('');
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(20);
-  const [selectedItem, setSelectedItem] = useState<ProgressTrackerItem | null>(null);
+  const [selectedAllocationId, setSelectedAllocationId] = useState<string | null>(null);
 
   // Modal state for deadline adjustment
   const [deadlineModalTopic, setDeadlineModalTopic] = useState<TopicProgressItem | null>(null);
@@ -81,6 +82,12 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
 
   // Filtered trackers from paginated query
   const filteredTrackers = trackers;
+
+  // Derive selected item directly from live query data
+  const selectedItem = useMemo(() => {
+    if (!selectedAllocationId) return null;
+    return filteredTrackers.find((t) => t.allocationId === selectedAllocationId) ?? null;
+  }, [filteredTrackers, selectedAllocationId]);
 
   // Aggregated Telemetry Metrics
   const meanCompletion = useMemo(() => {
@@ -332,14 +339,14 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs">
                   {filteredTrackers.map((item) => {
-                    const isSelected = selectedItem?.allocationId === item.allocationId;
+                    const isSelected = selectedAllocationId === item.allocationId;
                     const isCompleted = item.status === 'COMPLETED';
                     const isOverdue = item.isOverdue || item.overdueTopicsCount > 0;
 
                     return (
                       <tr
                         key={item.allocationId}
-                        onClick={() => setSelectedItem(item)}
+                        onClick={() => setSelectedAllocationId(item.allocationId)}
                         className={`cursor-pointer transition-colors ${
                           isSelected ? 'bg-blue-50/60' : 'hover:bg-slate-50'
                         }`}
@@ -411,7 +418,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setSelectedItem(item);
+                              setSelectedAllocationId(item.allocationId);
                             }}
                             className="h-7 px-2.5 font-mono text-[11px]"
                           >
@@ -464,7 +471,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                 variant="ghost"
                 size="sm"
                 type="button"
-                onClick={() => setSelectedItem(null)}
+                onClick={() => setSelectedAllocationId(null)}
                 aria-label="Close panel"
                 className="h-8 w-8 p-0 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
               >
@@ -547,7 +554,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                                     t.isOverdue ? 'font-bold text-rose-600' : 'text-slate-500'
                                   }`}
                                 >
-                                  Target: {new Date(t.deadline).toLocaleDateString()}
+                                  Target: {formatDateIST(t.deadline)}
                                   {t.isOverdue && ' (Overdue)'}
                                 </Span>
                               ) : (
@@ -597,7 +604,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
 
             {/* Drawer Footer */}
             <div className="flex justify-end border-t border-slate-200 p-4">
-              <Button variant="outline" size="sm" onClick={() => setSelectedItem(null)}>
+              <Button variant="outline" size="sm" onClick={() => setSelectedAllocationId(null)}>
                 Close Panel
               </Button>
             </div>
@@ -616,6 +623,10 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
           currentDeadline={deadlineModalTopic.deadline}
           allocationStartDate={drawerProgressData.allocation.startDate}
           allocationDueDate={drawerProgressData.allocation.dueDate}
+          onSuccess={() => {
+            void refetchDrawerProgress();
+            void refetchTrackers();
+          }}
         />
       )}
     </div>
