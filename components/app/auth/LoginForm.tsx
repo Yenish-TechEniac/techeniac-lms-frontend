@@ -12,17 +12,17 @@ import { Label } from '@/components/ui/Label';
 import { useAuth } from '@/hooks/useAuth';
 import { redirectUserByRole, useRoleRedirect } from '@/hooks/useRoleRedirect';
 import { ApiError } from '@/lib/errors';
-import { extractZodErrors, type LoginFormData, loginSchema } from '@/lib/validation';
+import { emailSchema } from '@/lib/validation';
 
 import { PasswordVisibilityToggle } from './PasswordVisibilityToggle';
 
 export interface LoginFormProps {
-  readonly onSubmitSuccess?: (data: LoginFormData) => void;
+  readonly onSubmitSuccess?: (data: { email: string }) => void;
 }
 
 export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
   const router = useRouter();
-  const { login, isLoading, isAuthenticated } = useAuth();
+  const { login } = useAuth();
   useRoleRedirect({ redirectAuthenticatedToPortal: true, requireAuth: false });
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,22 +30,41 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const isFormLocked = isSubmitting;
+
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (isSubmitting) return;
+    if (isFormLocked) return;
     setErrors({});
 
-    const result = loginSchema.safeParse({ email, password });
-    if (!result.success) {
-      setErrors(extractZodErrors(result.error.issues));
+    const newErrors: Record<string, string> = {};
+
+    // Validate email
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      newErrors.email = 'Please enter email';
+    } else {
+      const emailResult = emailSchema.safeParse(trimmedEmail);
+      if (!emailResult.success) {
+        newErrors.email = 'Please enter a valid email address';
+      }
+    }
+
+    // Validate password
+    if (!password) {
+      newErrors.password = 'Please enter password';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const loggedInUser = await login(result.data);
+      const loggedInUser = await login({ email: trimmedEmail, password });
       if (onSubmitSuccess) {
-        onSubmitSuccess(result.data);
+        onSubmitSuccess({ email: trimmedEmail });
       } else {
         redirectUserByRole(router, loggedInUser, 'push');
       }
@@ -58,14 +77,6 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
     }
   };
 
-  if (isLoading || isAuthenticated) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#0044D3] border-t-transparent" />
-      </div>
-    );
-  }
-
   return (
     <Form
       className="space-y-4"
@@ -74,7 +85,7 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
       }}
     >
       {errors.general ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-medium text-red-700">
           {errors.general}
         </div>
       ) : null}
@@ -99,18 +110,35 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
               d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
             />
           </svg>
-          Username / Email
+          Email Address
         </Label>
         <Input
           id="email"
           type="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Johnadams@gmail.com"
+          onChange={(e) => {
+            const val = e.target.value;
+            setEmail(val);
+            if (errors.email) {
+              setErrors((prev) => {
+                const next = { ...prev };
+                delete next.email;
+                return next;
+              });
+            }
+            if (errors.general) {
+              setErrors((prev) => {
+                const next = { ...prev };
+                delete next.general;
+                return next;
+              });
+            }
+          }}
+          placeholder="name@company.com"
           autoComplete="email"
           hasError={Boolean(errors.email)}
-          disabled={isSubmitting}
-          className="rounded-2xl border-slate-200/90 bg-slate-50 text-sm focus:bg-white"
+          disabled={isFormLocked}
+          className="rounded-2xl bg-slate-50 text-sm focus:bg-white"
         />
         <FieldError id="email-error" error={errors.email} />
       </div>
@@ -142,12 +170,29 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
             id="password"
             type={showPassword ? 'text' : 'password'}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value;
+              setPassword(val);
+              if (errors.password) {
+                setErrors((prev) => {
+                  const next = { ...prev };
+                  delete next.password;
+                  return next;
+                });
+              }
+              if (errors.general) {
+                setErrors((prev) => {
+                  const next = { ...prev };
+                  delete next.general;
+                  return next;
+                });
+              }
+            }}
             placeholder="••••••••••••"
             autoComplete="current-password"
             hasError={Boolean(errors.password)}
-            disabled={isSubmitting}
-            className="rounded-2xl border-slate-200/90 bg-slate-50 pr-12 text-sm focus:bg-white"
+            disabled={isFormLocked}
+            className="rounded-2xl bg-slate-50 pr-12 text-sm focus:bg-white"
           />
           <PasswordVisibilityToggle
             visible={showPassword}
@@ -166,15 +211,15 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
         <FieldError id="password-error" error={errors.password} />
       </div>
 
-      {/* Submit Button: Solid #0044D3 Full Pill */}
+      {/* Submit Button: Solid #0044D3 Full Pill per DESIGN_SYSTEM.md */}
       <div className="pt-2">
         <Button
           type="submit"
           variant="primary"
           size="lg"
-          disabled={isSubmitting}
+          disabled={isFormLocked}
           isLoading={isSubmitting}
-          className="h-12 w-full rounded-full bg-[#0044D3] text-sm font-bold shadow-md shadow-[#0044D3]/20 hover:bg-[#0036ab]"
+          className="h-12 w-full rounded-full bg-[#0044D3] text-base font-medium shadow-md shadow-[#0044D3]/20 hover:bg-[#0036AB]"
         >
           {isSubmitting ? 'Signing in...' : 'Sign In'}
         </Button>
