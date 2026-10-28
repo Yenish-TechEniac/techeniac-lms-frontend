@@ -305,7 +305,7 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
           <div className="flex items-center gap-1.5 text-slate-500">
             <Span className="text-slate-400">⏱</Span>
             <Span className="font-mono text-[11px]">
-              {allocation.estimatedMinutes
+              {allocation.estimatedMinutes != null
                 ? `${Math.floor(allocation.estimatedMinutes / 60)}h ${allocation.estimatedMinutes % 60}m est.`
                 : 'Paced track'}
             </Span>

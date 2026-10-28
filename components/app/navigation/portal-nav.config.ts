@@ -159,7 +159,7 @@ export const MENTEE_PORTAL_NAV: PortalNavConfig = {
     { label: 'My Learning', href: '/mentee', active: true },
     { label: 'Courses', href: '/mentee/courses', active: false },
     { label: 'Assignments', href: '/mentee/assignments', active: false },
-    { label: 'Progress', href: '#', active: false },
+    { label: 'Progress', href: '/mentee/progress', active: false },
   ],
 };
 
@@ -171,7 +171,7 @@ export const MENTEE_COURSES_NAV: PortalNavConfig = {
     { label: 'My Learning', href: '/mentee', active: false },
     { label: 'Courses', href: '/mentee/courses', active: true },
     { label: 'Assignments', href: '/mentee/assignments', active: false },
-    { label: 'Progress', href: '#', active: false },
+    { label: 'Progress', href: '/mentee/progress', active: false },
   ],
 };
 
@@ -183,7 +183,19 @@ export const MENTEE_ASSIGNMENTS_NAV: PortalNavConfig = {
     { label: 'My Learning', href: '/mentee', active: false },
     { label: 'Courses', href: '/mentee/courses', active: false },
     { label: 'Assignments', href: '/mentee/assignments', active: true },
-    { label: 'Progress', href: '#', active: false },
+    { label: 'Progress', href: '/mentee/progress', active: false },
+  ],
+};
+
+export const MENTEE_PROGRESS_NAV: PortalNavConfig = {
+  subtitle: 'Learning Portal',
+  homeUrl: '/mentee',
+  badgeColor: 'bg-blue-100 text-blue-800',
+  nav: [
+    { label: 'My Learning', href: '/mentee', active: false },
+    { label: 'Courses', href: '/mentee/courses', active: false },
+    { label: 'Assignments', href: '/mentee/assignments', active: false },
+    { label: 'Progress', href: '/mentee/progress', active: true },
   ],
 };
 
