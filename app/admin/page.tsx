@@ -80,9 +80,6 @@ export default function AdminPage() {
                     />
                   </svg>
                 </div>
-                <Span className="text-base font-bold text-[#667085] transition-transform group-hover:translate-x-0.5 group-hover:text-[#0044D3]">
-                  &rarr;
-                </Span>
               </div>
               <H3 className="mt-4 text-lg font-bold text-[#111827] transition-colors group-hover:text-[#0044D3]">
                 User Management
@@ -117,9 +114,6 @@ export default function AdminPage() {
                     />
                   </svg>
                 </div>
-                <Span className="text-base font-bold text-[#667085] transition-transform group-hover:translate-x-0.5 group-hover:text-[#0044D3]">
-                  &rarr;
-                </Span>
               </div>
               <H3 className="mt-4 text-lg font-bold text-[#111827] transition-colors group-hover:text-[#0044D3]">
                 Batches & Cohorts
@@ -153,9 +147,6 @@ export default function AdminPage() {
                     />
                   </svg>
                 </div>
-                <Span className="text-base font-bold text-[#667085] transition-transform group-hover:translate-x-0.5 group-hover:text-[#0044D3]">
-                  &rarr;
-                </Span>
               </div>
               <H3 className="mt-4 text-lg font-bold text-[#111827] transition-colors group-hover:text-[#0044D3]">
                 Course Library & Builder
@@ -190,9 +181,6 @@ export default function AdminPage() {
                     />
                   </svg>
                 </div>
-                <Span className="text-base font-bold text-[#667085] transition-transform group-hover:translate-x-0.5 group-hover:text-[#0044D3]">
-                  &rarr;
-                </Span>
               </div>
               <H3 className="mt-4 text-lg font-bold text-[#111827] transition-colors group-hover:text-[#0044D3]">
                 Course Allocations
