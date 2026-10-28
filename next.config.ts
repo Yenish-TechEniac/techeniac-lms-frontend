@@ -12,6 +12,15 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  redirects() {
+    return Promise.resolve([
+      {
+        source: '/',
+        destination: '/login',
+        permanent: false,
+      },
+    ]);
+  },
   rewrites() {
     const rawTarget =
       process.env.BACKEND_API_URL ||

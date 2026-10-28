@@ -108,7 +108,7 @@ export function ForgotPasswordForm() {
             }}
             disabled={isResending}
             isLoading={isResending}
-            className="h-11 w-full rounded-full text-xs font-bold"
+            className="h-11 w-full rounded-full text-sm font-semibold"
           >
             {isResending ? 'Resending link...' : 'Resend link'}
           </Button>
@@ -121,7 +121,7 @@ export function ForgotPasswordForm() {
               setIsDispatched(false);
               setResendStatus(null);
             }}
-            className="h-11 w-full rounded-full text-xs font-semibold"
+            className="h-11 w-full rounded-full text-sm font-semibold"
           >
             Use a different email
           </Button>
@@ -129,7 +129,7 @@ export function ForgotPasswordForm() {
           <div className="pt-2">
             <Link
               href="/login"
-              className="group inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
+              className="group inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
             >
               <svg
                 className="h-4 w-4 shrink-0 transition-transform group-hover:-translate-x-0.5"
@@ -163,7 +163,7 @@ export function ForgotPasswordForm() {
       <div className="space-y-1.5">
         <Label
           htmlFor="email"
-          className="flex items-center gap-2 text-xs font-semibold text-slate-700"
+          className="flex items-center gap-2 text-sm font-semibold text-[#111827]"
         >
           <svg
             className="h-4 w-4 text-[#0044D3]"
@@ -200,7 +200,7 @@ export function ForgotPasswordForm() {
           autoComplete="email"
           hasError={Boolean(errors.email)}
           disabled={isSubmitting}
-          className="rounded-2xl bg-slate-50 text-sm focus:bg-white"
+          className="rounded-2xl bg-slate-50 text-base focus:bg-white"
         />
         <FieldError id="email-error" error={errors.email} />
       </div>
@@ -221,7 +221,7 @@ export function ForgotPasswordForm() {
       <div className="pt-3 text-center">
         <Link
           href="/login"
-          className="group inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
+          className="group inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
         >
           <svg
             className="h-4 w-4 shrink-0 transition-transform group-hover:-translate-x-0.5"

@@ -2,6 +2,8 @@
 
 These rules are non-negotiable and apply to all agents and developers working on `techeniac-lms-frontend`.
 
+For the authoritative token values, colors, typography scales, and button sizes extracted from Figma, refer to [Design System Specifications](file:///home/hetvi/Desktop/Hetvi/Projects/LMS/techeniac-lms-frontend/docs/DESIGN_SYSTEM.md).
+
 ## 1. Mandatory Component Reuse
 
 Direct usage of unstyled or ad-hoc raw HTML primitives is strictly prohibited in application pages and feature components:

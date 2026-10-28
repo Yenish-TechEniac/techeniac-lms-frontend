@@ -5,12 +5,12 @@ import React, { useEffect } from 'react';
 
 import { AuthShell } from '@/components/app/auth/AuthShell';
 import { ChangePasswordForm } from '@/components/app/auth/ChangePasswordForm';
-import { P, Span } from '@/components/ui/Typography';
+import { Span } from '@/components/ui/Typography';
 import { redirectUserByRole, useRoleRedirect } from '@/hooks/useRoleRedirect';
 
 export default function ChangePasswordPage() {
   const router = useRouter();
-  const { user, isAuthorized } = useRoleRedirect({ allowMustChangePassword: true });
+  const { user } = useRoleRedirect({ allowMustChangePassword: true });
 
   useEffect(() => {
     if (user && !user.mustChangePassword) {
@@ -18,21 +18,10 @@ export default function ChangePasswordPage() {
     }
   }, [user, router]);
 
-  if (!isAuthorized || (user && !user.mustChangePassword)) {
-    return (
-      <div className="flex min-h-screen flex-1 items-center justify-center bg-slate-900/90 p-6">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-          <P className="text-sm font-medium text-slate-300">Loading...</P>
-        </div>
-      </div>
-    );
-  }
-
   const changePasswordFooter = (
     <div className="flex items-center justify-center gap-2 text-center text-xs text-slate-500">
       <svg
-        className="h-4 w-4 shrink-0 text-blue-500"
+        className="h-4 w-4 shrink-0 text-[#0044D3]"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
