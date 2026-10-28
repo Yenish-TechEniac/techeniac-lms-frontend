@@ -100,10 +100,30 @@ export interface ProgressTrackerFilters {
 interface ApiResponse<T> {
   success: boolean;
   data: T;
+  meta?: {
+    page?: number;
+    limit?: number;
+    total?: number;
+    totalPages?: number;
+  };
   message?: string;
 }
 
 const BASE = '/course-allocations';
+const DEFAULT_PAGE_LIMIT = 20;
+
+function buildFallbackPagination(
+  filters: ProgressTrackerFilters,
+  total: number,
+): ProgressTrackerPagination {
+  const limit = filters.limit ?? DEFAULT_PAGE_LIMIT;
+  return {
+    page: filters.page ?? 1,
+    limit,
+    total,
+    totalPages: Math.ceil(total / limit) || 1,
+  };
+}
 
 export const progressService = {
   async getAllocationProgress(allocationId: string): Promise<AllocationProgressResponse> {
@@ -165,22 +185,42 @@ export const progressService = {
     if (filters.limit) params.limit = String(filters.limit);
 
     const res = await apiClient<
-      ApiResponse<{
-        trackers: ProgressTrackerItem[];
-        pagination?: ProgressTrackerPagination;
-      }>
+      ApiResponse<
+        | ProgressTrackerItem[]
+        | {
+            trackers: ProgressTrackerItem[];
+            pagination?: ProgressTrackerPagination;
+          }
+      >
     >('/progress/trackers', {
       method: 'GET',
       params,
     });
 
-    const trackers = res.data?.trackers ?? [];
-    const pagination = res.data?.pagination ?? {
-      page: filters.page ?? 1,
-      limit: filters.limit ?? 20,
-      total: trackers.length,
-      totalPages: Math.ceil(trackers.length / (filters.limit ?? 20)) || 1,
-    };
+    const trackers: ProgressTrackerItem[] = Array.isArray(res.data)
+      ? res.data
+      : res.data && Array.isArray(res.data.trackers)
+        ? res.data.trackers
+        : [];
+
+    let pagination: ProgressTrackerPagination;
+
+    if (res.meta) {
+      const page = res.meta.page ?? filters.page ?? 1;
+      const limit = res.meta.limit ?? filters.limit ?? DEFAULT_PAGE_LIMIT;
+      const total = res.meta.total ?? trackers.length;
+      const totalPages = res.meta.totalPages ?? (Math.ceil(total / limit) || 1);
+      pagination = { page, limit, total, totalPages };
+    } else if (!Array.isArray(res.data) && res.data?.pagination) {
+      const legacy = res.data.pagination;
+      const page = legacy.page ?? filters.page ?? 1;
+      const limit = legacy.limit ?? filters.limit ?? DEFAULT_PAGE_LIMIT;
+      const total = legacy.total ?? trackers.length;
+      const totalPages = legacy.totalPages ?? (Math.ceil(total / limit) || 1);
+      pagination = { page, limit, total, totalPages };
+    } else {
+      pagination = buildFallbackPagination(filters, trackers.length);
+    }
 
     return { trackers, pagination };
   },
