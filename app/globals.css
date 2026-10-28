@@ -5,6 +5,10 @@
   --foreground: #0f172a;
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
