@@ -1,6 +1,7 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 import type { BatchStatus, CreateBatchFormData } from '@/lib/validation';
 import {
@@ -235,6 +236,37 @@ export function useBatchesMentors(batchIds: string[]) {
     },
     enabled: uniqueBatchIds.length > 0,
   });
+}
+
+export function useAllBatchMembers() {
+  const { data: batchesResponse } = useBatchesList({ limit: 100 });
+  const batchSummaries = useMemo(() => batchesResponse?.items ?? [], [batchesResponse]);
+
+  const batchDetailsQueries = useQueries({
+    queries: batchSummaries.map((b) => ({
+      queryKey: ['batch-detail-with-members', b.id],
+      queryFn: () => batchesService.getBatchById(b.id),
+      staleTime: 60_000,
+    })),
+  });
+
+  return useMemo(() => {
+    const bMap = new Map<string, string>();
+    const mMap = new Map<string, string>();
+
+    for (const q of batchDetailsQueries) {
+      if (q.data) {
+        const batch = q.data;
+        for (const member of batch.members ?? []) {
+          bMap.set(member.id, batch.name);
+          if (member.mappedToName) {
+            mMap.set(member.id, member.mappedToName);
+          }
+        }
+      }
+    }
+    return { userBatchMap: bMap, userMentorMap: mMap };
+  }, [batchDetailsQueries]);
 }
 
 export type { ApiBatchDetailData, ApiBatchListResponse, ApiBatchSummary, BatchQueryFilters };

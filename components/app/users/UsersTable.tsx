@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/Table';
 import { H1, P, Span, Typography } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
+import { useAllBatchMembers } from '@/hooks/useBatches';
 import { DEFAULT_USERS_PAGE_SIZE, type UserQueryFilters, useUsers } from '@/hooks/useUsers';
 import {
   type ChangeRoleFormData,
@@ -304,6 +305,9 @@ export function UsersTable() {
 
   const { users: mentorUsers } = useUsers(MENTOR_ROSTER_FILTERS);
 
+  // Load batch roster and live member mappings so batch and mentor are always displayed accurately
+  const { userBatchMap, userMentorMap } = useAllBatchMembers();
+
   // Modal controls
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
@@ -344,25 +348,51 @@ export function UsersTable() {
   );
 
   const users: UserItem[] = useMemo(() => {
-    return apiUsers.map((u) => ({
-      id: u.id,
-      name: u.name,
-      email: u.email,
-      role: u.role,
-      status: u.isActive ? 'ACTIVE' : 'INACTIVE',
-      batch:
+    return apiUsers.map((u) => {
+      const mappedBatch =
+        userBatchMap.get(u.id) ??
         (u as unknown as { batchName?: string; batch?: string }).batchName ??
-        (u as unknown as { batchName?: string; batch?: string }).batch ??
-        undefined,
-      mentorName:
+        (u as unknown as { batchName?: string; batch?: string }).batch;
+
+      const mappedMentor =
+        userMentorMap.get(u.id) ??
         (u as unknown as { mentorName?: string; mentor?: { name: string } }).mentorName ??
-        (u as unknown as { mentorName?: string; mentor?: { name: string } }).mentor?.name ??
-        undefined,
-      hasLoggedIn: u.lastLoginAt !== null,
-      mustChangePassword: u.mustChangePassword,
-      isLastSuperAdmin: u.role === 'SUPER_ADMIN' && activeAdminsCount <= 1,
-    }));
-  }, [apiUsers, activeAdminsCount]);
+        (u as unknown as { mentorName?: string; mentor?: { name: string } }).mentor?.name;
+
+      let displayBatch: string;
+      if (mappedBatch) {
+        displayBatch = mappedBatch;
+      } else if (u.role === 'SUPER_ADMIN') {
+        displayBatch = 'System (All)';
+      } else {
+        displayBatch = 'Unassigned';
+      }
+
+      let displayMentor: string;
+      if (mappedMentor) {
+        displayMentor = mappedMentor;
+      } else if (u.role === 'SUPER_ADMIN') {
+        displayMentor = 'N/A (Admin)';
+      } else if (u.role === 'MENTOR') {
+        displayMentor = 'Self (Mentor)';
+      } else {
+        displayMentor = 'Unassigned';
+      }
+
+      return {
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        status: u.isActive ? 'ACTIVE' : 'INACTIVE',
+        batch: displayBatch,
+        mentorName: displayMentor,
+        hasLoggedIn: u.lastLoginAt !== null,
+        mustChangePassword: u.mustChangePassword,
+        isLastSuperAdmin: u.role === 'SUPER_ADMIN' && activeAdminsCount <= 1,
+      };
+    });
+  }, [apiUsers, userBatchMap, userMentorMap, activeAdminsCount]);
 
   const mentors = useMemo(() => {
     return mentorUsers.map((m) => ({
@@ -543,8 +573,9 @@ export function UsersTable() {
 
   return (
     <div className="space-y-6">
-      {/* Top Header & Breadcrumb */}
-      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+      {/* Top Header & Shifted Middle Buttons & Action Controls */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        {/* Left: Breadcrumbs & Title */}
         <div>
           <div className="mb-1 flex items-center gap-2 text-xs font-semibold tracking-wider text-slate-400 uppercase">
             <Link href="/admin" className="transition-colors hover:text-[#0044D3]">
@@ -555,63 +586,108 @@ export function UsersTable() {
           </div>
           <H1 className="text-3xl font-extrabold tracking-tight text-slate-900">Users</H1>
         </div>
-      </div>
 
-      {/* Role Filter Tabs (Matching LeadNest Contacts Figma Design) */}
-      <div className="flex items-center gap-1 border-b border-[#E1E6EC]">
-        {[
-          { label: 'All Users', role: 'ALL' },
-          { label: 'Mentors', role: 'MENTOR' },
-          { label: 'Mentees', role: 'MENTEE' },
-          { label: 'Super Admins', role: 'SUPER_ADMIN' },
-        ].map((tab) => {
-          const isActive = selectedRole === tab.role;
-          return (
-            <button
-              key={tab.role}
-              type="button"
-              onClick={() => {
-                setSelectedRole(tab.role);
-                setPage(1);
-                const isMentorRestricted = tab.role === 'SUPER_ADMIN' || tab.role === 'MENTOR';
-                if (isMentorRestricted && selectedMentor !== 'ALL') {
-                  setSelectedMentor('ALL');
-                  handleFilterUpdate({ role: tab.role, mentorId: 'ALL', page: 1 });
-                } else {
-                  handleFilterUpdate({ role: tab.role, page: 1 });
-                }
-              }}
-              className={`flex items-center gap-2 border-b-2 px-5 py-3.5 text-sm font-semibold transition-all ${
-                isActive
-                  ? 'border-[#0044D3] font-bold text-[#0044D3]'
-                  : 'border-transparent text-[#667085] hover:border-slate-300 hover:text-[#111827]'
+        {/* Middle: Shifted Status Telemetry Buttons */}
+        <div className="flex items-center justify-center gap-2 self-center rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-xs">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setSelectedStatus('ALL');
+              setPage(1);
+              handleFilterUpdate({ status: 'ALL', page: 1 });
+            }}
+            className={`h-9 gap-2 rounded-xl px-3.5 text-xs font-semibold transition-all ${
+              selectedStatus === 'ALL'
+                ? 'bg-[#0044D3] text-white shadow-xs hover:bg-[#0039B3]'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <Span>Total Users</Span>
+            {isLoading ? (
+              <Skeleton className="inline-block h-4 w-6 rounded-md bg-slate-300" />
+            ) : (
+              <Span
+                className={`font-mono font-bold ${
+                  selectedStatus === 'ALL' ? 'text-white' : 'text-[#0044D3]'
+                }`}
+              >
+                {counts.total || totalCount}
+              </Span>
+            )}
+          </Button>
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setSelectedStatus('ACTIVE');
+              setPage(1);
+              handleFilterUpdate({ status: 'ACTIVE', page: 1 });
+            }}
+            className={`h-9 gap-2 rounded-xl px-3.5 text-xs font-semibold transition-all ${
+              selectedStatus === 'ACTIVE'
+                ? 'bg-emerald-600 text-white shadow-xs hover:bg-emerald-700'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <Span
+              className={`h-2 w-2 rounded-full ${
+                selectedStatus === 'ACTIVE' ? 'bg-white' : 'bg-emerald-500'
               }`}
-            >
-              <Span>{tab.label}</Span>
-              {tab.role === 'ALL' ? (
-                isLoading ? (
-                  <Skeleton className="inline-block h-4 w-6 rounded-md" />
-                ) : (
-                  <Span className="rounded-full bg-slate-100 px-2 py-0.5 font-mono text-xs font-bold text-slate-700">
-                    {counts.total || totalCount}
-                  </Span>
-                )
-              ) : null}
-            </button>
-          );
-        })}
-      </div>
+            />
+            <Span>Active</Span>
+            {isLoading ? (
+              <Skeleton className="inline-block h-4 w-6 rounded-md bg-slate-300" />
+            ) : (
+              <Span
+                className={`font-mono font-bold ${
+                  selectedStatus === 'ACTIVE' ? 'text-white' : 'text-slate-600'
+                }`}
+              >
+                {counts.active}
+              </Span>
+            )}
+          </Button>
 
-      {/* Search Bar + Primary Action Buttons */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="w-full sm:max-w-md">
-          <UserSearchInput
-            value={search}
-            onSearchChange={handleSearchChange}
-            isSearching={isLoading}
-          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setSelectedStatus('INACTIVE');
+              setPage(1);
+              handleFilterUpdate({ status: 'INACTIVE', page: 1 });
+            }}
+            className={`h-9 gap-2 rounded-xl px-3.5 text-xs font-semibold transition-all ${
+              selectedStatus === 'INACTIVE'
+                ? 'bg-slate-800 text-white shadow-xs hover:bg-slate-900'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <Span
+              className={`h-2 w-2 rounded-full ${
+                selectedStatus === 'INACTIVE' ? 'bg-white' : 'bg-slate-400'
+              }`}
+            />
+            <Span>Inactive</Span>
+            {isLoading ? (
+              <Skeleton className="inline-block h-4 w-6 rounded-md bg-slate-300" />
+            ) : (
+              <Span
+                className={`font-mono font-bold ${
+                  selectedStatus === 'INACTIVE' ? 'text-white' : 'text-slate-600'
+                }`}
+              >
+                {counts.inactive}
+              </Span>
+            )}
+          </Button>
         </div>
 
+        {/* Right: Primary Action Buttons */}
         <div className="flex items-center gap-3">
           <Button
             type="button"
@@ -648,10 +724,45 @@ export function UsersTable() {
         </div>
       </div>
 
-      {/* Secondary Filters Bar (Status & Mentor Filter) */}
+      {/* Filter Row with Search, Role Dropdown, Status Dropdown, and Mentor Dropdown */}
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#E1E6EC] bg-white p-3.5 shadow-xs">
+        {/* Search Input */}
+        <div className="min-w-[240px] flex-1">
+          <UserSearchInput
+            value={search}
+            onSearchChange={handleSearchChange}
+            isSearching={isLoading}
+          />
+        </div>
+
+        {/* Role Filter Dropdown */}
+        <div className="w-48">
+          <Select
+            value={selectedRole}
+            onChange={(e) => {
+              const val = e.target.value;
+              setSelectedRole(val);
+              setPage(1);
+              const isMentorRestricted = val === 'SUPER_ADMIN' || val === 'MENTOR';
+              if (isMentorRestricted && selectedMentor !== 'ALL') {
+                setSelectedMentor('ALL');
+                handleFilterUpdate({ role: val, mentorId: 'ALL', page: 1 });
+              } else {
+                handleFilterUpdate({ role: val, page: 1 });
+              }
+            }}
+            aria-label="Filter by role"
+            className="h-11 text-xs font-semibold"
+          >
+            <option value="ALL">All Roles</option>
+            <option value="SUPER_ADMIN">Super Admins</option>
+            <option value="MENTOR">Mentors</option>
+            <option value="MENTEE">Mentees</option>
+          </Select>
+        </div>
+
         {/* Status Dropdown */}
-        <div className="w-44">
+        <div className="w-40">
           <Select
             value={selectedStatus}
             onChange={(e) => {
@@ -661,7 +772,7 @@ export function UsersTable() {
               handleFilterUpdate({ status: val, page: 1 });
             }}
             aria-label="Filter by status"
-            className="h-10 text-xs font-semibold"
+            className="h-11 text-xs font-semibold"
           >
             <option value="ALL">All Status</option>
             <option value="ACTIVE">Active Users</option>
@@ -671,7 +782,7 @@ export function UsersTable() {
 
         {/* Mentor Dropdown (when applicable) */}
         {!isMentorFilterDisabled ? (
-          <div className="w-56">
+          <div className="w-48">
             <Select
               value={selectedMentor}
               onChange={(e) => {
@@ -681,7 +792,7 @@ export function UsersTable() {
                 handleFilterUpdate({ mentorId: val, page: 1 });
               }}
               aria-label="Filter by assigned mentor"
-              className="h-10 text-xs font-semibold"
+              className="h-11 text-xs font-semibold"
             >
               <option value="ALL">All Mentors</option>
               {mentors.map((m) => (
@@ -716,14 +827,14 @@ export function UsersTable() {
                 page: 1,
               });
             }}
-            className="h-10 px-3 text-xs font-semibold text-[#0044D3] hover:bg-blue-50"
+            className="h-11 px-3.5 text-xs font-semibold text-[#0044D3] hover:bg-blue-50"
           >
             Reset Filters
           </Button>
         ) : null}
       </div>
 
-      {/* Users Data Table using Reusable Table Primitives */}
+      {/* Users Data Table */}
       <TableContainer>
         <Table>
           <TableHeader>
@@ -888,13 +999,37 @@ export function UsersTable() {
                     </TableCell>
 
                     {/* Batch Column */}
-                    <TableCell className="text-sm font-medium text-slate-700">
-                      {u.batch || '—'}
+                    <TableCell className="text-sm font-medium">
+                      {u.batch === 'Unassigned' ? (
+                        <Span className="inline-flex items-center rounded-lg bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">
+                          Unassigned
+                        </Span>
+                      ) : u.batch === 'System (All)' ? (
+                        <Span className="inline-flex items-center rounded-lg bg-purple-50 px-2.5 py-1 text-xs font-semibold text-purple-700">
+                          System (All)
+                        </Span>
+                      ) : (
+                        <Span className="font-semibold text-slate-800">{u.batch}</Span>
+                      )}
                     </TableCell>
 
                     {/* Mentor Column */}
-                    <TableCell className="text-sm font-medium text-slate-700">
-                      {u.mentorName || '—'}
+                    <TableCell className="text-sm font-medium">
+                      {u.mentorName === 'Unassigned' ? (
+                        <Span className="inline-flex items-center rounded-lg bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">
+                          Unassigned
+                        </Span>
+                      ) : u.mentorName === 'N/A (Admin)' ? (
+                        <Span className="inline-flex items-center rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-500">
+                          N/A
+                        </Span>
+                      ) : u.mentorName === 'Self (Mentor)' ? (
+                        <Span className="inline-flex items-center rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-semibold text-[#0044D3]">
+                          Self (Mentor)
+                        </Span>
+                      ) : (
+                        <Span className="font-semibold text-slate-800">{u.mentorName}</Span>
+                      )}
                     </TableCell>
 
                     {/* Actions Column (Pencil Edit Icon + Change Role + Toggle Switch) */}
