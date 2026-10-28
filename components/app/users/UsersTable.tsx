@@ -769,9 +769,11 @@ export function UsersTable() {
                             {initials}
                           </div>
                           <div>
-                            <Span className="block font-semibold text-slate-900">
-                              {u.name || '—'}
-                            </Span>
+                            <Link href={`/admin/users/${u.id}`} className="hover:underline">
+                              <Span className="block font-semibold text-slate-900">
+                                {u.name || '—'}
+                              </Span>
+                            </Link>
                             {u.mustChangePassword ? (
                               <div className="mt-1 flex items-center gap-2">
                                 <Span className="text-[11px] font-semibold text-amber-800">
@@ -844,6 +846,16 @@ export function UsersTable() {
                       {/* Actions */}
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
+                          <Link href={`/admin/users/${u.id}`}>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="min-h-11 min-w-11 text-xs text-purple-700 hover:bg-purple-50"
+                            >
+                              360 Profile
+                            </Button>
+                          </Link>
                           <Button
                             type="button"
                             variant="ghost"
