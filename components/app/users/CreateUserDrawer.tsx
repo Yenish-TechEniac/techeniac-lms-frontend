@@ -7,7 +7,8 @@ import { FieldError } from '@/components/ui/FieldError';
 import { Form } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { H2, P, Span } from '@/components/ui/Typography';
+import { Select } from '@/components/ui/Select';
+import { H2 } from '@/components/ui/Typography';
 import { useDialogAccessibility } from '@/hooks/useDialogAccessibility';
 import { type CreateUserFormData, createUserSchema, type UserRole } from '@/lib/validation';
 
@@ -80,31 +81,30 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/40 backdrop-blur-sm transition-opacity">
+    <div
+      onClick={handleResetAndClose}
+      className="fixed inset-0 z-50 flex justify-end bg-slate-900/40 backdrop-blur-sm transition-opacity"
+    >
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="create-user-drawer-title"
+        onClick={(e) => e.stopPropagation()}
         className="flex h-full w-full max-w-md flex-col justify-between border-l border-slate-200 bg-white shadow-2xl"
       >
         <div className="overflow-y-auto p-6">
           <div className="flex items-center justify-between border-b border-slate-100 pb-5">
-            <div>
-              <H2 id="create-user-drawer-title" className="text-xl font-bold text-slate-900">
-                Create New User
-              </H2>
-              <P className="mt-0.5 text-xs text-slate-500">
-                Add an individual to the platform. An invitation email will be queued.
-              </P>
-            </div>
+            <H2 id="create-user-drawer-title" className="text-2xl font-bold text-slate-900">
+              Create New User
+            </H2>
             <Button
               type="button"
               variant="ghost"
               size="sm"
               onClick={handleResetAndClose}
               aria-label="Close drawer"
-              className="h-8 w-8 p-0 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              className="h-9 w-9 p-0 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
             >
               ✕
             </Button>
@@ -113,7 +113,7 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
           {errors.general ? (
             <div
               role="alert"
-              className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-medium text-red-700"
+              className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3.5 text-sm font-medium text-red-700"
             >
               {errors.general}
             </div>
@@ -124,11 +124,15 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
             onSubmit={(e) => {
               void handleSubmit(e);
             }}
-            className="space-y-5 pt-6"
+            className="space-y-6 pt-6"
           >
             {/* Full Name */}
-            <div className="space-y-1.5">
-              <Label htmlFor="create-name" required>
+            <div className="space-y-2">
+              <Label
+                htmlFor="create-name"
+                required
+                className="text-base font-semibold text-slate-900"
+              >
                 Full Name
               </Label>
               <Input
@@ -139,13 +143,18 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
                 placeholder="e.g. Kaustav Sen"
                 hasError={Boolean(errors.name)}
                 disabled={isSubmitting}
+                className="h-12 text-base"
               />
               <FieldError error={errors.name} />
             </div>
 
             {/* Email Address */}
-            <div className="space-y-1.5">
-              <Label htmlFor="create-email" required>
+            <div className="space-y-2">
+              <Label
+                htmlFor="create-email"
+                required
+                className="text-base font-semibold text-slate-900"
+              >
                 Email Address
               </Label>
               <Input
@@ -156,47 +165,52 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
                 placeholder="kaustav@techeniac.com"
                 hasError={Boolean(errors.email)}
                 disabled={isSubmitting}
+                className="h-12 text-base"
               />
               <FieldError error={errors.email} />
             </div>
 
             {/* Initial Role */}
-            <div className="space-y-1.5">
-              <Label htmlFor="create-role" required>
+            <div className="space-y-2">
+              <Label
+                htmlFor="create-role"
+                required
+                className="text-base font-semibold text-slate-900"
+              >
                 Initial Role Assignment
               </Label>
-              <select
+              <Select
                 id="create-role"
                 value={role}
                 onChange={(e) => setRole(e.target.value as UserRole)}
                 disabled={isSubmitting}
-                className="h-12 w-full cursor-pointer rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none"
+                className="h-12 text-base font-semibold"
               >
                 <option value="MENTEE">Mentee (Learner)</option>
                 <option value="MENTOR">Mentor (Instructor / Reviewer)</option>
                 <option value="SUPER_ADMIN">Super Admin (System Administrator)</option>
-              </select>
-            </div>
-
-            {/* PRD Rule Notice */}
-            <div className="rounded-xl border border-blue-200 bg-blue-50 p-3.5 text-xs leading-relaxed text-blue-900">
-              <Span className="mb-0.5 block font-semibold">PRD Compliance (FR-2.1):</Span>
-              Only name, email, and initial role are collected. A temporary password will be
-              generated and dispatched via the queued invite email.
+              </Select>
             </div>
           </Form>
         </div>
 
         <div className="flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50 p-6">
-          <Button variant="outline" size="sm" onClick={handleResetAndClose} disabled={isSubmitting}>
+          <Button
+            variant="outline"
+            size="md"
+            onClick={handleResetAndClose}
+            disabled={isSubmitting}
+            className="h-11 px-5 text-base font-semibold"
+          >
             Cancel
           </Button>
           <Button
             type="submit"
             form="create-user-form"
             variant="primary"
-            size="sm"
+            size="md"
             isLoading={isSubmitting}
+            className="h-11 px-6 text-base font-semibold"
           >
             Create & Send Invite
           </Button>

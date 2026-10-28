@@ -13,6 +13,16 @@ import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { Skeleton } from '@/components/ui/Skeleton';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/Table';
 import { H1, P, Span, Typography } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { DEFAULT_USERS_PAGE_SIZE, type UserQueryFilters, useUsers } from '@/hooks/useUsers';
@@ -29,12 +39,44 @@ export interface UserItem {
   email: string;
   role: UserRole;
   status: UserStatus;
-  batch?: string;
-  mentorName?: string;
-  hasLoggedIn?: boolean;
-  mustChangePassword?: boolean;
-  activeMenteesCount?: number;
-  isLastSuperAdmin?: boolean;
+  batch?: string | undefined;
+  mentorName?: string | undefined;
+  hasLoggedIn?: boolean | undefined;
+  mustChangePassword?: boolean | undefined;
+  activeMenteesCount?: number | undefined;
+  isLastSuperAdmin?: boolean | undefined;
+}
+
+interface ToggleSwitchProps {
+  checked: boolean;
+  disabled?: boolean | undefined;
+  onChange: () => void;
+  title?: string | undefined;
+  ariaLabel: string;
+}
+
+function ToggleSwitch({ checked, disabled, onChange, title, ariaLabel }: ToggleSwitchProps) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={ariaLabel}
+      title={title}
+      disabled={disabled}
+      onClick={onChange}
+      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:ring-offset-2 ${
+        checked ? 'bg-[#0044D3]' : 'bg-slate-300'
+      } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+    >
+      <span
+        aria-hidden="true"
+        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+          checked ? 'translate-x-5' : 'translate-x-0'
+        }`}
+      />
+    </button>
+  );
 }
 
 interface ConfirmStatusModalProps {
@@ -105,11 +147,17 @@ function ConfirmStatusModal({
 interface UserSearchInputProps {
   value: string;
   onSearchChange: (val: string) => void;
+  isSearching?: boolean;
 }
 
-function UserSearchInput({ value, onSearchChange }: Readonly<UserSearchInputProps>) {
+function UserSearchInput({
+  value,
+  onSearchChange,
+  isSearching = false,
+}: Readonly<UserSearchInputProps>) {
   const [localValue, setLocalValue] = useState(value);
   const [prevValue, setPrevValue] = useState(value);
+  const [isDebouncing, setIsDebouncing] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const onSearchChangeRef = useRef(onSearchChange);
 
@@ -132,10 +180,12 @@ function UserSearchInput({ value, onSearchChange }: Readonly<UserSearchInputProp
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const nextVal = e.target.value;
     setLocalValue(nextVal);
+    setIsDebouncing(true);
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
     timerRef.current = setTimeout(() => {
+      setIsDebouncing(false);
       onSearchChangeRef.current(nextVal);
     }, 300);
   };
@@ -149,16 +199,32 @@ function UserSearchInput({ value, onSearchChange }: Readonly<UserSearchInputProp
   }, []);
 
   return (
-    <div className="relative">
-      <Span className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-sm text-slate-400">
-        🔍
-      </Span>
+    <div className="relative w-full">
+      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+        {isDebouncing || isSearching ? (
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#0044D3] border-t-transparent" />
+        ) : (
+          <svg
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        )}
+      </div>
       <Input
         type="text"
         value={localValue}
         onChange={handleChange}
         placeholder="Search by name or email..."
-        className="h-10 pl-9 text-sm"
+        className="h-11 w-full rounded-xl pl-10 text-sm font-medium"
       />
     </div>
   );
@@ -236,7 +302,7 @@ export function UsersTable() {
     resendInvite,
   } = useUsers();
 
-  const { users: mentorUsers, isLoading: isMentorsLoading } = useUsers(MENTOR_ROSTER_FILTERS);
+  const { users: mentorUsers } = useUsers(MENTOR_ROSTER_FILTERS);
 
   // Modal controls
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -284,6 +350,14 @@ export function UsersTable() {
       email: u.email,
       role: u.role,
       status: u.isActive ? 'ACTIVE' : 'INACTIVE',
+      batch:
+        (u as unknown as { batchName?: string; batch?: string }).batchName ??
+        (u as unknown as { batchName?: string; batch?: string }).batch ??
+        undefined,
+      mentorName:
+        (u as unknown as { mentorName?: string; mentor?: { name: string } }).mentorName ??
+        (u as unknown as { mentorName?: string; mentor?: { name: string } }).mentor?.name ??
+        undefined,
       hasLoggedIn: u.lastLoginAt !== null,
       mustChangePassword: u.mustChangePassword,
       isLastSuperAdmin: u.role === 'SUPER_ADMIN' && activeAdminsCount <= 1,
@@ -348,9 +422,6 @@ export function UsersTable() {
   };
 
   const isInitialLoading = isLoading && apiUsers.length === 0;
-
-  // Filtered dataset
-  const filteredUsers = users;
 
   const handleCreateUser = async (data: CreateUserFormData) => {
     try {
@@ -463,7 +534,7 @@ export function UsersTable() {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-600 border-t-transparent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#0044D3] border-t-transparent" />
           <P className="text-sm font-medium text-slate-500">Verifying administrator access...</P>
         </div>
       </div>
@@ -472,20 +543,73 @@ export function UsersTable() {
 
   return (
     <div className="space-y-6">
-      {/* Top Header & Action Controls */}
+      {/* Top Header & Breadcrumb */}
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <div className="mb-1 flex items-center gap-2 text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            <Link href="/admin" className="transition-colors hover:text-purple-700">
+            <Link href="/admin" className="transition-colors hover:text-[#0044D3]">
               Administration
             </Link>
             <Span>/</Span>
-            <Span className="text-purple-700">User Directory</Span>
+            <Span className="text-[#0044D3]">User Directory</Span>
           </div>
           <H1 className="text-3xl font-extrabold tracking-tight text-slate-900">Users</H1>
-          <P variant="muted" className="mt-1 max-w-2xl text-sm text-slate-600">
-            Manage system access, initial onboarding invites, and audited role changes.
-          </P>
+        </div>
+      </div>
+
+      {/* Role Filter Tabs (Matching LeadNest Contacts Figma Design) */}
+      <div className="flex items-center gap-1 border-b border-[#E1E6EC]">
+        {[
+          { label: 'All Users', role: 'ALL' },
+          { label: 'Mentors', role: 'MENTOR' },
+          { label: 'Mentees', role: 'MENTEE' },
+          { label: 'Super Admins', role: 'SUPER_ADMIN' },
+        ].map((tab) => {
+          const isActive = selectedRole === tab.role;
+          return (
+            <button
+              key={tab.role}
+              type="button"
+              onClick={() => {
+                setSelectedRole(tab.role);
+                setPage(1);
+                const isMentorRestricted = tab.role === 'SUPER_ADMIN' || tab.role === 'MENTOR';
+                if (isMentorRestricted && selectedMentor !== 'ALL') {
+                  setSelectedMentor('ALL');
+                  handleFilterUpdate({ role: tab.role, mentorId: 'ALL', page: 1 });
+                } else {
+                  handleFilterUpdate({ role: tab.role, page: 1 });
+                }
+              }}
+              className={`flex items-center gap-2 border-b-2 px-5 py-3.5 text-sm font-semibold transition-all ${
+                isActive
+                  ? 'border-[#0044D3] font-bold text-[#0044D3]'
+                  : 'border-transparent text-[#667085] hover:border-slate-300 hover:text-[#111827]'
+              }`}
+            >
+              <Span>{tab.label}</Span>
+              {tab.role === 'ALL' ? (
+                isLoading ? (
+                  <Skeleton className="inline-block h-4 w-6 rounded-md" />
+                ) : (
+                  <Span className="rounded-full bg-slate-100 px-2 py-0.5 font-mono text-xs font-bold text-slate-700">
+                    {counts.total || totalCount}
+                  </Span>
+                )
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Search Bar + Primary Action Buttons */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="w-full sm:max-w-md">
+          <UserSearchInput
+            value={search}
+            onSearchChange={handleSearchChange}
+            isSearching={isLoading}
+          />
         </div>
 
         <div className="flex items-center gap-3">
@@ -494,115 +618,60 @@ export function UsersTable() {
             variant="outline"
             size="sm"
             onClick={() => setIsBulkImportOpen(true)}
+            className="h-11 gap-2 rounded-xl border-[#E1E6EC] px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
           >
-            <Span>📥</Span>
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+              />
+            </svg>
             <Span>Bulk Import CSV</Span>
           </Button>
-          <Button type="button" variant="primary" size="sm" onClick={() => setIsCreateOpen(true)}>
-            <Span>+</Span>
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            onClick={() => setIsCreateOpen(true)}
+            className="h-11 gap-2 rounded-xl bg-[#0044D3] px-5 text-sm font-semibold text-white shadow-xs hover:bg-[#0039B3]"
+          >
+            <Span className="text-base font-bold">+</Span>
             <Span>Create User</Span>
           </Button>
         </div>
       </div>
 
-      {/* Summary Telemetry Badges */}
-      <div className="flex w-fit items-center gap-2 rounded-xl bg-slate-100 p-1 text-xs font-semibold">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            setSelectedStatus('ALL');
-            setPage(1);
-            handleFilterUpdate({ status: 'ALL', page: 1 });
-          }}
-          className={`h-8 gap-2 rounded-lg px-3 text-xs ${
-            selectedStatus === 'ALL'
-              ? 'bg-white text-slate-900 shadow-sm'
-              : 'text-slate-600 hover:text-slate-900'
-          }`}
-        >
-          <Span>Total Users</Span>
-          <Span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono font-bold text-blue-600">
-            {counts.total || totalCount}
-          </Span>
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            setSelectedStatus('ACTIVE');
-            setPage(1);
-            handleFilterUpdate({ status: 'ACTIVE', page: 1 });
-          }}
-          className={`h-8 gap-2 rounded-lg px-3 text-xs ${
-            selectedStatus === 'ACTIVE'
-              ? 'bg-white text-slate-900 shadow-sm'
-              : 'text-slate-600 hover:text-slate-900'
-          }`}
-        >
-          <Span className="h-2 w-2 rounded-full bg-emerald-500" />
-          <Span>Active</Span>
-          <Span className="font-mono text-slate-500">{counts.active}</Span>
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            setSelectedStatus('INACTIVE');
-            setPage(1);
-            handleFilterUpdate({ status: 'INACTIVE', page: 1 });
-          }}
-          className={`h-8 gap-2 rounded-lg px-3 text-xs ${
-            selectedStatus === 'INACTIVE'
-              ? 'bg-white text-slate-900 shadow-sm'
-              : 'text-slate-600 hover:text-slate-900'
-          }`}
-        >
-          <Span className="h-2 w-2 rounded-full bg-slate-400" />
-          <Span>Inactive</Span>
-          <Span className="font-mono text-slate-500">{counts.inactive}</Span>
-        </Button>
-      </div>
+      {/* Secondary Filters Bar (Status & Mentor Filter) */}
+      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#E1E6EC] bg-white p-3.5 shadow-xs">
+        {/* Status Dropdown */}
+        <div className="w-44">
+          <Select
+            value={selectedStatus}
+            onChange={(e) => {
+              const val = e.target.value;
+              setSelectedStatus(val);
+              setPage(1);
+              handleFilterUpdate({ status: val, page: 1 });
+            }}
+            aria-label="Filter by status"
+            className="h-10 text-xs font-semibold"
+          >
+            <option value="ALL">All Status</option>
+            <option value="ACTIVE">Active Users</option>
+            <option value="INACTIVE">Inactive Users</option>
+          </Select>
+        </div>
 
-      {/* Filter Bar */}
-      <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
-        <div className="grid grid-cols-1 items-center gap-3 md:grid-cols-12">
-          {/* Search Box */}
-          <div className="md:col-span-5">
-            <UserSearchInput value={search} onSearchChange={handleSearchChange} />
-          </div>
-
-          {/* Role Filter */}
-          <div className="md:col-span-2">
-            <Select
-              value={selectedRole}
-              onChange={(e) => {
-                const val = e.target.value;
-                setSelectedRole(val);
-                setPage(1);
-                const isMentorRestricted = val === 'SUPER_ADMIN' || val === 'MENTOR';
-                if (isMentorRestricted && selectedMentor !== 'ALL') {
-                  setSelectedMentor('ALL');
-                  handleFilterUpdate({ role: val, mentorId: 'ALL', page: 1 });
-                } else {
-                  handleFilterUpdate({ role: val, page: 1 });
-                }
-              }}
-              aria-label="Filter by role"
-              className="h-10 text-sm font-normal"
-            >
-              <option value="ALL">All Roles</option>
-              <option value="SUPER_ADMIN">Super Admin</option>
-              <option value="MENTOR">Mentor</option>
-              <option value="MENTEE">Mentee</option>
-            </Select>
-          </div>
-
-          {/* Mentor Filter */}
-          <div className="md:col-span-3">
+        {/* Mentor Dropdown (when applicable) */}
+        {!isMentorFilterDisabled ? (
+          <div className="w-56">
             <Select
               value={selectedMentor}
               onChange={(e) => {
@@ -611,283 +680,282 @@ export function UsersTable() {
                 setPage(1);
                 handleFilterUpdate({ mentorId: val, page: 1 });
               }}
-              aria-label="Filter by mentor"
-              disabled={isMentorFilterDisabled}
-              title={
-                isMentorFilterDisabled
-                  ? `Mentor filter is not applicable for ${selectedRole === 'SUPER_ADMIN' ? 'Super Admins' : 'Mentors'}`
-                  : undefined
-              }
-              className="h-10 text-sm font-normal"
+              aria-label="Filter by assigned mentor"
+              className="h-10 text-xs font-semibold"
             >
-              {isMentorFilterDisabled ? (
-                <option value="ALL">
-                  N/A for {selectedRole === 'SUPER_ADMIN' ? 'Super Admins' : 'Mentors'}
+              <option value="ALL">All Mentors</option>
+              {mentors.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name}
                 </option>
-              ) : (
-                <>
-                  <option value="ALL">
-                    {isMentorsLoading && mentorUsers.length === 0
-                      ? 'Loading mentors...'
-                      : 'All Mentors'}
-                  </option>
-                  {selectedMentor !== 'ALL' && !mentors.some((m) => m.id === selectedMentor) && (
-                    <option value={selectedMentor} disabled>
-                      Selected Mentor
-                    </option>
-                  )}
-                  {mentors.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.name} ({m.email}){!m.isActive ? ' (Inactive)' : ''}
-                    </option>
-                  ))}
-                </>
-              )}
+              ))}
             </Select>
           </div>
+        ) : null}
 
-          {/* Reset Filters */}
-          <div className="text-right md:col-span-2">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setSearch('');
-                setSelectedRole('ALL');
-                setSelectedStatus('ALL');
-                setSelectedMentor('ALL');
-                setPage(1);
-                handleFilterUpdate({
-                  role: 'ALL',
-                  status: 'ALL',
-                  search: '',
-                  mentorId: 'ALL',
-                  page: 1,
-                });
-              }}
-              className="p-2 text-xs font-semibold text-blue-600 hover:text-blue-700"
-            >
-              Reset Filters
-            </Button>
-          </div>
-        </div>
+        {/* Reset Filter Button */}
+        {search ||
+        selectedRole !== 'ALL' ||
+        selectedStatus !== 'ALL' ||
+        selectedMentor !== 'ALL' ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setSearch('');
+              setSelectedRole('ALL');
+              setSelectedStatus('ALL');
+              setSelectedMentor('ALL');
+              setPage(1);
+              handleFilterUpdate({
+                role: 'ALL',
+                status: 'ALL',
+                search: '',
+                mentorId: 'ALL',
+                page: 1,
+              });
+            }}
+            className="h-10 px-3 text-xs font-semibold text-[#0044D3] hover:bg-blue-50"
+          >
+            Reset Filters
+          </Button>
+        ) : null}
       </div>
 
-      {/* Users Data Table */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-left text-sm">
-            <thead className="border-b border-slate-200/80 bg-slate-50/80 text-xs font-semibold tracking-wider text-slate-500 uppercase">
-              <tr>
-                <th className="px-6 py-3.5">Name</th>
-                <th className="px-4 py-3.5">Email</th>
-                <th className="px-4 py-3.5">Role</th>
-                <th className="px-4 py-3.5">
-                  Batch{' '}
-                  <Span className="text-[10px] font-normal text-slate-400 normal-case">(Soon)</Span>
-                </th>
-                <th className="px-4 py-3.5">
-                  Mentor{' '}
-                  <Span className="text-[10px] font-normal text-slate-400 normal-case">(Soon)</Span>
-                </th>
-                <th className="px-4 py-3.5">Status</th>
-                <th className="px-6 py-3.5 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody
-              className={`divide-y divide-slate-100 ${isLoading && !isInitialLoading ? 'opacity-60 transition-opacity' : ''}`}
-            >
-              {isInitialLoading ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-purple-600 border-t-transparent" />
-                      <Span>Loading user directory...</Span>
-                    </div>
-                  </td>
-                </tr>
-              ) : usersError ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center">
-                    <div className="mx-auto flex max-w-sm flex-col items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-lg text-red-600">
-                        ⚠️
+      {/* Users Data Table using Reusable Table Primitives */}
+      <TableContainer>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>User</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Batch</TableHead>
+              <TableHead>Mentor</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading && !isInitialLoading ? (
+              // 5 Realistic Skeleton Rows while Querying/Searching
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={`skeleton-row-${i}`}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-10 w-10 rounded-full" />
+                      <div className="space-y-1.5">
+                        <Skeleton className="h-4 w-32 rounded-md" />
                       </div>
-                      <div>
-                        <P className="text-sm font-semibold text-slate-900">Failed to load users</P>
-                        <P variant="muted" className="mt-1 text-xs text-slate-500">
-                          {usersError}
-                        </P>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="primary"
-                        size="sm"
-                        onClick={() => {
-                          handleFilterUpdate();
-                        }}
-                      >
-                        Retry Fetch
-                      </Button>
                     </div>
-                  </td>
-                </tr>
-              ) : filteredUsers.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <Span>No users match your filters.</Span>
-                  </td>
-                </tr>
-              ) : (
-                filteredUsers.map((u) => {
-                  const initials =
-                    (u.name || 'User')
-                      .split(' ')
-                      .filter(Boolean)
-                      .map((n) => n[0])
-                      .join('')
-                      .slice(0, 2)
-                      .toUpperCase() || 'U';
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-40 rounded-md" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-24 rounded-md" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-28 rounded-md" />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <Skeleton className="h-8 w-8 rounded-lg" />
+                      <Skeleton className="h-8 w-20 rounded-lg" />
+                      <Skeleton className="h-6 w-11 rounded-full" />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : isInitialLoading ? (
+              // Initial Loading Skeleton Rows
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={`initial-skel-${i}`}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-10 w-10 rounded-full" />
+                      <Skeleton className="h-4 w-32 rounded-md" />
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-40 rounded-md" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-24 rounded-md" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-28 rounded-md" />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <Skeleton className="h-8 w-8 rounded-lg" />
+                      <Skeleton className="h-8 w-20 rounded-lg" />
+                      <Skeleton className="h-6 w-11 rounded-full" />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : usersError ? (
+              <TableRow>
+                <TableCell colSpan={5} className="py-12 text-center">
+                  <div className="mx-auto flex max-w-sm flex-col items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-lg text-red-600">
+                      ⚠️
+                    </div>
+                    <div>
+                      <P className="text-sm font-semibold text-slate-900">Failed to load users</P>
+                      <P variant="muted" className="mt-1 text-xs text-slate-500">
+                        {usersError}
+                      </P>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="primary"
+                      size="sm"
+                      onClick={() => {
+                        handleFilterUpdate();
+                      }}
+                    >
+                      Retry Fetch
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : users.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="py-12 text-center text-slate-400">
+                  <Span>No users match your filters.</Span>
+                </TableCell>
+              </TableRow>
+            ) : (
+              users.map((u) => {
+                const initials =
+                  (u.name || 'User')
+                    .split(' ')
+                    .filter(Boolean)
+                    .map((n) => n[0])
+                    .join('')
+                    .slice(0, 2)
+                    .toUpperCase() || 'U';
 
-                  const isSelf = currentUser?.id === u.id;
-                  const isBlockedAdmin = Boolean(u.isLastSuperAdmin && u.status === 'ACTIVE');
-                  const isDeactivateDisabled = (isSelf || isBlockedAdmin) && u.status === 'ACTIVE';
-                  const isRowPending = Boolean(inFlightAction[u.id]);
-                  const deactivateTooltip = isSelf
-                    ? 'Cannot deactivate your own account'
-                    : isBlockedAdmin
-                      ? 'Cannot deactivate the last active Super Admin'
-                      : undefined;
+                const isSelf = currentUser?.id === u.id;
+                const isBlockedAdmin = Boolean(u.isLastSuperAdmin && u.status === 'ACTIVE');
+                const isDeactivateDisabled = (isSelf || isBlockedAdmin) && u.status === 'ACTIVE';
+                const isRowPending = Boolean(inFlightAction[u.id]);
+                const deactivateTooltip = isSelf
+                  ? 'Cannot deactivate your own account'
+                  : isBlockedAdmin
+                    ? 'Cannot deactivate the last active Super Admin'
+                    : undefined;
 
-                  return (
-                    <tr key={u.id} className="transition-colors hover:bg-slate-50/60">
-                      {/* Name & Avatar */}
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-purple-100 text-xs font-bold text-purple-700">
-                            {initials}
-                          </div>
-                          <div>
-                            <Span className="block font-semibold text-slate-900">
-                              {u.name || '—'}
-                            </Span>
-                            {u.mustChangePassword ? (
-                              <div className="mt-1 flex items-center gap-2">
-                                <Span className="text-[11px] font-semibold text-amber-800">
-                                  Invite pending
-                                </Span>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  disabled={inFlightAction[u.id] === 'resend'}
-                                  onClick={() => {
-                                    void handleResendInvite(u.id, u.name);
-                                  }}
-                                  className="min-h-11 px-2.5 py-1 text-xs font-semibold text-purple-700 hover:bg-purple-50 hover:text-purple-900 disabled:opacity-50"
-                                >
-                                  {inFlightAction[u.id] === 'resend' ? 'Sending...' : 'Resend'}
-                                </Button>
-                              </div>
-                            ) : null}
-                          </div>
+                return (
+                  <TableRow key={u.id}>
+                    {/* User Column (Avatar + Name + Status Badges) */}
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-[#0044D3] shadow-xs">
+                          {initials}
                         </div>
-                      </td>
+                        <div>
+                          <Span className="block text-base font-semibold text-slate-900">
+                            {u.name || '—'}
+                          </Span>
+                          {u.mustChangePassword ? (
+                            <div className="mt-1 flex items-center gap-2">
+                              <Span className="text-xs font-semibold text-amber-700">
+                                Invite pending
+                              </Span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                disabled={inFlightAction[u.id] === 'resend'}
+                                onClick={() => {
+                                  void handleResendInvite(u.id, u.name);
+                                }}
+                                className="h-6 px-2 text-xs font-semibold text-[#0044D3] hover:bg-blue-50 disabled:opacity-50"
+                              >
+                                {inFlightAction[u.id] === 'resend' ? 'Sending...' : 'Resend'}
+                              </Button>
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                    </TableCell>
 
-                      {/* Email */}
-                      <td className="px-4 py-4 font-mono text-xs text-slate-600 select-all">
-                        {u.email}
-                      </td>
+                    {/* Email Column */}
+                    <TableCell className="font-mono text-sm text-slate-600 select-all">
+                      {u.email}
+                    </TableCell>
 
-                      {/* Role Badge */}
-                      <td className="px-4 py-4">
-                        <Span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-xs font-medium ${
-                            u.role === 'SUPER_ADMIN'
-                              ? 'bg-purple-100 text-purple-800'
-                              : u.role === 'MENTOR'
-                                ? 'bg-blue-100 text-blue-800'
-                                : 'bg-emerald-100 text-emerald-800'
-                          }`}
+                    {/* Batch Column */}
+                    <TableCell className="text-sm font-medium text-slate-700">
+                      {u.batch || '—'}
+                    </TableCell>
+
+                    {/* Mentor Column */}
+                    <TableCell className="text-sm font-medium text-slate-700">
+                      {u.mentorName || '—'}
+                    </TableCell>
+
+                    {/* Actions Column (Pencil Edit Icon + Change Role + Toggle Switch) */}
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2.5">
+                        {/* Edit Action - Pencil SVG Icon */}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setUserToEdit(u)}
+                          title="Edit user"
+                          aria-label={`Edit ${u.name}`}
+                          className="h-9 w-9 rounded-lg p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                         >
-                          {u.role}
-                        </Span>
-                      </td>
+                          <svg
+                            className="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={1.75}
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"
+                            />
+                          </svg>
+                        </Button>
 
-                      {/* Batch */}
-                      <td className="px-4 py-4 font-mono text-xs text-slate-700">
-                        {u.batch || '—'}
-                      </td>
-
-                      {/* Mentor */}
-                      <td className="px-4 py-4 text-xs text-slate-700">{u.mentorName || '—'}</td>
-
-                      {/* Status */}
-                      <td className="px-4 py-4">
-                        <Span
-                          className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${
-                            u.status === 'ACTIVE'
-                              ? 'bg-emerald-50 text-emerald-700'
-                              : 'bg-slate-100 text-slate-500'
-                          }`}
+                        {/* Change Role Button */}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setUserToChangeRole(u)}
+                          className="h-9 rounded-lg px-2.5 text-xs font-semibold text-[#0044D3] hover:bg-blue-50"
                         >
-                          <Span
-                            className={`h-1.5 w-1.5 rounded-full ${
-                              u.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-400'
-                            }`}
-                          />
-                          {u.status}
-                        </Span>
-                      </td>
+                          Change Role
+                        </Button>
 
-                      {/* Actions */}
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setUserToEdit(u)}
-                            className="min-h-11 min-w-11 text-xs text-slate-700 hover:bg-slate-100"
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setUserToChangeRole(u)}
-                            className="min-h-11 min-w-11 text-xs text-blue-600 hover:bg-blue-50"
-                          >
-                            Change Role
-                          </Button>
-                          <Button
-                            type="button"
-                            variant={u.status === 'ACTIVE' ? 'danger' : 'outline'}
-                            size="sm"
+                        {/* Interactive Toggle Switch for Activate / Deactivate */}
+                        <div className="pl-1">
+                          <ToggleSwitch
+                            checked={u.status === 'ACTIVE'}
                             disabled={isDeactivateDisabled || isRowPending}
                             title={deactivateTooltip}
-                            onClick={() => handleRequestToggleStatus(u)}
-                            className="min-h-11 min-w-11 text-xs"
-                          >
-                            {inFlightAction[u.id] === 'status'
-                              ? 'Updating...'
-                              : u.status === 'ACTIVE'
-                                ? 'Deactivate'
-                                : 'Activate'}
-                          </Button>
+                            ariaLabel={`${u.status === 'ACTIVE' ? 'Deactivate' : 'Activate'} account for ${u.name}`}
+                            onChange={() => handleRequestToggleStatus(u)}
+                          />
                         </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
 
-        {/* Pagination Controls */}
+        {/* LeadNest-Style Pagination Controls */}
         {!usersError && (
           <PaginationControls
             page={page}
@@ -896,11 +964,11 @@ export function UsersTable() {
             totalPages={totalPages}
             onPageChange={handlePageChange}
             onLimitChange={handleLimitChange}
-            itemLabel="users"
+            itemLabel="entries"
             pageSizeOptions={[10, 20, 50, 100]}
           />
         )}
-      </div>
+      </TableContainer>
 
       {/* Drawers and Modals */}
       <CreateUserDrawer

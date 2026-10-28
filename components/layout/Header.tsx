@@ -411,6 +411,102 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
         aria-hidden="true"
       />
 
+      {/* Collapsed Side Navigation Rail (Icon Rail matching LeadNest Figma design) */}
+      <aside
+        aria-label="Collapsed Navigation Rail"
+        className={`fixed inset-y-0 left-0 z-40 hidden w-20 flex-col items-center justify-between border-r border-[#E1E6EC] bg-white py-4 transition-all duration-300 md:flex ${
+          isDrawerOpen
+            ? 'pointer-events-none -translate-x-full opacity-0'
+            : 'pointer-events-auto translate-x-0 opacity-100 shadow-sm'
+        }`}
+      >
+        {/* Top: Logo + Separator */}
+        <div className="flex flex-col items-center gap-3">
+          <Link
+            href={homeUrl}
+            className="group flex items-center justify-center"
+            title="Techeniac LMS"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0044D3] text-sm font-black text-white shadow-xs transition-transform group-hover:scale-105">
+              TL
+            </div>
+          </Link>
+          <div className="flex items-center justify-center text-xs tracking-widest text-[#98A2B3] select-none">
+            •••
+          </div>
+        </div>
+
+        {/* Middle: Icon Nav List */}
+        <nav className="flex flex-col items-center space-y-3" aria-label="Quick Navigation">
+          {nav.map((item) => {
+            const isActive = Boolean(item.active);
+            const icon = getNavIcon(item.label);
+
+            if (item.href !== '#') {
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  title={item.label}
+                  aria-label={item.label}
+                  className={`flex h-11 w-11 items-center justify-center rounded-full transition-all ${
+                    isActive
+                      ? 'bg-blue-100 text-[#0044D3] shadow-xs'
+                      : 'text-[#667085] hover:bg-[#F6F8FC] hover:text-[#111827]'
+                  }`}
+                >
+                  {icon}
+                </Link>
+              );
+            }
+
+            return (
+              <div
+                key={item.label}
+                title={`${item.label} (Coming Soon)`}
+                aria-label={`${item.label} (Coming Soon)`}
+                className="flex h-11 w-11 cursor-not-allowed items-center justify-center rounded-full text-slate-300"
+              >
+                {icon}
+              </div>
+            );
+          })}
+        </nav>
+
+        {/* Bottom: Expand Toggle Button + Profile */}
+        <div className="flex flex-col items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setIsDrawerOpen(true)}
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#E1E6EC] text-[#667085] transition-colors hover:bg-[#F6F8FC] hover:text-[#111827]"
+            title="Expand sidebar"
+            aria-label="Expand sidebar"
+          >
+            <svg
+              className="h-5 w-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M9 3v18" />
+            </svg>
+          </button>
+          {user ? (
+            <button
+              type="button"
+              onClick={() => setIsProfileOpen((prev) => !prev)}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-xs font-bold text-[#0044D3] shadow-xs transition-transform hover:scale-105"
+              title={`${user.name} (${formattedRole})`}
+              aria-label="User profile"
+            >
+              {userInitials}
+            </button>
+          ) : null}
+        </div>
+      </aside>
+
       {/* Side Navigation Drawer / Persistent Sidebar */}
       <aside
         role="dialog"
@@ -420,39 +516,14 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
           isDrawerOpen ? 'translate-x-0' : 'pointer-events-none -translate-x-full'
         }`}
       >
-        {/* Drawer Header: TL Logo + Techeniac LMS Title + Close Button */}
-        <div className="flex h-16 items-center justify-between border-b border-[#E1E6EC] px-5">
+        {/* Drawer Header: TL Logo + Techeniac LMS Title (Close button removed as bottom dock button controls collapse) */}
+        <div className="flex h-16 items-center border-b border-[#E1E6EC] px-5">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0044D3] text-sm font-black text-white shadow-xs">
               TL
             </div>
             <Span className="text-base font-bold tracking-tight text-[#111827]">Techeniac LMS</Span>
           </div>
-
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsDrawerOpen(false)}
-            className="h-8 w-8 rounded-xl p-0 text-[#667085] hover:bg-[#F6F8FC] hover:text-[#111827]"
-            title="Close sidebar"
-            aria-label="Close navigation sidebar"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </Button>
         </div>
 
         {/* Navigation Category Label (Matching LeadNest Reference) */}

@@ -21,7 +21,7 @@ export default function LoginPage() {
   );
 
   return (
-    <AuthShell title="Welcome Back" footerContent={loginFooter}>
+    <AuthShell title="Welcome To Techeniac LMS" footerContent={loginFooter}>
       <LoginForm />
     </AuthShell>
   );
