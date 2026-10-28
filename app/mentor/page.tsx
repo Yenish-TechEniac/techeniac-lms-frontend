@@ -8,6 +8,15 @@ import { PortalSessionState } from '@/components/app/navigation/PortalSessionSta
 import { Header } from '@/components/layout/Header';
 import { Alert } from '@/components/ui/Alert';
 import { Skeleton } from '@/components/ui/Skeleton';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/Table';
 import { H1, H2, H3, P, Span } from '@/components/ui/Typography';
 import { useMentorBatches, useMentorMentees } from '@/hooks/useBatches';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
@@ -39,13 +48,13 @@ function MentorBatchesTable({
         {[1, 2, 3].map((i) => (
           <div
             key={i}
-            className="flex items-center justify-between gap-4 border-b border-[#E1E6EC]/60 py-2.5 last:border-0"
+            className="flex items-center justify-between gap-4 border-b border-[#E1E6EC]/60 py-3.5 last:border-0"
           >
-            <Skeleton className="h-5 w-48" />
-            <Skeleton className="h-5 w-20" />
-            <Skeleton className="h-5 w-24" />
-            <Skeleton className="h-5 w-32" />
-            <Skeleton className="h-5 w-12" />
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-6 w-20" />
+            <Skeleton className="h-6 w-24" />
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-6 w-12" />
           </div>
         ))}
       </div>
@@ -55,8 +64,8 @@ function MentorBatchesTable({
   if (batches.length === 0) {
     return (
       <div className="p-8 text-center">
-        <P className="text-sm font-semibold text-slate-700">No Cohorts Assigned</P>
-        <P className="mt-1 text-xs text-slate-500">
+        <P className="text-base font-semibold text-[#111827]">No Cohorts Assigned</P>
+        <P className="mt-1 text-sm text-[#667085]">
           You are not currently assigned to any cohorts. An administrator will assign you to an
           upcoming batch.
         </P>
@@ -65,63 +74,48 @@ function MentorBatchesTable({
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full border-collapse text-left text-sm">
-        <thead className="border-b border-slate-100 bg-slate-50/80 text-xs font-semibold tracking-wider text-slate-500 uppercase">
-          <tr>
-            <th className="px-6 py-3">
-              <Span>Batch Name</Span>
-            </th>
-            <th className="px-4 py-3">
-              <Span>Code</Span>
-            </th>
-            <th className="px-4 py-3">
-              <Span>Status</Span>
-            </th>
-            <th className="px-4 py-3">
-              <Span>Schedule Window</Span>
-            </th>
-            <th className="px-6 py-3 text-right">
-              <Span>Mentees</Span>
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100">
+    <TableContainer className="rounded-none border-0 shadow-none">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Batch Name</TableHead>
+            <TableHead>Code</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Schedule Window</TableHead>
+            <TableHead className="text-right">Mentees</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {batches.map((batch) => (
-            <tr key={batch.id} className="transition-colors hover:bg-slate-50/50">
-              <td className="px-6 py-4">
-                <P className="font-semibold text-slate-900">{batch.name}</P>
-                {batch.description ? (
-                  <P className="text-xs text-slate-500">{batch.description}</P>
-                ) : null}
-              </td>
-              <td className="px-4 py-4 font-mono text-xs font-bold text-slate-700">
-                <Span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5">
+            <TableRow key={batch.id}>
+              <TableCell>
+                <P className="text-base font-bold text-[#111827]">{batch.name}</P>
+              </TableCell>
+              <TableCell>
+                <Span className="inline-block rounded-md border border-[#E1E6EC] bg-[#F6F8FC] px-2.5 py-1 font-mono text-xs font-bold text-[#111827]">
                   {batch.code}
                 </Span>
-              </td>
-              <td className="px-4 py-4">
+              </TableCell>
+              <TableCell>
                 <Span
-                  className={`inline-block rounded-full px-2.5 py-0.5 font-mono text-[11px] font-bold uppercase ${getBatchStatusBadgeClass(
+                  className={`inline-block rounded-full px-3 py-1 font-mono text-xs font-bold uppercase ${getBatchStatusBadgeClass(
                     batch.status,
                   )}`}
                 >
                   {batch.status}
                 </Span>
-              </td>
-              <td className="px-4 py-4 font-mono text-xs text-slate-600">
-                <Span>
-                  {batch.startDate} → {batch.endDate}
-                </Span>
-              </td>
-              <td className="px-6 py-4 text-right font-mono text-xs font-bold text-slate-800">
-                <Span>{batch.menteesCount ?? 0}</Span>
-              </td>
-            </tr>
+              </TableCell>
+              <TableCell className="font-mono text-sm text-[#667085]">
+                {batch.startDate} → {batch.endDate}
+              </TableCell>
+              <TableCell className="text-right font-mono text-base font-bold text-[#111827]">
+                {batch.menteesCount ?? 0}
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
-    </div>
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 }
 
@@ -145,11 +139,11 @@ function MentorMenteesTable({
         {[1, 2, 3].map((i) => (
           <div
             key={i}
-            className="flex items-center justify-between gap-4 border-b border-[#E1E6EC]/60 py-2.5 last:border-0"
+            className="flex items-center justify-between gap-4 border-b border-[#E1E6EC]/60 py-3.5 last:border-0"
           >
-            <Skeleton className="h-5 w-44" />
-            <Skeleton className="h-5 w-28" />
-            <Skeleton className="h-5 w-32" />
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-6 w-28" />
+            <Skeleton className="h-6 w-32" />
           </div>
         ))}
       </div>
@@ -159,57 +153,50 @@ function MentorMenteesTable({
   if (mentees.length === 0) {
     return (
       <div className="p-8 text-center">
-        <P className="text-sm font-semibold text-slate-700">No Mentees Mapped</P>
-        <P className="mt-1 text-xs text-slate-500">
-          You do not currently have any mentees mapped to you. Mentees will appear here once mapped
-          by administrators.
+        <P className="text-base font-semibold text-[#111827]">No Mentees Mapped</P>
+        <P className="mt-1 text-sm text-[#667085]">
+          You do not currently have any mentees mapped to you.
         </P>
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full border-collapse text-left text-sm">
-        <thead className="border-b border-slate-100 bg-slate-50/80 text-xs font-semibold tracking-wider text-slate-500 uppercase">
-          <tr>
-            <th className="px-6 py-3">
-              <Span>Mentee</Span>
-            </th>
-            <th className="px-4 py-3">
-              <Span>Cohort</Span>
-            </th>
-            <th className="px-4 py-3">
-              <Span>Cohort Code</Span>
-            </th>
-            <th className="px-6 py-3 text-right">
-              <Span>Mapped Since</Span>
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100">
+    <TableContainer className="rounded-none border-0 shadow-none">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Mentee</TableHead>
+            <TableHead>Cohort</TableHead>
+            <TableHead>Cohort Code</TableHead>
+            <TableHead className="text-right">Mapped Since</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {mentees.map((mentee) => (
-            <tr key={mentee.id} className="transition-colors hover:bg-slate-50/50">
-              <td className="px-6 py-4">
-                <P className="font-semibold text-slate-900">{mentee.name ?? 'Assigned Mentee'}</P>
-                <P className="font-mono text-xs text-slate-500">{mentee.email ?? '—'}</P>
-              </td>
-              <td className="px-4 py-4 text-xs font-medium text-slate-800">
-                <Span>{mentee.batchName ?? 'Batch'}</Span>
-              </td>
-              <td className="px-4 py-4 font-mono text-xs text-slate-600">
-                <Span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5">
+            <TableRow key={mentee.id}>
+              <TableCell>
+                <P className="text-base font-bold text-[#111827]">
+                  {mentee.name ?? 'Assigned Mentee'}
+                </P>
+                <P className="font-mono text-xs text-[#667085]">{mentee.email ?? '—'}</P>
+              </TableCell>
+              <TableCell className="text-sm font-semibold text-[#111827]">
+                {mentee.batchName ?? 'Batch'}
+              </TableCell>
+              <TableCell>
+                <Span className="inline-block rounded-md border border-[#E1E6EC] bg-[#F6F8FC] px-2.5 py-1 font-mono text-xs font-bold text-[#111827]">
                   {mentee.batchCode ?? '—'}
                 </Span>
-              </td>
-              <td className="px-6 py-4 text-right font-mono text-xs text-slate-500">
-                <Span>{mentee.startDate?.slice(0, 10) ?? '—'}</Span>
-              </td>
-            </tr>
+              </TableCell>
+              <TableCell className="text-right font-mono text-sm text-[#667085]">
+                {mentee.startDate?.slice(0, 10) ?? '—'}
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
-    </div>
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 }
 
@@ -252,9 +239,7 @@ export default function MentorPage() {
               <H1 className="text-3xl font-bold tracking-tight text-[#111827] sm:text-4xl">
                 Welcome, {user.name}
               </H1>
-              <P className="mt-2 text-base text-[#667085]">
-                Guide your mentees, review progress, and manage assigned cohorts.
-              </P>
+              <P className="mt-1 text-sm font-medium text-[#667085]">{user.email}</P>
             </div>
 
             <div className="rounded-2xl border border-[#E1E6EC] bg-[#F6F8FC] p-4 text-xs sm:min-w-64">
@@ -262,7 +247,6 @@ export default function MentorPage() {
                 Assigned Role
               </Span>
               <Span className="mt-1 block text-base font-bold text-[#111827]">{user.role}</Span>
-              <Span className="mt-0.5 block text-sm text-[#667085]">{user.email}</Span>
             </div>
           </div>
         </div>
@@ -313,10 +297,7 @@ export default function MentorPage() {
         {/* Section 1: Assigned Batches */}
         <div className="mb-8 overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
           <div className="border-b border-[#E1E6EC] p-5">
-            <H2 className="text-base font-bold text-[#111827]">Assigned Cohorts</H2>
-            <P className="mt-0.5 text-xs text-[#667085]">
-              Cohorts you are currently facilitating as an active mentor
-            </P>
+            <H2 className="text-xl font-bold text-[#111827]">Assigned Cohorts</H2>
           </div>
 
           <MentorBatchesTable isLoading={isLoadingBatches} batches={batches} />
@@ -325,10 +306,7 @@ export default function MentorPage() {
         {/* Section 2: Mapped Mentees */}
         <div className="mb-8 overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
           <div className="border-b border-[#E1E6EC] p-5">
-            <H2 className="text-base font-bold text-[#111827]">Your Mapped Mentees</H2>
-            <P className="mt-0.5 text-xs text-[#667085]">
-              Students assigned directly to your mentorship across your cohorts
-            </P>
+            <H2 className="text-xl font-bold text-[#111827]">Your Mapped Mentees</H2>
           </div>
 
           <MentorMenteesTable isLoading={isLoadingMentees} mentees={mentees} />
@@ -337,9 +315,6 @@ export default function MentorPage() {
         {/* Action Areas / Quick Navigation Cards */}
         <div className="mb-6">
           <H2 className="text-xl font-bold text-[#111827]">Mentor Workspace Domains</H2>
-          <P className="mt-1 text-sm text-[#667085]">
-            Quick navigation across curriculum, allocations, and mentee progress
-          </P>
         </div>
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
@@ -349,33 +324,25 @@ export default function MentorPage() {
             className="group flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs transition-all duration-200 hover:border-[#0044D3] hover:bg-white hover:shadow-md"
           >
             <div>
-              <div className="flex items-center justify-between">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#0044D3] transition-colors group-hover:bg-[#0044D3] group-hover:text-white">
-                  <svg
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                    />
-                  </svg>
-                </div>
-                <Span className="text-[#667085] transition-transform group-hover:translate-x-0.5 group-hover:text-[#0044D3]">
-                  &rarr;
-                </Span>
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#0044D3] transition-colors group-hover:bg-[#0044D3] group-hover:text-white">
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                  />
+                </svg>
               </div>
               <H3 className="mt-4 text-base font-bold text-[#111827] transition-colors group-hover:text-[#0044D3]">
                 Course Library & Builder
               </H3>
-              <P className="mt-1.5 text-xs leading-relaxed text-[#667085]">
-                Course syllabi, outline builder, subtopic lessons, and curriculum assignments.
-              </P>
             </div>
           </Link>
 
@@ -385,34 +352,25 @@ export default function MentorPage() {
             className="group flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs transition-all duration-200 hover:border-[#0044D3] hover:bg-white hover:shadow-md"
           >
             <div>
-              <div className="flex items-center justify-between">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#0044D3] transition-colors group-hover:bg-[#0044D3] group-hover:text-white">
-                  <svg
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-                    />
-                  </svg>
-                </div>
-                <Span className="text-[#667085] transition-transform group-hover:translate-x-0.5 group-hover:text-[#0044D3]">
-                  &rarr;
-                </Span>
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#0044D3] transition-colors group-hover:bg-[#0044D3] group-hover:text-white">
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                  />
+                </svg>
               </div>
               <H3 className="mt-4 text-base font-bold text-[#111827] transition-colors group-hover:text-[#0044D3]">
                 Course Allocations
               </H3>
-              <P className="mt-1.5 text-xs leading-relaxed text-[#667085]">
-                Track assigned courses across cohorts, review start and due dates, and manage
-                timelines.
-              </P>
             </div>
           </Link>
 
@@ -422,33 +380,25 @@ export default function MentorPage() {
             className="group flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs transition-all duration-200 hover:border-[#0044D3] hover:bg-white hover:shadow-md"
           >
             <div>
-              <div className="flex items-center justify-between">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#0044D3] transition-colors group-hover:bg-[#0044D3] group-hover:text-white">
-                  <svg
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                    />
-                  </svg>
-                </div>
-                <Span className="text-[#667085] transition-transform group-hover:translate-x-0.5 group-hover:text-[#0044D3]">
-                  &rarr;
-                </Span>
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#0044D3] transition-colors group-hover:bg-[#0044D3] group-hover:text-white">
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  />
+                </svg>
               </div>
               <H3 className="mt-4 text-base font-bold text-[#111827] transition-colors group-hover:text-[#0044D3]">
                 Learning Progress
               </H3>
-              <P className="mt-1.5 text-xs leading-relaxed text-[#667085]">
-                Monitor mentee topic completions, check deadlines, and identify overdue milestones.
-              </P>
             </div>
           </Link>
         </div>

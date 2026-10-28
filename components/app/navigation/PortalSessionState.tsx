@@ -187,8 +187,7 @@ function MenteeDashboardSkeleton() {
           </div>
           <Skeleton className="h-3 w-full rounded-full" />
           <div className="flex items-center justify-between border-t border-[#E1E6EC] pt-4">
-            <Skeleton className="h-4 w-44" />
-            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-6 w-56" />
           </div>
         </div>
       </div>
@@ -215,6 +214,18 @@ function MenteeDashboardSkeleton() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Course & Assignment Cards Skeleton */}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div className="space-y-4 rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs">
+          <Skeleton className="h-11 w-11 rounded-xl" />
+          <Skeleton className="h-6 w-36" />
+        </div>
+        <div className="space-y-4 rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs">
+          <Skeleton className="h-11 w-11 rounded-xl" />
+          <Skeleton className="h-6 w-36" />
+        </div>
       </div>
     </>
   );
