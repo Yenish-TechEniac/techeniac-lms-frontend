@@ -4,18 +4,25 @@ import { Assignment, SubmissionMode } from './courses';
 
 export { SubmissionMode };
 
-export type AssignmentDerivedStatus =
-  'PENDING' | 'SUBMITTED' | 'RESUBMIT_REQUESTED' | 'GRADED' | 'OVERDUE' | 'CLOSED';
+export enum AssignmentDerivedStatus {
+  PENDING = 'PENDING',
+  SUBMITTED = 'SUBMITTED',
+  RESUBMIT_REQUESTED = 'RESUBMIT_REQUESTED',
+  GRADED = 'GRADED',
+  OVERDUE = 'OVERDUE',
+  CLOSED = 'CLOSED',
+}
 
-export type SubmissionStatus = 'SUBMITTED' | 'GRADED' | 'RESUBMIT_REQUESTED';
+export enum SubmissionStatus {
+  SUBMITTED = 'SUBMITTED',
+  RESUBMIT_REQUESTED = 'RESUBMIT_REQUESTED',
+  GRADED = 'GRADED',
+}
 
 export interface SubmissionData {
-  pdfUrl?: string | null;
-  zipUrl?: string | null;
-  linkUrl?: string | null;
-  pdf_url?: string | null;
-  zip_url?: string | null;
-  url?: string | null;
+  pdfUrl?: string | null | undefined;
+  zipUrl?: string | null | undefined;
+  linkUrl?: string | null | undefined;
 }
 
 export interface SubmissionVersion {

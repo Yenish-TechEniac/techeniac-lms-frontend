@@ -4,7 +4,7 @@ import { Alert } from '@/components/ui/Alert';
 import { Code, H3, H4, P, Span } from '@/components/ui/Typography';
 import { formatDateTimeIST } from '@/lib/date';
 import { isSafeHttpUrl } from '@/lib/url';
-import type { SubmissionVersion } from '@/types/submissions';
+import { SubmissionStatus, type SubmissionVersion } from '@/types/submissions';
 
 interface SubmissionVersionHistoryProps {
   versions: SubmissionVersion[];
@@ -115,24 +115,15 @@ export function SubmissionVersionHistory({
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 <SubmissionResourceLink
                   label="PDF Document Link"
-                  url={
-                    (versionItem.submissionData.pdfUrl || versionItem.submissionData.pdf_url) as
-                      string | undefined
-                  }
+                  url={versionItem.submissionData.pdfUrl}
                 />
                 <SubmissionResourceLink
                   label="ZIP Archive Link"
-                  url={
-                    (versionItem.submissionData.zipUrl || versionItem.submissionData.zip_url) as
-                      string | undefined
-                  }
+                  url={versionItem.submissionData.zipUrl}
                 />
                 <SubmissionResourceLink
                   label="Project Repository / Live URL"
-                  url={
-                    (versionItem.submissionData.linkUrl || versionItem.submissionData.url) as
-                      string | undefined
-                  }
+                  url={versionItem.submissionData.linkUrl}
                 />
               </div>
             </div>
@@ -180,7 +171,7 @@ export function SubmissionVersionHistory({
               </div>
             ) : null}
 
-            {versionItem.status === 'RESUBMIT_REQUESTED' && !versionItem.feedback ? (
+            {versionItem.status === SubmissionStatus.RESUBMIT_REQUESTED && !versionItem.feedback ? (
               <Alert
                 variant="warning"
                 title="Resubmission Requested"

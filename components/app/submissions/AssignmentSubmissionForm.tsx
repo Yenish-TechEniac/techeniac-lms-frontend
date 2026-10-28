@@ -154,19 +154,11 @@ export function AssignmentSubmissionForm({
     setClientErrorMsg(null);
     if (!validate()) return;
 
-    const submissionData: SubmissionData = {};
-    if (pdfUrl.trim()) {
-      submissionData.pdfUrl = pdfUrl.trim();
-      submissionData.pdf_url = pdfUrl.trim();
-    }
-    if (zipUrl.trim()) {
-      submissionData.zipUrl = zipUrl.trim();
-      submissionData.zip_url = zipUrl.trim();
-    }
-    if (url.trim()) {
-      submissionData.linkUrl = url.trim();
-      submissionData.url = url.trim();
-    }
+    const submissionData: SubmissionData = {
+      pdfUrl: pdfUrl.trim() || undefined,
+      zipUrl: zipUrl.trim() || undefined,
+      linkUrl: url.trim() || undefined,
+    };
 
     try {
       const result = await submitMutation.mutateAsync({

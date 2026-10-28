@@ -9,7 +9,7 @@ import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Input } from '@/components/ui/Input';
 import { Code, H3, P, Span } from '@/components/ui/Typography';
 import { formatDateTimeIST } from '@/lib/date';
-import type { AssignmentDerivedStatus, AssignmentWithSubmissionStatus } from '@/types/submissions';
+import { AssignmentDerivedStatus, type AssignmentWithSubmissionStatus } from '@/types/submissions';
 
 import { SubmissionStatusBadge } from './SubmissionStatusBadge';
 
@@ -34,12 +34,12 @@ interface MyAssignmentsTableProps {
 
 const STATUS_FILTERS: Array<{ label: string; value?: AssignmentDerivedStatus | undefined }> = [
   { label: 'All Assignments', value: undefined },
-  { label: 'Pending', value: 'PENDING' },
-  { label: 'Submitted', value: 'SUBMITTED' },
-  { label: 'Resubmit Requested', value: 'RESUBMIT_REQUESTED' },
-  { label: 'Graded', value: 'GRADED' },
-  { label: 'Overdue', value: 'OVERDUE' },
-  { label: 'Closed', value: 'CLOSED' },
+  { label: 'Pending', value: AssignmentDerivedStatus.PENDING },
+  { label: 'Submitted', value: AssignmentDerivedStatus.SUBMITTED },
+  { label: 'Resubmit Requested', value: AssignmentDerivedStatus.RESUBMIT_REQUESTED },
+  { label: 'Graded', value: AssignmentDerivedStatus.GRADED },
+  { label: 'Overdue', value: AssignmentDerivedStatus.OVERDUE },
+  { label: 'Closed', value: AssignmentDerivedStatus.CLOSED },
 ];
 
 export function MyAssignmentsTable({
@@ -232,16 +232,16 @@ export function MyAssignmentsTable({
                       <Link href={`/mentee/assignments/${assignment.id}`}>
                         <Button
                           variant={
-                            assignment.status === 'PENDING' ||
-                            assignment.status === 'RESUBMIT_REQUESTED'
+                            assignment.status === AssignmentDerivedStatus.PENDING ||
+                            assignment.status === AssignmentDerivedStatus.RESUBMIT_REQUESTED
                               ? 'primary'
                               : 'secondary'
                           }
                           size="sm"
                         >
-                          {assignment.status === 'PENDING'
+                          {assignment.status === AssignmentDerivedStatus.PENDING
                             ? 'Start & Submit'
-                            : assignment.status === 'RESUBMIT_REQUESTED'
+                            : assignment.status === AssignmentDerivedStatus.RESUBMIT_REQUESTED
                               ? 'Resubmit'
                               : 'View Details'}
                         </Button>
