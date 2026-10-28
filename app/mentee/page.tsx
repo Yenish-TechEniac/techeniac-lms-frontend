@@ -432,7 +432,7 @@ export default function MenteePage() {
           </P>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {/* Card 1: Course Progress */}
           <Link
             href="/mentee/courses"
@@ -470,7 +470,44 @@ export default function MenteePage() {
             </div>
           </Link>
 
-          {/* Card 2: Learning Progress */}
+          {/* Card 2: Assignments & Deadlines */}
+          <Link
+            href="/mentee/assignments"
+            className="group flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs transition-all duration-200 hover:border-[#0044D3] hover:bg-white hover:shadow-md"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-purple-50 text-purple-700 transition-colors group-hover:bg-purple-700 group-hover:text-white">
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                </div>
+                <span className="text-[#667085] transition-transform group-hover:translate-x-0.5 group-hover:text-[#0044D3]">
+                  &rarr;
+                </span>
+              </div>
+              <H3 className="mt-4 text-base font-bold text-[#111827] transition-colors group-hover:text-[#0044D3]">
+                Assignments & Due Dates
+              </H3>
+              <P className="mt-1.5 text-xs leading-relaxed text-[#667085]">
+                Submit assignment deliverables, review mentor feedback, and track your submission
+                history.
+              </P>
+            </div>
+          </Link>
+
+          {/* Card 3: Learning Progress */}
           <Link
             href="/mentee/progress"
             className="group flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs transition-all duration-200 hover:border-[#0044D3] hover:bg-white hover:shadow-md"

@@ -219,8 +219,8 @@ function MenteeDashboardSkeleton() {
         <Skeleton className="h-7 w-52" />
         <Skeleton className="h-4 w-72" />
       </div>
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        {[1, 2].map((i) => (
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {[1, 2, 3].map((i) => (
           <div
             key={i}
             className="flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs"
