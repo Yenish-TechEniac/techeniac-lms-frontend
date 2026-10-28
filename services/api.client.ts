@@ -70,7 +70,8 @@ function buildRequestUrl(
   endpoint: string,
   params?: Record<string, string | number | boolean | undefined>,
 ): string {
-  const normalizedPath = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const stripped = endpoint.replace(/^\/?(api\/v1\/)?/, '');
+  const normalizedPath = `/${stripped}`;
   let url = `${env.NEXT_PUBLIC_API_BASE_URL}${normalizedPath}`;
 
   if (!params) {

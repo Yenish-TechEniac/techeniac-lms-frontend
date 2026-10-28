@@ -91,6 +91,8 @@ export const ADMIN_PROGRESS_NAV: PortalNavConfig = {
   ],
 };
 
+export const ADMIN_NAV_CONFIG = ADMIN_PROGRESS_NAV;
+
 export const MENTOR_PORTAL_NAV: PortalNavConfig = {
   subtitle: 'Mentor Portal',
   homeUrl: '/mentor',
@@ -147,6 +149,8 @@ export const MENTOR_PROGRESS_NAV: PortalNavConfig = {
   ],
 };
 
+export const MENTOR_NAV_CONFIG = MENTOR_PROGRESS_NAV;
+
 export const MENTEE_PORTAL_NAV: PortalNavConfig = {
   subtitle: 'Learning Portal',
   homeUrl: '/mentee',
@@ -154,7 +158,7 @@ export const MENTEE_PORTAL_NAV: PortalNavConfig = {
   nav: [
     { label: 'My Learning', href: '/mentee', active: true },
     { label: 'Courses', href: '/mentee/courses', active: false },
-    { label: 'Assignments', href: '#', active: false },
+    { label: 'Assignments', href: '/mentee/assignments', active: false },
     { label: 'Progress', href: '/mentee/progress', active: false },
   ],
 };
@@ -166,7 +170,19 @@ export const MENTEE_COURSES_NAV: PortalNavConfig = {
   nav: [
     { label: 'My Learning', href: '/mentee', active: false },
     { label: 'Courses', href: '/mentee/courses', active: true },
-    { label: 'Assignments', href: '#', active: false },
+    { label: 'Assignments', href: '/mentee/assignments', active: false },
+    { label: 'Progress', href: '/mentee/progress', active: false },
+  ],
+};
+
+export const MENTEE_ASSIGNMENTS_NAV: PortalNavConfig = {
+  subtitle: 'Learning Portal',
+  homeUrl: '/mentee',
+  badgeColor: 'bg-blue-100 text-blue-800',
+  nav: [
+    { label: 'My Learning', href: '/mentee', active: false },
+    { label: 'Courses', href: '/mentee/courses', active: false },
+    { label: 'Assignments', href: '/mentee/assignments', active: true },
     { label: 'Progress', href: '/mentee/progress', active: false },
   ],
 };
@@ -178,7 +194,7 @@ export const MENTEE_PROGRESS_NAV: PortalNavConfig = {
   nav: [
     { label: 'My Learning', href: '/mentee', active: false },
     { label: 'Courses', href: '/mentee/courses', active: false },
-    { label: 'Assignments', href: '#', active: false },
+    { label: 'Assignments', href: '/mentee/assignments', active: false },
     { label: 'Progress', href: '/mentee/progress', active: true },
   ],
 };

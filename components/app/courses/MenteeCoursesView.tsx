@@ -319,7 +319,13 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
       </div>
 
       {/* Footer CTA */}
-      <div className="mt-5 border-t border-slate-100 pt-3">
+      <div className="mt-5 flex flex-col gap-2 border-t border-slate-100 pt-3">
+        <Link
+          href={`/mentee/assignments?courseId=${allocation.courseId}`}
+          className="flex items-center justify-center rounded-xl border border-blue-200 bg-blue-50/70 p-2 text-xs font-semibold text-blue-700 transition-colors hover:bg-blue-100"
+        >
+          <Span>View Course Assignments →</Span>
+        </Link>
         {isRevokedOrClosed ? (
           <Link
             href={`/mentee/courses/${allocation.id}`}
