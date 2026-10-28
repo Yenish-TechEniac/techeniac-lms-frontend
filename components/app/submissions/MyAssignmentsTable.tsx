@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
+import { Input } from '@/components/ui/Input';
 import { Code, H3, P, Span } from '@/components/ui/Typography';
 import { formatDateTimeIST } from '@/lib/date';
 import type { AssignmentDerivedStatus, AssignmentWithSubmissionStatus } from '@/types/submissions';
@@ -78,12 +79,13 @@ export function MyAssignmentsTable({
 
         {/* Search bar */}
         <div className="w-full md:w-64">
-          <input
+          <Input
             type="text"
+            aria-label="Search assignments"
             placeholder="Search assignments..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-9 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+            className="h-9 text-xs"
           />
         </div>
       </div>
@@ -93,18 +95,17 @@ export function MyAssignmentsTable({
         {STATUS_FILTERS.map((tab) => {
           const isActive = selectedStatus === tab.value;
           return (
-            <button
+            <Button
               key={tab.label}
               type="button"
+              variant={isActive ? 'primary' : 'secondary'}
+              size="sm"
+              aria-pressed={isActive}
               onClick={() => onStatusChange?.(tab.value)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-colors ${
-                isActive
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
-              }`}
+              className="h-auto px-3 py-1.5 text-xs whitespace-nowrap"
             >
               {tab.label}
-            </button>
+            </Button>
           );
         })}
       </div>
@@ -174,11 +175,11 @@ export function MyAssignmentsTable({
                           </Span>
                           {assignment.topicTitle ? (
                             <>
-                              <span>•</span>
-                              <span>{assignment.topicTitle}</span>
+                              <Span>•</Span>
+                              <Span>{assignment.topicTitle}</Span>
                             </>
                           ) : null}
-                          <span>•</span>
+                          <Span>•</Span>
                           <Span className="py-0.2 rounded bg-slate-100 px-1.5 font-mono text-[10px] dark:bg-slate-800">
                             {assignment.scope}
                           </Span>

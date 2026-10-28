@@ -48,7 +48,7 @@ function MenteeAssignmentDetailContent({ params }: Readonly<PageProps>) {
           <Link href="/mentee/assignments" className="font-medium hover:text-blue-600">
             ← Back to All Assignments
           </Link>
-          <span>/</span>
+          <Span>/</Span>
           <Span className="truncate font-semibold text-slate-800">
             {assignment?.title ?? 'Assignment Workspace'}
           </Span>

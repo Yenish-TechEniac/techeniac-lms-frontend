@@ -46,7 +46,12 @@ export function useAllocationProgress(allocationId: string | undefined) {
   const isValidUuid = Boolean(allocationId && UUID_REGEX.test(allocationId));
   return useQuery<AllocationProgressResponse>({
     queryKey: progressKeys.allocation(allocationId ?? ''),
-    queryFn: () => progressService.getAllocationProgress(allocationId!),
+    queryFn: () => {
+      if (!allocationId || !UUID_REGEX.test(allocationId)) {
+        return Promise.reject(new Error('Invalid or missing allocation ID'));
+      }
+      return progressService.getAllocationProgress(allocationId);
+    },
     enabled: isValidUuid,
   });
 }
@@ -59,7 +64,7 @@ export function useProgressTrackers(filters: ProgressTrackerFilters = {}) {
 }
 
 export function useUpdateTopicStatusMutation() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation<
     UpdateTopicStatusResponse,
     Error,
@@ -72,15 +77,15 @@ export function useUpdateTopicStatusMutation() {
     mutationFn: ({ allocationId, topicId, payload }) =>
       progressService.updateTopicStatus(allocationId, topicId, payload),
     onSuccess: (_, { allocationId }) => {
-      void qc.invalidateQueries({ queryKey: progressKeys.allocation(allocationId) });
-      void qc.invalidateQueries({ queryKey: ['allocations'] });
-      void qc.invalidateQueries({ queryKey: progressKeys.all });
+      void queryClient.invalidateQueries({ queryKey: progressKeys.allocation(allocationId) });
+      void queryClient.invalidateQueries({ queryKey: ['allocations'] });
+      void queryClient.invalidateQueries({ queryKey: progressKeys.all });
     },
   });
 }
 
 export function useUpdateTopicDeadlineMutation() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation<
     UpdateTopicDeadlineResponse,
     Error,
@@ -93,9 +98,9 @@ export function useUpdateTopicDeadlineMutation() {
     mutationFn: ({ allocationId, topicId, payload }) =>
       progressService.updateTopicDeadline(allocationId, topicId, payload),
     onSuccess: (_, { allocationId }) => {
-      void qc.invalidateQueries({ queryKey: progressKeys.allocation(allocationId) });
-      void qc.invalidateQueries({ queryKey: ['allocations'] });
-      void qc.invalidateQueries({ queryKey: progressKeys.all });
+      void queryClient.invalidateQueries({ queryKey: progressKeys.allocation(allocationId) });
+      void queryClient.invalidateQueries({ queryKey: ['allocations'] });
+      void queryClient.invalidateQueries({ queryKey: progressKeys.all });
     },
   });
 }

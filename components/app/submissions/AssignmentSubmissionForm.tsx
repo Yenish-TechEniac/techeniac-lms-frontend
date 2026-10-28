@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/Label';
 import { H3, P, Span } from '@/components/ui/Typography';
 import { useSubmitAssignment } from '@/hooks/useSubmissions';
 import { formatDateTimeIST, isDatePast } from '@/lib/date';
+import { isSafeHttpUrl } from '@/lib/url';
 import type { BatchStatus } from '@/lib/validation/batch.schemas';
 import type { Assignment } from '@/types/courses';
 import { SubmissionMode } from '@/types/courses';
@@ -82,6 +83,17 @@ export function AssignmentSubmissionForm({
 
   const submitMutation = useSubmitAssignment();
 
+  // Auto-dismiss success notification after 5 seconds
+  useEffect(() => {
+    if (submitMutation.isSuccess) {
+      const timer = setTimeout(() => {
+        submitMutation.reset();
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [submitMutation.isSuccess, submitMutation]);
+
   const isPastDue = isDatePast(dueDate);
   const isLateBlocked = isPastDue && !assignment.allowLate;
   const isReadOnlyBatch =
@@ -92,15 +104,6 @@ export function AssignmentSubmissionForm({
 
   const nextVersion = latestVersion ? latestVersion.version + 1 : 1;
   const isResubmission = Boolean(latestVersion);
-
-  const isValidUrl = (testUrl: string): boolean => {
-    try {
-      const parsed = new URL(testUrl);
-      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
-    } catch {
-      return false;
-    }
-  };
 
   const fieldValues: Record<'pdfUrl' | 'zipUrl' | 'url', string> = {
     pdfUrl,
@@ -119,7 +122,7 @@ export function AssignmentSubmissionForm({
       if (mode === SubmissionMode.REQUIRED && !val) {
         errors[field.key] = field.requiredMessage;
         if (!firstError) firstError = field.requiredMessage;
-      } else if (val && !isValidUrl(val)) {
+      } else if (val && !isSafeHttpUrl(val)) {
         errors[field.key] = field.invalidMessage;
         if (!firstError) firstError = field.invalidMessage;
       }
@@ -253,11 +256,23 @@ export function AssignmentSubmissionForm({
       )}
 
       {submitMutation.isSuccess ? (
-        <Alert
-          variant="success"
-          title="Submission Successful!"
-          message={`Your submission (Version ${nextVersion}) was successfully recorded. Your mentor has been notified.`}
-        />
+        <div className="relative">
+          <Alert
+            variant="success"
+            title="Submission Successful!"
+            message={`Your submission (Version ${nextVersion}) was successfully recorded. Your mentor has been notified.`}
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => submitMutation.reset()}
+            aria-label="Dismiss success message"
+            className="absolute top-2.5 right-2.5 h-6 w-6 p-0 text-emerald-800 hover:bg-emerald-100 dark:text-emerald-200 dark:hover:bg-emerald-900/50"
+          >
+            ✕
+          </Button>
+        </div>
       ) : null}
 
       <div className="space-y-4">
@@ -320,9 +335,13 @@ export function AssignmentSubmissionForm({
                 setClientErrors((prev) => ({ ...prev, confirmedComplete: '' }));
               }}
               disabled={submitMutation.isPending}
+              aria-invalid={Boolean(clientErrors.confirmedComplete)}
+              aria-describedby={
+                clientErrors.confirmedComplete ? 'confirmed-complete-error' : undefined
+              }
               className="mt-0.5"
             />
-            <label
+            <Label
               htmlFor="confirmed_complete"
               className="cursor-pointer text-xs leading-relaxed font-medium text-slate-700 select-none dark:text-slate-300"
             >
@@ -330,10 +349,11 @@ export function AssignmentSubmissionForm({
                 I confirm that I have completed this assignment
               </strong>{' '}
               and that all submitted work and resources represent my own original effort.
-            </label>
+            </Label>
           </div>
           {clientErrors.confirmedComplete ? (
             <FieldError
+              id="confirmed-complete-error"
               error={clientErrors.confirmedComplete}
               className="mt-1 text-xs text-rose-600"
             />
