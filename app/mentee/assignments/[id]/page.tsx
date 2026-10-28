@@ -8,7 +8,7 @@ import { PortalSessionState } from '@/components/app/navigation/PortalSessionSta
 import { AssignmentSubmissionForm } from '@/components/app/submissions/AssignmentSubmissionForm';
 import { SubmissionVersionHistory } from '@/components/app/submissions/SubmissionVersionHistory';
 import { Header } from '@/components/layout/Header';
-import { Alert } from '@/components/ui/Alert';
+import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { H1, H2, H3, P, Span } from '@/components/ui/Typography';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 import { useAssignmentSubmissionDetails } from '@/hooks/useSubmissions';
@@ -35,7 +35,8 @@ function MenteeAssignmentDetailContent({ params }: Readonly<PageProps>) {
     );
   }
 
-  const latestVersion = versions.length > 0 ? versions[0] : null;
+  const latestVersion =
+    versions.length > 0 ? ([...versions].sort((a, b) => b.version - a.version)[0] ?? null) : null;
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
@@ -53,7 +54,15 @@ function MenteeAssignmentDetailContent({ params }: Readonly<PageProps>) {
           </Span>
         </div>
 
-        {error ? <Alert variant="error" title="Failed to load assignment" message={error} /> : null}
+        {error ? (
+          <ErrorMessage
+            error={error}
+            title="Failed to load assignment"
+            onRetry={() => {
+              void refetch();
+            }}
+          />
+        ) : null}
 
         {isLoading || !assignment || !allocation ? (
           <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-xs">

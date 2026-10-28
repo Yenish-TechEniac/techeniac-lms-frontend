@@ -1,6 +1,6 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import React, { Suspense, useState } from 'react';
 
 import { MENTEE_ASSIGNMENTS_NAV } from '@/components/app/navigation/portal-nav.config';
@@ -14,19 +14,33 @@ import { useMyAssignments } from '@/hooks/useSubmissions';
 import type { AssignmentDerivedStatus } from '@/types/submissions';
 
 function MenteeAssignmentsContent() {
+  const router = useRouter();
   const { user, isAuthorized, sessionError } = useRoleRedirect({ allowedRoles: ['MENTEE'] });
   const searchParams = useSearchParams();
-  const courseIdParam = searchParams.get('courseId') ?? undefined;
+  const activeCourseId = searchParams.get('courseId') ?? undefined;
 
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const [selectedStatus, setSelectedStatus] = useState<AssignmentDerivedStatus | undefined>(
     undefined,
   );
-  const [activeCourseId, setActiveCourseId] = useState<string | undefined>(courseIdParam);
 
-  const { assignments, isLoading, error } = useMyAssignments({
+  const { assignments, total, totalPages, isLoading, error, refetch } = useMyAssignments({
+    page,
+    limit,
     status: selectedStatus,
     courseId: activeCourseId,
   });
+
+  const handleStatusChange = (status?: AssignmentDerivedStatus) => {
+    setSelectedStatus(status);
+    setPage(1);
+  };
+
+  const handleClearCourseFilter = () => {
+    setPage(1);
+    router.replace('/mentee/assignments', { scroll: false });
+  };
 
   if (!isAuthorized || !user) {
     return (
@@ -77,7 +91,7 @@ function MenteeAssignmentsContent() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setActiveCourseId(undefined)}
+                onClick={handleClearCourseFilter}
                 className="h-6 px-2 text-[11px]"
               >
                 Clear Course Filter
@@ -91,8 +105,22 @@ function MenteeAssignmentsContent() {
           assignments={assignments}
           isLoading={isLoading}
           error={error}
+          onRetry={() => {
+            void refetch();
+          }}
           selectedStatus={selectedStatus}
-          onStatusChange={setSelectedStatus}
+          onStatusChange={handleStatusChange}
+          pagination={{
+            page,
+            limit,
+            total,
+            totalPages,
+            onPageChange: setPage,
+            onLimitChange: (newLimit) => {
+              setLimit(newLimit);
+              setPage(1);
+            },
+          }}
         />
       </main>
     </div>

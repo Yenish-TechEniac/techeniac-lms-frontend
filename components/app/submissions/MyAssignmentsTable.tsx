@@ -3,20 +3,32 @@
 import Link from 'next/link';
 import React, { useState } from 'react';
 
-import { Alert } from '@/components/ui/Alert';
+import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { Button } from '@/components/ui/Button';
+import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Code, H3, P, Span } from '@/components/ui/Typography';
 import { formatDateTimeIST } from '@/lib/date';
 import type { AssignmentDerivedStatus, AssignmentWithSubmissionStatus } from '@/types/submissions';
 
 import { SubmissionStatusBadge } from './SubmissionStatusBadge';
 
+export interface MyAssignmentsPaginationConfig {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  onPageChange: (newPage: number) => void;
+  onLimitChange: (newLimit: number) => void;
+}
+
 interface MyAssignmentsTableProps {
   assignments: AssignmentWithSubmissionStatus[];
   isLoading: boolean;
   error: string | null;
+  onRetry?: (() => void) | undefined;
   selectedStatus?: AssignmentDerivedStatus | undefined;
   onStatusChange?: ((status?: AssignmentDerivedStatus) => void) | undefined;
+  pagination?: MyAssignmentsPaginationConfig | undefined;
 }
 
 const STATUS_FILTERS: Array<{ label: string; value?: AssignmentDerivedStatus | undefined }> = [
@@ -33,8 +45,10 @@ export function MyAssignmentsTable({
   assignments,
   isLoading,
   error,
+  onRetry,
   selectedStatus,
   onStatusChange,
+  pagination,
 }: Readonly<MyAssignmentsTableProps>) {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -95,7 +109,9 @@ export function MyAssignmentsTable({
         })}
       </div>
 
-      {error ? <Alert variant="error" title="Failed to load assignments" message={error} /> : null}
+      {error ? (
+        <ErrorMessage error={error} title="Failed to load assignments" onRetry={onRetry} />
+      ) : null}
 
       {isLoading ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900">
@@ -235,6 +251,19 @@ export function MyAssignmentsTable({
               </tbody>
             </table>
           </div>
+
+          {pagination && !error ? (
+            <PaginationControls
+              page={pagination.page}
+              limit={pagination.limit}
+              total={pagination.total}
+              totalPages={pagination.totalPages}
+              onPageChange={pagination.onPageChange}
+              onLimitChange={pagination.onLimitChange}
+              itemLabel="assignments"
+              pageSizeOptions={[10, 20, 50]}
+            />
+          ) : null}
         </div>
       )}
     </div>
