@@ -21,9 +21,9 @@ export function AuthShell({ children, title, footerContent }: Readonly<AuthShell
           </div>
           <Span className="text-lg font-bold tracking-tight text-white">Techeniac LMS</Span>
         </Link>
-        <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-[10px] font-semibold text-blue-100">
+        <Span className="rounded-full bg-white/10 px-2.5 py-0.5 text-[10px] font-semibold text-blue-100">
           Enterprise
-        </span>
+        </Span>
       </div>
 
       {/* Left 50%: Solid Cobalt Blue Full-Height Panel (#0044D3) for Tablet, Laptop, Desktop (>= md) */}
@@ -50,8 +50,8 @@ export function AuthShell({ children, title, footerContent }: Readonly<AuthShell
         {/* Center Hero Messaging inside blue panel (visible on tablet, laptop, desktop) */}
         <div className="relative z-10 my-auto max-w-lg py-10 lg:py-14">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1 text-xs font-semibold text-white backdrop-blur-md">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-            Active Enterprise Learning Mesh
+            <Span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
+            Enterprise Learning Platform
           </div>
           <H1 className="mb-4 text-3xl leading-tight font-extrabold tracking-tight text-white sm:text-4xl lg:text-5xl">
             Empower Learning, Mentorship & Growth
@@ -63,12 +63,12 @@ export function AuthShell({ children, title, footerContent }: Readonly<AuthShell
 
           <div className="mt-10 flex items-center gap-8 border-t border-white/15 pt-8 text-xs font-medium text-blue-100">
             <div className="flex items-center gap-2.5">
-              <span className="h-2 w-2 rounded-full bg-emerald-400" />
-              <span>Multi-Role RBAC</span>
+              <Span className="h-2 w-2 rounded-full bg-emerald-400" />
+              <Span>Multi-Role RBAC</Span>
             </div>
             <div className="flex items-center gap-2.5">
-              <span className="h-2 w-2 rounded-full bg-white" />
-              <span>Real-Time Auditing</span>
+              <Span className="h-2 w-2 rounded-full bg-white" />
+              <Span>Real-Time Auditing</Span>
             </div>
           </div>
         </div>

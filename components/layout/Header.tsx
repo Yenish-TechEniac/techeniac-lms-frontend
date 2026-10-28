@@ -141,6 +141,46 @@ function getNavIcon(label: string) {
       </svg>
     );
   }
+  if (
+    normalized.includes('assignment') ||
+    normalized.includes('submission') ||
+    normalized.includes('review')
+  ) {
+    return (
+      <svg
+        className="h-5 w-5 shrink-0"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        aria-hidden="true"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.8"
+          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+        />
+      </svg>
+    );
+  }
+  if (normalized.includes('progress') || normalized.includes('tracker')) {
+    return (
+      <svg
+        className="h-5 w-5 shrink-0"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        aria-hidden="true"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.8"
+          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+        />
+      </svg>
+    );
+  }
   return (
     <svg
       className="h-5 w-5 shrink-0"
@@ -445,9 +485,9 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
                         : 'font-medium text-[#667085] hover:bg-[#F6F8FC] hover:text-[#111827]'
                     }`}
                   >
-                    <span className={isActive ? 'text-[#0044D3]' : 'text-[#667085]'}>{icon}</span>
+                    <Span className={isActive ? 'text-[#0044D3]' : 'text-[#667085]'}>{icon}</Span>
                     <Span className="flex-1">{item.label}</Span>
-                    {isActive ? <span className="h-2 w-2 rounded-full bg-[#0044D3]" /> : null}
+                    {isActive ? <Span className="h-2 w-2 rounded-full bg-[#0044D3]" /> : null}
                   </Link>
                 );
               }
@@ -457,7 +497,7 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
                   key={item.label}
                   className="flex cursor-not-allowed items-center gap-3.5 rounded-2xl px-4 py-3.5 text-base font-medium text-slate-300"
                 >
-                  <span className="text-slate-300">{icon}</span>
+                  <Span className="text-slate-300">{icon}</Span>
                   <Span className="flex-1">{item.label}</Span>
                   <Span className="text-xs tracking-wider text-slate-400 uppercase">Soon</Span>
                 </div>

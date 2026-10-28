@@ -159,83 +159,39 @@ function MentorDashboardSkeleton() {
 function MenteeDashboardSkeleton() {
   return (
     <>
-      {/* Welcome Section Skeleton */}
+      {/* Minimal Top Section Skeleton: Welcome, Mentor & Batch */}
       <div className="mb-8 rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-3">
-            <Skeleton className="h-10 w-64 sm:w-80" />
-            <Skeleton className="h-4 w-64 sm:w-88" />
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-9 w-64 sm:w-80" />
+            <Skeleton className="h-5 w-44" />
           </div>
-          <Skeleton className="h-20 w-full rounded-2xl sm:w-64" />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Skeleton className="h-20 w-56 rounded-xl" />
+            <Skeleton className="h-20 w-56 rounded-xl" />
+          </div>
         </div>
       </div>
 
-      {/* Active Cohort Section Skeleton */}
+      {/* Full-Width Learning Progress Section Skeleton */}
       <div className="mb-8">
-        <div className="mb-4 space-y-2">
-          <Skeleton className="h-6 w-44" />
-          <Skeleton className="h-4 w-64" />
+        <div className="mb-4">
+          <Skeleton className="h-7 w-48" />
         </div>
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-          <div className="space-y-4 rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs">
-            <Skeleton className="h-5 w-28" />
-            <Skeleton className="h-7 w-48" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-          </div>
-          <div className="space-y-4 rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs">
-            <Skeleton className="h-5 w-28" />
-            <Skeleton className="h-7 w-48" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-          </div>
-        </div>
-      </div>
-
-      {/* Learning Progress Section Skeleton */}
-      <div className="mb-8">
-        <div className="mb-4 space-y-2">
-          <Skeleton className="h-6 w-44" />
-          <Skeleton className="h-4 w-64" />
-        </div>
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-          <div className="space-y-4 rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs">
-            <Skeleton className="h-5 w-32" />
-            <Skeleton className="h-9 w-24" />
-            <Skeleton className="h-2 w-full rounded-full" />
-            <Skeleton className="h-4 w-48" />
-          </div>
-          <div className="space-y-4 rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs">
-            <Skeleton className="h-5 w-32" />
-            <Skeleton className="h-7 w-48" />
-            <Skeleton className="h-2 w-full rounded-full" />
-            <Skeleton className="h-4 w-36" />
-          </div>
-        </div>
-      </div>
-
-      {/* Navigation Tracks Skeleton */}
-      <div className="mb-6 space-y-2">
-        <Skeleton className="h-7 w-52" />
-        <Skeleton className="h-4 w-72" />
-      </div>
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {[1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className="flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs"
-          >
-            <div>
-              <div className="flex items-center justify-between">
-                <Skeleton className="h-11 w-11 rounded-xl" />
-                <Skeleton className="h-4 w-4 rounded-full" />
-              </div>
-              <Skeleton className="mt-5 h-6 w-40" />
-              <Skeleton className="mt-3 h-4 w-full" />
-              <Skeleton className="mt-2 h-4 w-3/4" />
+        <div className="w-full space-y-5 rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-36" />
+              <Skeleton className="h-10 w-28" />
             </div>
+            <Skeleton className="h-6 w-60" />
           </div>
-        ))}
+          <Skeleton className="h-3 w-full rounded-full" />
+          <div className="flex items-center justify-between border-t border-[#E1E6EC] pt-4">
+            <Skeleton className="h-4 w-44" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+        </div>
       </div>
     </>
   );

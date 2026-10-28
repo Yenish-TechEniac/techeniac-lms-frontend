@@ -145,7 +145,7 @@ export function ForgotPasswordForm() {
                   d="M10 19l-7-7m0 0l7-7m-7 7h18"
                 />
               </svg>
-              <span className="leading-none">Return to sign in</span>
+              <Span className="leading-none">Return to sign in</Span>
             </Link>
           </div>
         </div>
@@ -233,7 +233,7 @@ export function ForgotPasswordForm() {
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          <span className="leading-none">Return to sign in</span>
+          <Span className="leading-none">Return to sign in</Span>
         </Link>
       </div>
     </Form>
