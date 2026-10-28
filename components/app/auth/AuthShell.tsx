@@ -1,108 +1,69 @@
+import Link from 'next/link';
 import React from 'react';
 
-import { H1, H2, P, Span } from '@/components/ui/Typography';
+import { H1, Span } from '@/components/ui/Typography';
 
 export interface AuthShellProps {
   readonly children: React.ReactNode;
   readonly title: string;
-  readonly subtitle: string;
+  readonly subtitle?: string;
+  readonly footerContent?: React.ReactNode;
 }
 
-export function AuthShell({ children, title, subtitle }: Readonly<AuthShellProps>) {
+export function AuthShell({ children, title, footerContent }: Readonly<AuthShellProps>) {
   return (
-    <div className="flex min-h-screen w-full flex-col bg-white selection:bg-blue-100 selection:text-blue-700 md:flex-row">
-      {/* Left 50%: Calm Sky Soft Branding Panel (Collapses to compact header on mobile) */}
-      <div className="relative flex w-full flex-col justify-between overflow-hidden border-b border-blue-100 bg-blue-50 p-4 sm:p-6 md:min-h-screen md:w-1/2 md:border-r md:border-b-0 md:p-12 lg:p-16">
-        {/* Ambient Decorative Geometry */}
-        <div className="pointer-events-none absolute -top-24 -left-24 h-96 w-96 rounded-full bg-blue-100/40 blur-3xl" />
-        <div className="pointer-events-none absolute right-0 -bottom-20 h-80 w-80 rounded-full bg-blue-200/30 blur-2xl" />
+    <div className="flex min-h-screen w-full items-center justify-center bg-slate-900/90 p-3 selection:bg-blue-100 selection:text-[#0044D3] sm:p-6 lg:p-10">
+      {/* Centered Main Canvas */}
+      <div className="flex min-h-[660px] w-full max-w-6xl flex-col items-stretch justify-between gap-8 rounded-[32px] border border-slate-200/40 bg-slate-50/95 p-4 shadow-2xl sm:rounded-[36px] sm:p-8 md:flex-row lg:p-10">
+        {/* Left Side: Solid Cobalt Blue Rounded Panel (#0044D3) */}
+        <div className="relative flex min-h-[360px] w-full flex-col justify-between overflow-hidden rounded-[28px] bg-[#0044D3] p-8 text-white shadow-md sm:rounded-[32px] md:min-h-[580px] md:w-1/2">
+          {/* Ambient Subtle Highlights */}
+          <div className="pointer-events-none absolute -top-24 -left-24 h-96 w-96 rounded-full bg-blue-400/20 blur-3xl" />
+          <div className="pointer-events-none absolute right-0 -bottom-20 h-80 w-80 rounded-full bg-blue-900/40 blur-2xl" />
 
-        {/* Top Header Brand (Compact on mobile, top bar on desktop) */}
-        <div className="relative z-10 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500 text-lg font-bold text-white shadow-sm">
-            T
+          {/* Top Brand Tag inside blue card */}
+          <div className="relative z-10 flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-base font-bold text-[#0044D3] shadow-sm">
+              TL
+            </div>
+            <Span className="text-xl font-bold tracking-tight text-white">Techeniac LMS</Span>
           </div>
-          <div className="flex items-center gap-2">
-            <Span className="text-xl font-bold tracking-tight text-slate-900">Techeniac LMS</Span>
-            <Span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-100 px-2 py-0.5 font-mono text-xs font-medium text-blue-700">
-              ENTERPRISE
+
+          {/* Bottom Trust Tag */}
+          <div className="relative z-10 mt-auto pt-8">
+            <Span className="block text-xs font-medium tracking-wide text-blue-100/80 uppercase">
+              Enterprise Learning Management
+            </Span>
+            <Span className="mt-1 block text-lg font-semibold text-white">
+              Secure Role-Governed Workspace
             </Span>
           </div>
         </div>
 
-        {/* Center Hero Messaging (Desktop only, hidden on mobile to keep form above the fold) */}
-        <div className="relative z-10 my-auto hidden max-w-lg py-8 md:block">
-          <div className="relative mb-6 flex h-20 w-20 items-center justify-center rounded-2xl border border-blue-200 bg-white shadow-[0_8px_24px_rgba(59,130,246,0.08)]">
-            <svg
-              className="h-10 w-10 text-blue-500"
-              viewBox="0 0 54 54"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
-            >
-              <path
-                d="M7 38.5C12 36.5 19 36.5 25 39V15C19 12.5 12 12.5 7 14.5V38.5Z"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M47 38.5C42 36.5 35 36.5 29 39V15C35 12.5 42 12.5 47 14.5V38.5Z"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M27 7L30 14C30 14 32.5 16 32.5 19.5L27 18L21.5 19.5C21.5 16 24 14 24 14L27 7Z"
-                stroke="#1D4ED8"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                fill="#DBEAFE"
-              />
-              <circle cx="27" cy="14" r="1.5" fill="currentColor" />
-            </svg>
-          </div>
-
-          <H1 className="mb-3 text-3xl leading-tight font-extrabold tracking-tight text-slate-900 sm:text-4xl">
-            Techeniac LMS
-          </H1>
-          <P className="text-lg leading-relaxed font-normal text-slate-600">
-            Learn, build, and grow with your mentors and peers.
-          </P>
-
-          <div className="mt-8 flex flex-wrap items-center gap-5 border-t border-blue-200/60 pt-6 text-sm text-slate-600">
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-emerald-500" />
-              <Span>Multi-Role Access Control</Span>
+        {/* Right Side: Form Container */}
+        <div className="flex flex-1 flex-col items-center justify-center py-4">
+          {/* Logo & Product Name Header */}
+          <Link
+            href="/"
+            className="mb-6 flex items-center gap-2.5 transition-transform hover:scale-102"
+          >
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0044D3] text-sm font-bold text-white shadow-sm">
+              TL
             </div>
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-blue-500" />
-              <Span>Permanent Learning History</Span>
-            </div>
-          </div>
-        </div>
+            <Span className="text-xl font-bold tracking-tight text-slate-900">Techeniac LMS</Span>
+          </Link>
 
-        {/* Bottom Footer Meta (Desktop only) */}
-        <div className="relative z-10 hidden items-center justify-between pt-4 font-mono text-xs text-slate-400 md:flex">
-          <Span>OPERATIONAL CONSOLE</Span>
-          <Span>ENTERPRISE SPEC v2.0</Span>
-        </div>
-      </div>
-
-      {/* Right 50%: Content Layout */}
-      <div className="flex w-full flex-1 items-center justify-center bg-white p-6 sm:p-10 md:min-h-screen md:w-1/2 lg:p-16">
-        <div className="flex w-full max-w-[440px] flex-col justify-center">
-          <div className="mb-8">
-            <H2 className="mb-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+          {/* White Rounded Form Card */}
+          <div className="w-full max-w-[420px] rounded-[28px] border border-slate-100/90 bg-white p-6 shadow-xl shadow-slate-200/50 sm:p-8">
+            <H1 className="mb-6 text-center text-2xl font-bold tracking-tight text-slate-900">
               {title}
-            </H2>
-            <P className="text-sm leading-normal text-slate-600 sm:text-base">{subtitle}</P>
+            </H1>
+
+            {children}
           </div>
 
-          {children}
+          {/* Optional Footer Content */}
+          {footerContent ? <div className="w-full max-w-[420px] pt-4">{footerContent}</div> : null}
         </div>
       </div>
     </div>

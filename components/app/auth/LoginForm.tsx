@@ -9,7 +9,6 @@ import { FieldError } from '@/components/ui/FieldError';
 import { Form } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { redirectUserByRole, useRoleRedirect } from '@/hooks/useRoleRedirect';
 import { ApiError } from '@/lib/errors';
@@ -62,52 +61,82 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
   if (isLoading || isAuthenticated) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#0044D3] border-t-transparent" />
       </div>
     );
   }
 
   return (
     <Form
-      className="space-y-5"
+      className="space-y-4"
       onSubmit={(e) => {
         void handleSubmit(e);
       }}
     >
       {errors.general ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
           {errors.general}
         </div>
       ) : null}
 
-      {/* Email Field */}
+      {/* Email Field with Mail Icon */}
       <div className="space-y-1.5">
-        <Label htmlFor="email">Work Email</Label>
+        <Label
+          htmlFor="email"
+          className="flex items-center gap-2 text-xs font-semibold text-slate-700"
+        >
+          <svg
+            className="h-4 w-4 text-[#0044D3]"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.8"
+              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+            />
+          </svg>
+          Username / Email
+        </Label>
         <Input
           id="email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@company.com"
+          placeholder="Johnadams@gmail.com"
           autoComplete="email"
           hasError={Boolean(errors.email)}
           disabled={isSubmitting}
+          className="rounded-2xl border-slate-200/90 bg-slate-50 text-sm focus:bg-white"
         />
         <FieldError id="email-error" error={errors.email} />
       </div>
 
-      {/* Password Field */}
+      {/* Password Field with Lock Icon */}
       <div className="space-y-1.5">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="password">Password</Label>
-          <Link
-            href="/forgot-password"
-            className="text-xs font-semibold text-blue-600 transition-colors hover:text-blue-700"
+        <Label
+          htmlFor="password"
+          className="flex items-center gap-2 text-xs font-semibold text-slate-700"
+        >
+          <svg
+            className="h-4 w-4 text-[#0044D3]"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
           >
-            Forgot password?
-          </Link>
-        </div>
-
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.8"
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+            />
+          </svg>
+          Password
+        </Label>
         <div className="relative">
           <Input
             id="password"
@@ -118,17 +147,26 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
             autoComplete="current-password"
             hasError={Boolean(errors.password)}
             disabled={isSubmitting}
-            className="pr-12"
+            className="rounded-2xl border-slate-200/90 bg-slate-50 pr-12 text-sm focus:bg-white"
           />
           <PasswordVisibilityToggle
             visible={showPassword}
             onToggle={() => setShowPassword((prev) => !prev)}
+            className="text-[#0044D3] hover:bg-blue-50 hover:text-[#0036ab]"
           />
+        </div>
+        <div className="flex justify-end pt-0.5">
+          <Link
+            href="/forgot-password"
+            className="text-xs font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
+          >
+            Forgot Password?
+          </Link>
         </div>
         <FieldError id="password-error" error={errors.password} />
       </div>
 
-      {/* Action Section */}
+      {/* Submit Button: Solid #0044D3 Full Pill */}
       <div className="pt-2">
         <Button
           type="submit"
@@ -136,17 +174,10 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
           size="lg"
           disabled={isSubmitting}
           isLoading={isSubmitting}
-          className="w-full"
+          className="h-12 w-full rounded-full bg-[#0044D3] text-sm font-bold shadow-md shadow-[#0044D3]/20 hover:bg-[#0036ab]"
         >
-          {isSubmitting ? 'Signing in...' : 'Sign in'}
+          {isSubmitting ? 'Signing in...' : 'Sign In'}
         </Button>
-      </div>
-
-      <div className="mt-8 border-t border-slate-100 pt-4 text-center">
-        <P variant="muted" className="text-xs text-slate-500">
-          Need access or role change?{' '}
-          <Span className="font-medium text-slate-700">Contact System Admin</Span>
-        </P>
       </div>
     </Form>
   );

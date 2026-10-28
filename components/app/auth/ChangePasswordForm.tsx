@@ -79,12 +79,19 @@ export function ChangePasswordForm() {
         <div>
           <H3 className="mb-1 text-xl font-bold text-slate-900">Password updated successfully</H3>
           <P className="text-sm leading-relaxed text-slate-600">
-            Your initial temporary password has been replaced. You can now access your dashboard.
+            Your initial temporary password has been replaced. You can now access your workspace.
           </P>
         </div>
 
         <div className="pt-2">
-          <Link href="/" className={getButtonClassName('primary', 'lg', 'w-full')}>
+          <Link
+            href="/"
+            className={getButtonClassName(
+              'primary',
+              'lg',
+              'h-12 w-full rounded-full bg-[#0044D3] text-sm font-bold shadow-md shadow-[#0044D3]/20 hover:bg-[#0036ab]',
+            )}
+          >
             Continue to Dashboard
           </Link>
         </div>
@@ -94,25 +101,39 @@ export function ChangePasswordForm() {
 
   return (
     <Form
-      className="space-y-5"
+      className="space-y-4"
       onSubmit={(e) => {
         void handleSubmit(e);
       }}
     >
       {errors.general ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
           {errors.general}
         </div>
       ) : null}
 
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-relaxed text-amber-800">
-        <strong>First-time sign in:</strong> Please create a permanent password to secure your
-        account.
-      </div>
-
       {/* Current Password */}
       <div className="space-y-1.5">
-        <Label htmlFor="currentPassword">Temporary Password</Label>
+        <Label
+          htmlFor="currentPassword"
+          className="flex items-center gap-2 text-xs font-semibold text-slate-700"
+        >
+          <svg
+            className="h-4 w-4 text-[#0044D3]"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.8"
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+            />
+          </svg>
+          Temporary Password
+        </Label>
         <div className="relative">
           <Input
             id="currentPassword"
@@ -122,11 +143,12 @@ export function ChangePasswordForm() {
             placeholder="••••••••••••"
             hasError={Boolean(errors.currentPassword)}
             disabled={isSubmitting}
-            className="pr-12"
+            className="rounded-2xl border-slate-200/90 bg-slate-50 pr-12 text-sm focus:bg-white"
           />
           <PasswordVisibilityToggle
             visible={showCurrentPassword}
             onToggle={() => setShowCurrentPassword((prev) => !prev)}
+            className="text-[#0044D3] hover:bg-blue-50 hover:text-[#0036ab]"
           />
         </div>
         <FieldError id="currentPassword-error" error={errors.currentPassword} />
@@ -134,7 +156,26 @@ export function ChangePasswordForm() {
 
       {/* New Password */}
       <div className="space-y-1.5">
-        <Label htmlFor="newPassword">New Permanent Password</Label>
+        <Label
+          htmlFor="newPassword"
+          className="flex items-center gap-2 text-xs font-semibold text-slate-700"
+        >
+          <svg
+            className="h-4 w-4 text-[#0044D3]"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.8"
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+            />
+          </svg>
+          New Password
+        </Label>
         <div className="relative">
           <Input
             id="newPassword"
@@ -144,11 +185,12 @@ export function ChangePasswordForm() {
             placeholder="••••••••••••"
             hasError={Boolean(errors.newPassword)}
             disabled={isSubmitting}
-            className="pr-12"
+            className="rounded-2xl border-slate-200/90 bg-slate-50 pr-12 text-sm focus:bg-white"
           />
           <PasswordVisibilityToggle
             visible={showNewPassword}
             onToggle={() => setShowNewPassword((prev) => !prev)}
+            className="text-[#0044D3] hover:bg-blue-50 hover:text-[#0036ab]"
           />
         </div>
         <FieldError id="newPassword-error" error={errors.newPassword} />
@@ -159,7 +201,26 @@ export function ChangePasswordForm() {
 
       {/* Confirm Password */}
       <div className="space-y-1.5">
-        <Label htmlFor="confirmPassword">Confirm New Password</Label>
+        <Label
+          htmlFor="confirmPassword"
+          className="flex items-center gap-2 text-xs font-semibold text-slate-700"
+        >
+          <svg
+            className="h-4 w-4 text-[#0044D3]"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.8"
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+            />
+          </svg>
+          Confirm New Password
+        </Label>
         <div className="relative">
           <Input
             id="confirmPassword"
@@ -169,26 +230,29 @@ export function ChangePasswordForm() {
             placeholder="••••••••••••"
             hasError={Boolean(errors.confirmPassword)}
             disabled={isSubmitting}
-            className="pr-12"
+            className="rounded-2xl border-slate-200/90 bg-slate-50 pr-12 text-sm focus:bg-white"
           />
           <PasswordVisibilityToggle
             visible={showConfirmPassword}
             onToggle={() => setShowConfirmPassword((prev) => !prev)}
+            className="text-[#0044D3] hover:bg-blue-50 hover:text-[#0036ab]"
           />
         </div>
         <FieldError id="confirmPassword-error" error={errors.confirmPassword} />
       </div>
 
-      <Button
-        type="submit"
-        variant="primary"
-        size="lg"
-        disabled={isSubmitting}
-        isLoading={isSubmitting}
-        className="w-full"
-      >
-        {isSubmitting ? 'Updating...' : 'Set new password & continue'}
-      </Button>
+      <div className="pt-2">
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          disabled={isSubmitting}
+          isLoading={isSubmitting}
+          className="h-12 w-full rounded-full bg-[#0044D3] text-sm font-bold shadow-md shadow-[#0044D3]/20 hover:bg-[#0036ab]"
+        >
+          {isSubmitting ? 'Updating...' : 'Reset Password'}
+        </Button>
+      </div>
     </Form>
   );
 }
