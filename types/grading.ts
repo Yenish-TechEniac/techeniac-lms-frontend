@@ -1,6 +1,7 @@
-import { SubmissionStatus } from './submissions';
+import { type SubmissionData, SubmissionStatus } from './submissions';
 
 export { SubmissionStatus };
+export type { SubmissionData };
 
 export interface SubmissionQueueMentee {
   readonly id: string;
@@ -51,11 +52,7 @@ export interface SubmissionReviewDetails {
   readonly submittedAt: string;
   readonly isLate: boolean;
   readonly status: SubmissionStatus;
-  readonly submissionData: {
-    readonly pdfUrl?: string | null;
-    readonly zipUrl?: string | null;
-    readonly linkUrl?: string | null;
-  };
+  readonly submissionData: SubmissionData;
   readonly mentee: SubmissionQueueMentee;
   readonly grading: {
     readonly marks: number | null;
