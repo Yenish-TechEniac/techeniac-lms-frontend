@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { P, Span } from '@/components/ui/Typography';
 import { cn } from '@/lib/cn';
 
 export interface FieldErrorProps extends React.HTMLAttributes<HTMLParagraphElement> {
@@ -10,7 +11,7 @@ export function FieldError({ error, className, id, ...props }: FieldErrorProps) 
   if (!error) return null;
 
   return (
-    <p
+    <P
       id={id}
       role="alert"
       aria-live="polite"
@@ -32,7 +33,7 @@ export function FieldError({ error, className, id, ...props }: FieldErrorProps) 
           clipRule="evenodd"
         />
       </svg>
-      <span>{error}</span>
-    </p>
+      <Span>{error}</Span>
+    </P>
   );
 }

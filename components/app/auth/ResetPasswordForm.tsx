@@ -9,7 +9,7 @@ import { FieldError } from '@/components/ui/FieldError';
 import { Form } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { H3, P } from '@/components/ui/Typography';
+import { H3, P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { usePasswordCriteria } from '@/hooks/usePasswordCriteria';
 import { useResetTokenVerification } from '@/hooks/useResetTokenVerification';
@@ -189,7 +189,7 @@ export function ResetPasswordForm() {
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
-            <span className="leading-none">Return to sign in</span>
+            <Span className="leading-none">Return to sign in</Span>
           </Link>
         </div>
       </div>
@@ -326,7 +326,7 @@ export function ResetPasswordForm() {
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          <span className="leading-none">Cancel and return to sign in</span>
+          <Span className="leading-none">Cancel and return to sign in</Span>
         </Link>
       </div>
     </Form>
