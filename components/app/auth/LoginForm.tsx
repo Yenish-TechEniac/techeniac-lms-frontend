@@ -94,7 +94,7 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
       <div className="space-y-1.5">
         <Label
           htmlFor="email"
-          className="flex items-center gap-2 text-xs font-semibold text-slate-700"
+          className="flex items-center gap-2 text-sm font-semibold text-[#111827]"
         >
           <svg
             className="h-4 w-4 text-[#0044D3]"
@@ -138,7 +138,7 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
           autoComplete="email"
           hasError={Boolean(errors.email)}
           disabled={isFormLocked}
-          className="rounded-2xl bg-slate-50 text-sm focus:bg-white"
+          className="rounded-2xl bg-slate-50 text-base focus:bg-white"
         />
         <FieldError id="email-error" error={errors.email} />
       </div>
@@ -147,7 +147,7 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
       <div className="space-y-1.5">
         <Label
           htmlFor="password"
-          className="flex items-center gap-2 text-xs font-semibold text-slate-700"
+          className="flex items-center gap-2 text-sm font-semibold text-[#111827]"
         >
           <svg
             className="h-4 w-4 text-[#0044D3]"
@@ -192,7 +192,7 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
             autoComplete="current-password"
             hasError={Boolean(errors.password)}
             disabled={isFormLocked}
-            className="rounded-2xl bg-slate-50 pr-12 text-sm focus:bg-white"
+            className="rounded-2xl bg-slate-50 pr-12 text-base focus:bg-white"
           />
           <PasswordVisibilityToggle
             visible={showPassword}
@@ -200,15 +200,19 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
             className="text-[#0044D3] hover:bg-blue-50 hover:text-[#0036ab]"
           />
         </div>
-        <div className="flex justify-end pt-0.5">
-          <Link
-            href="/forgot-password"
-            className="text-xs font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
-          >
-            Forgot Password?
-          </Link>
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1">
+            <FieldError id="password-error" error={errors.password} />
+          </div>
+          <div className="ml-auto shrink-0 pt-1">
+            <Link
+              href="/forgot-password"
+              className="text-sm font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
+            >
+              Forgot Password?
+            </Link>
+          </div>
         </div>
-        <FieldError id="password-error" error={errors.password} />
       </div>
 
       {/* Submit Button: Solid #0044D3 Full Pill per DESIGN_SYSTEM.md */}

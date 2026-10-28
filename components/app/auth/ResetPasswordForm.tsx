@@ -213,7 +213,7 @@ export function ResetPasswordForm() {
       <div className="space-y-1.5">
         <Label
           htmlFor="newPassword"
-          className="flex items-center gap-2 text-xs font-semibold text-slate-700"
+          className="flex items-center gap-2 text-sm font-semibold text-[#111827]"
         >
           <svg
             className="h-4 w-4 text-[#0044D3]"
@@ -241,7 +241,7 @@ export function ResetPasswordForm() {
             autoComplete="new-password"
             hasError={Boolean(errors.password)}
             disabled={isSubmitting}
-            className="rounded-2xl border-slate-200/90 bg-slate-50 pr-12 text-sm focus:bg-white"
+            className="rounded-2xl border-slate-200/90 bg-slate-50 pr-12 text-base focus:bg-white"
           />
           <PasswordVisibilityToggle
             visible={showPassword}
@@ -259,7 +259,7 @@ export function ResetPasswordForm() {
       <div className="space-y-1.5">
         <Label
           htmlFor="confirmPassword"
-          className="flex items-center gap-2 text-xs font-semibold text-slate-700"
+          className="flex items-center gap-2 text-sm font-semibold text-[#111827]"
         >
           <svg
             className="h-4 w-4 text-[#0044D3]"
@@ -287,7 +287,7 @@ export function ResetPasswordForm() {
             autoComplete="new-password"
             hasError={Boolean(errors.confirmPassword)}
             disabled={isSubmitting}
-            className="rounded-2xl border-slate-200/90 bg-slate-50 pr-12 text-sm focus:bg-white"
+            className="rounded-2xl border-slate-200/90 bg-slate-50 pr-12 text-base focus:bg-white"
           />
           <PasswordVisibilityToggle
             visible={showConfirmPassword}
@@ -314,7 +314,7 @@ export function ResetPasswordForm() {
       <div className="pt-2 text-center">
         <Link
           href="/login"
-          className="group inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
+          className="group inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
         >
           <svg
             className="h-4 w-4 shrink-0 transition-transform group-hover:-translate-x-0.5"

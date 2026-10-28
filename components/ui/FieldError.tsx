@@ -15,13 +15,13 @@ export function FieldError({ error, className, id, ...props }: FieldErrorProps) 
       role="alert"
       aria-live="polite"
       className={cn(
-        'mt-1.5 flex items-center gap-1.5 text-xs font-medium text-[#D92D20]',
+        'mt-1.5 flex items-center gap-1.5 text-sm font-medium text-[#D92D20]',
         className,
       )}
       {...props}
     >
       <svg
-        className="h-3.5 w-3.5 shrink-0 text-[#D92D20]"
+        className="h-4 w-4 shrink-0 text-[#D92D20]"
         viewBox="0 0 20 20"
         fill="currentColor"
         aria-hidden="true"
