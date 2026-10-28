@@ -68,3 +68,19 @@ export function isDatePast(dateInput: string | Date | null | undefined): boolean
   if (isNaN(date.getTime())) return false;
   return date.getTime() < Date.now();
 }
+
+/**
+ * Formats a date or ISO string into an IST "YYYY-MM-DD" string suitable for HTML <input type="date">.
+ */
+export function toISTDateInputValue(dateInput: string | Date | null | undefined): string {
+  if (!dateInput) return '';
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+  if (isNaN(date.getTime())) return '';
+
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: IST_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+}

@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/Label';
 import { H3, P, Span } from '@/components/ui/Typography';
 import { useSubmitAssignment } from '@/hooks/useSubmissions';
 import { formatDateTimeIST, isDatePast } from '@/lib/date';
+import type { BatchStatus } from '@/lib/validation/batch.schemas';
 import type { Assignment } from '@/types/courses';
 import { SubmissionMode } from '@/types/courses';
 import type { SubmissionData, SubmissionVersion } from '@/types/submissions';
@@ -19,10 +20,50 @@ interface AssignmentSubmissionFormProps {
   assignment: Assignment;
   dueDate: string;
   isBatchActive: boolean;
-  batchStatus: string;
+  batchStatus: BatchStatus;
   latestVersion?: SubmissionVersion | null | undefined;
   onSuccess?: ((submission: SubmissionVersion) => void) | undefined;
 }
+
+interface SubmissionFieldDefinition {
+  readonly key: 'pdfUrl' | 'zipUrl' | 'url';
+  readonly id: string;
+  readonly label: string;
+  readonly placeholder: string;
+  readonly getMode: (a: Assignment) => SubmissionMode;
+  readonly requiredMessage: string;
+  readonly invalidMessage: string;
+}
+
+const SUBMISSION_LINK_FIELDS: readonly SubmissionFieldDefinition[] = [
+  {
+    key: 'pdfUrl',
+    id: 'pdf_url',
+    label: 'PDF Document URL',
+    placeholder: 'https://example.com/my-document.pdf',
+    getMode: (a) => a.pdfMode,
+    requiredMessage: 'PDF document link is required.',
+    invalidMessage: 'Please enter a valid HTTP or HTTPS URL for the PDF document.',
+  },
+  {
+    key: 'zipUrl',
+    id: 'zip_url',
+    label: 'ZIP Archive URL',
+    placeholder: 'https://example.com/project-files.zip',
+    getMode: (a) => a.zipMode,
+    requiredMessage: 'ZIP archive link is required.',
+    invalidMessage: 'Please enter a valid HTTP or HTTPS URL for the ZIP archive.',
+  },
+  {
+    key: 'url',
+    id: 'url',
+    label: 'Project / Repository URL',
+    placeholder: 'https://github.com/my-repo or https://my-app.vercel.app',
+    getMode: (a) => a.urlMode,
+    requiredMessage: 'Project / repository URL is required.',
+    invalidMessage: 'Please enter a valid HTTP or HTTPS URL for the project repository.',
+  },
+] as const;
 
 export function AssignmentSubmissionForm({
   assignment,
@@ -44,7 +85,10 @@ export function AssignmentSubmissionForm({
   const isPastDue = isDatePast(dueDate);
   const isLateBlocked = isPastDue && !assignment.allowLate;
   const isReadOnlyBatch =
-    !isBatchActive || batchStatus === 'COMPLETED' || batchStatus === 'ARCHIVED';
+    !isBatchActive ||
+    batchStatus === 'ON_HOLD' ||
+    batchStatus === 'COMPLETED' ||
+    batchStatus === 'ARCHIVED';
 
   const nextVersion = latestVersion ? latestVersion.version + 1 : 1;
   const isResubmission = Boolean(latestVersion);
@@ -58,36 +102,35 @@ export function AssignmentSubmissionForm({
     }
   };
 
+  const fieldValues: Record<'pdfUrl' | 'zipUrl' | 'url', string> = {
+    pdfUrl,
+    zipUrl,
+    url,
+  };
+
   const validate = (): boolean => {
     const errors: Record<string, string> = {};
     let firstError: string | null = null;
 
-    if (assignment.pdfMode === SubmissionMode.REQUIRED && !pdfUrl.trim()) {
-      errors.pdfUrl = 'PDF document link is required.';
-      if (!firstError) firstError = errors.pdfUrl;
-    } else if (pdfUrl.trim() && !isValidUrl(pdfUrl.trim())) {
-      errors.pdfUrl = 'Please enter a valid HTTP or HTTPS URL for the PDF document.';
-      if (!firstError) firstError = errors.pdfUrl;
+    for (const field of SUBMISSION_LINK_FIELDS) {
+      const mode = field.getMode(assignment);
+      const val = fieldValues[field.key].trim();
+
+      if (mode === SubmissionMode.REQUIRED && !val) {
+        errors[field.key] = field.requiredMessage;
+        if (!firstError) firstError = field.requiredMessage;
+      } else if (val && !isValidUrl(val)) {
+        errors[field.key] = field.invalidMessage;
+        if (!firstError) firstError = field.invalidMessage;
+      }
     }
 
-    if (assignment.zipMode === SubmissionMode.REQUIRED && !zipUrl.trim()) {
-      errors.zipUrl = 'ZIP archive link is required.';
-      if (!firstError) firstError = errors.zipUrl;
-    } else if (zipUrl.trim() && !isValidUrl(zipUrl.trim())) {
-      errors.zipUrl = 'Please enter a valid HTTP or HTTPS URL for the ZIP archive.';
-      if (!firstError) firstError = errors.zipUrl;
-    }
+    const isAnyFieldEnabled = SUBMISSION_LINK_FIELDS.some(
+      (f) => f.getMode(assignment) !== SubmissionMode.OFF,
+    );
+    const hasAnyContent = SUBMISSION_LINK_FIELDS.some((f) => Boolean(fieldValues[f.key].trim()));
 
-    if (assignment.urlMode === SubmissionMode.REQUIRED && !url.trim()) {
-      errors.url = 'Project / repository URL is required.';
-      if (!firstError) firstError = errors.url;
-    } else if (url.trim() && !isValidUrl(url.trim())) {
-      errors.url = 'Please enter a valid HTTP or HTTPS URL for the project repository.';
-      if (!firstError) firstError = errors.url;
-    }
-
-    const hasAnyContent = Boolean(pdfUrl.trim() || zipUrl.trim() || url.trim());
-    if (!hasAnyContent) {
+    if (isAnyFieldEnabled && !hasAnyContent) {
       errors.general = 'At least one submission field (PDF, ZIP, or Project URL) must be provided.';
       if (!firstError) firstError = errors.general;
     }
@@ -218,110 +261,52 @@ export function AssignmentSubmissionForm({
       ) : null}
 
       <div className="space-y-4">
-        {/* PDF Link Field */}
-        {assignment.pdfMode !== SubmissionMode.OFF ? (
-          <div>
-            <div className="mb-1.5 flex items-center justify-between">
-              <Label htmlFor="pdf_url">PDF Document URL</Label>
-              <Span
-                className={
-                  assignment.pdfMode === SubmissionMode.REQUIRED
-                    ? 'text-xs font-semibold text-rose-600 dark:text-rose-400'
-                    : 'text-xs text-slate-500 dark:text-slate-400'
-                }
-              >
-                {assignment.pdfMode === SubmissionMode.REQUIRED ? 'Required' : 'Optional'}
-              </Span>
-            </div>
-            <Input
-              id="pdf_url"
-              type="text"
-              inputMode="url"
-              placeholder="https://example.com/my-document.pdf"
-              value={pdfUrl}
-              onChange={(e) => {
-                setPdfUrl(e.target.value);
-                setClientErrorMsg(null);
-                setClientErrors((prev) => ({ ...prev, pdfUrl: '', general: '' }));
-              }}
-              hasError={Boolean(clientErrors.pdfUrl)}
-              disabled={submitMutation.isPending}
-            />
-            {clientErrors.pdfUrl ? (
-              <FieldError error={clientErrors.pdfUrl} className="mt-1.5 text-xs text-rose-600" />
-            ) : null}
-          </div>
-        ) : null}
+        {SUBMISSION_LINK_FIELDS.map((field) => {
+          const mode = field.getMode(assignment);
+          if (mode === SubmissionMode.OFF) return null;
 
-        {/* ZIP Link Field */}
-        {assignment.zipMode !== SubmissionMode.OFF ? (
-          <div>
-            <div className="mb-1.5 flex items-center justify-between">
-              <Label htmlFor="zip_url">ZIP Archive URL</Label>
-              <Span
-                className={
-                  assignment.zipMode === SubmissionMode.REQUIRED
-                    ? 'text-xs font-semibold text-rose-600 dark:text-rose-400'
-                    : 'text-xs text-slate-500 dark:text-slate-400'
-                }
-              >
-                {assignment.zipMode === SubmissionMode.REQUIRED ? 'Required' : 'Optional'}
-              </Span>
-            </div>
-            <Input
-              id="zip_url"
-              type="text"
-              inputMode="url"
-              placeholder="https://example.com/project-files.zip"
-              value={zipUrl}
-              onChange={(e) => {
-                setZipUrl(e.target.value);
-                setClientErrorMsg(null);
-                setClientErrors((prev) => ({ ...prev, zipUrl: '', general: '' }));
-              }}
-              hasError={Boolean(clientErrors.zipUrl)}
-              disabled={submitMutation.isPending}
-            />
-            {clientErrors.zipUrl ? (
-              <FieldError error={clientErrors.zipUrl} className="mt-1.5 text-xs text-rose-600" />
-            ) : null}
-          </div>
-        ) : null}
+          const isRequired = mode === SubmissionMode.REQUIRED;
+          const val = fieldValues[field.key];
+          const fieldError = clientErrors[field.key];
 
-        {/* Project URL Field */}
-        {assignment.urlMode !== SubmissionMode.OFF ? (
-          <div>
-            <div className="mb-1.5 flex items-center justify-between">
-              <Label htmlFor="url">Project / Repository URL</Label>
-              <Span
-                className={
-                  assignment.urlMode === SubmissionMode.REQUIRED
-                    ? 'text-xs font-semibold text-rose-600 dark:text-rose-400'
-                    : 'text-xs text-slate-500 dark:text-slate-400'
-                }
-              >
-                {assignment.urlMode === SubmissionMode.REQUIRED ? 'Required' : 'Optional'}
-              </Span>
+          const handleChange = (newVal: string) => {
+            if (field.key === 'pdfUrl') setPdfUrl(newVal);
+            else if (field.key === 'zipUrl') setZipUrl(newVal);
+            else setUrl(newVal);
+            setClientErrorMsg(null);
+            setClientErrors((prev) => ({ ...prev, [field.key]: '', general: '' }));
+          };
+
+          return (
+            <div key={field.id}>
+              <div className="mb-1.5 flex items-center justify-between">
+                <Label htmlFor={field.id}>{field.label}</Label>
+                <Span
+                  className={
+                    isRequired
+                      ? 'text-xs font-semibold text-rose-600 dark:text-rose-400'
+                      : 'text-xs text-slate-500 dark:text-slate-400'
+                  }
+                >
+                  {isRequired ? 'Required' : 'Optional'}
+                </Span>
+              </div>
+              <Input
+                id={field.id}
+                type="text"
+                inputMode="url"
+                placeholder={field.placeholder}
+                value={val}
+                onChange={(e) => handleChange(e.target.value)}
+                hasError={Boolean(fieldError)}
+                disabled={submitMutation.isPending}
+              />
+              {fieldError ? (
+                <FieldError error={fieldError} className="mt-1.5 text-xs text-rose-600" />
+              ) : null}
             </div>
-            <Input
-              id="url"
-              type="text"
-              inputMode="url"
-              placeholder="https://github.com/my-repo or https://my-app.vercel.app"
-              value={url}
-              onChange={(e) => {
-                setUrl(e.target.value);
-                setClientErrorMsg(null);
-                setClientErrors((prev) => ({ ...prev, url: '', general: '' }));
-              }}
-              hasError={Boolean(clientErrors.url)}
-              disabled={submitMutation.isPending}
-            />
-            {clientErrors.url ? (
-              <FieldError error={clientErrors.url} className="mt-1.5 text-xs text-rose-600" />
-            ) : null}
-          </div>
-        ) : null}
+          );
+        })}
 
         {/* Mandatory Completion Confirmation Checkbox */}
         <div className="mt-4 space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/40">

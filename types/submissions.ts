@@ -1,3 +1,5 @@
+import type { BatchStatus } from '@/lib/validation/batch.schemas';
+
 import { Assignment, SubmissionMode } from './courses';
 
 export { SubmissionMode };
@@ -87,7 +89,7 @@ export interface AssignmentSubmissionDetails {
     allocationId: string;
     dueDate: string;
     batchId: string | null;
-    batchStatus: string;
+    batchStatus: BatchStatus;
     isBatchActive: boolean;
   };
   versions: SubmissionVersion[];
