@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { H3, H4, Muted, P, Span } from '@/components/ui/Typography';
+import { H3, H4, P, Span } from '@/components/ui/Typography';
 import {
   useGradeSubmissionMutation,
   useRequestResubmissionMutation,
@@ -103,12 +103,14 @@ function SubmissionReviewContent({ reviewDetails }: SubmissionReviewContentProps
               </Span>
             </div>
             <P className="mt-1 text-xs text-slate-500">
-              Course: <strong className="text-slate-700">{reviewDetails.courseTitle}</strong>
+              Course:{' '}
+              <Span className="font-semibold text-slate-700">{reviewDetails.courseTitle}</Span>
               {reviewDetails.topicTitle && ` • Topic: ${reviewDetails.topicTitle}`}
               {reviewDetails.batchName && ` • Batch: ${reviewDetails.batchName}`}
             </P>
             <P className="mt-0.5 text-xs text-slate-600">
-              Student: <strong className="text-slate-900">{reviewDetails.mentee.name}</strong> (
+              Student:{' '}
+              <Span className="font-semibold text-slate-900">{reviewDetails.mentee.name}</Span> (
               {reviewDetails.mentee.email})
             </P>
           </div>
@@ -118,17 +120,15 @@ function SubmissionReviewContent({ reviewDetails }: SubmissionReviewContentProps
               status={reviewDetails.status as unknown as AssignmentDerivedStatus}
               isLate={reviewDetails.isLate}
             />
-            <Muted className="font-mono text-[11px]">
+            <Span className="font-mono text-xs text-slate-500">
               Submitted: {formatDateIST(reviewDetails.submittedAt)}
-            </Muted>
+            </Span>
           </div>
         </div>
 
         {reviewDetails.instructions && (
           <div className="mt-4 border-t border-slate-200/70 pt-3">
-            <H4 className="font-mono text-xs font-bold text-slate-700 uppercase">
-              Assignment Instructions
-            </H4>
+            <H4 className="text-xs font-bold text-slate-700 uppercase">Assignment Instructions</H4>
             <P className="mt-1 text-xs whitespace-pre-wrap text-slate-600">
               {reviewDetails.instructions}
             </P>
@@ -138,7 +138,7 @@ function SubmissionReviewContent({ reviewDetails }: SubmissionReviewContentProps
 
       {/* Submitted Artifacts Section (FR-10.4) */}
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-        <H4 className="font-mono text-xs font-bold tracking-wider text-slate-700 uppercase">
+        <H4 className="text-xs font-bold tracking-wider text-slate-700 uppercase">
           Submitted Artifacts & Links
         </H4>
 
@@ -146,7 +146,7 @@ function SubmissionReviewContent({ reviewDetails }: SubmissionReviewContentProps
           {/* Web Link */}
           {reviewDetails.submissionData.linkUrl ? (
             <div className="flex flex-col gap-1 rounded-xl border border-blue-200 bg-blue-50/50 p-3">
-              <Span className="font-mono text-[11px] font-bold text-blue-700 uppercase">
+              <Span className="font-mono text-xs font-bold text-blue-700 uppercase">
                 Project / Git URL
               </Span>
               <a
@@ -160,14 +160,14 @@ function SubmissionReviewContent({ reviewDetails }: SubmissionReviewContentProps
             </div>
           ) : (
             <div className="rounded-xl border border-dashed border-slate-200 p-3 text-center">
-              <Muted className="text-xs">No web link submitted</Muted>
+              <P className="text-xs text-slate-400">No web link submitted</P>
             </div>
           )}
 
           {/* PDF Document */}
           {reviewDetails.submissionData.pdfUrl ? (
             <div className="flex flex-col gap-1 rounded-xl border border-emerald-200 bg-emerald-50/50 p-3">
-              <Span className="font-mono text-[11px] font-bold text-emerald-700 uppercase">
+              <Span className="font-mono text-xs font-bold text-emerald-700 uppercase">
                 PDF Document
               </Span>
               <a
@@ -181,14 +181,14 @@ function SubmissionReviewContent({ reviewDetails }: SubmissionReviewContentProps
             </div>
           ) : (
             <div className="rounded-xl border border-dashed border-slate-200 p-3 text-center">
-              <Muted className="text-xs">No PDF submitted</Muted>
+              <P className="text-xs text-slate-400">No PDF submitted</P>
             </div>
           )}
 
           {/* ZIP Archive */}
           {reviewDetails.submissionData.zipUrl ? (
             <div className="flex flex-col gap-1 rounded-xl border border-purple-200 bg-purple-50/50 p-3">
-              <Span className="font-mono text-[11px] font-bold text-purple-700 uppercase">
+              <Span className="font-mono text-xs font-bold text-purple-700 uppercase">
                 ZIP Archive
               </Span>
               <a
@@ -202,7 +202,7 @@ function SubmissionReviewContent({ reviewDetails }: SubmissionReviewContentProps
             </div>
           ) : (
             <div className="rounded-xl border border-dashed border-slate-200 p-3 text-center">
-              <Muted className="text-xs">No ZIP submitted</Muted>
+              <P className="text-xs text-slate-400">No ZIP submitted</P>
             </div>
           )}
         </div>
@@ -214,8 +214,8 @@ function SubmissionReviewContent({ reviewDetails }: SubmissionReviewContentProps
           role="status"
           className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-semibold text-emerald-800"
         >
-          <span>✓</span>
-          <span>{actionSuccess}</span>
+          <Span>✓</Span>
+          <Span>{actionSuccess}</Span>
         </div>
       )}
 
@@ -236,22 +236,22 @@ function SubmissionReviewContent({ reviewDetails }: SubmissionReviewContentProps
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-5">
           <div className="flex items-center justify-between">
             <div>
-              <Span className="font-mono text-[11px] font-bold text-emerald-700 uppercase">
+              <Span className="block font-mono text-xs font-bold text-emerald-700 uppercase">
                 Assigned Grade
               </Span>
-              <H3 className="mt-1 text-2xl font-bold text-slate-900">
+              <P className="mt-1 text-2xl font-bold text-slate-900">
                 {reviewDetails.grading.marks} / {reviewDetails.maxMarks} Marks (
                 {reviewDetails.grading.gradeLabel})
-              </H3>
+              </P>
               {reviewDetails.grading.feedback && (
                 <P className="mt-2 text-xs whitespace-pre-wrap text-slate-700">
                   Feedback: {reviewDetails.grading.feedback}
                 </P>
               )}
               {reviewDetails.grading.gradedAt && (
-                <Muted className="mt-2 block font-mono text-[10.5px]">
+                <Span className="mt-2 block font-mono text-xs text-slate-500">
                   Graded on: {formatDateIST(reviewDetails.grading.gradedAt)}
-                </Muted>
+                </Span>
               )}
             </div>
             <Button
@@ -272,28 +272,32 @@ function SubmissionReviewContent({ reviewDetails }: SubmissionReviewContentProps
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
           {/* Tab Selector */}
           <div className="mb-4 flex border-b border-slate-200">
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => setActiveTab('grade')}
-              className={`border-b-2 px-4 py-2 text-xs font-semibold transition-colors ${
+              className={`rounded-none border-b-2 px-4 py-2 text-xs font-semibold transition-colors hover:bg-transparent ${
                 activeTab === 'grade'
                   ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-slate-500 hover:text-slate-800'
               }`}
             >
               Grade Submission (FR-10.5)
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => setActiveTab('resubmit')}
-              className={`border-b-2 px-4 py-2 text-xs font-semibold transition-colors ${
+              className={`rounded-none border-b-2 px-4 py-2 text-xs font-semibold transition-colors hover:bg-transparent ${
                 activeTab === 'resubmit'
                   ? 'border-amber-600 text-amber-600'
                   : 'border-transparent text-slate-500 hover:text-slate-800'
               }`}
             >
               Request Resubmission (REV-13)
-            </button>
+            </Button>
           </div>
 
           {/* Grade Form Tab */}
@@ -301,8 +305,12 @@ function SubmissionReviewContent({ reviewDetails }: SubmissionReviewContentProps
             <form onSubmit={(e) => void handleGradeSubmit(e)} className="flex flex-col gap-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor={marksInputId} className="text-xs font-semibold text-slate-700">
-                    Marks (Max: {reviewDetails.maxMarks}) *
+                  <Label
+                    htmlFor={marksInputId}
+                    required
+                    className="text-xs font-semibold text-slate-700"
+                  >
+                    Marks (Max: {reviewDetails.maxMarks})
                   </Label>
                   <Input
                     id={marksInputId}
@@ -321,7 +329,7 @@ function SubmissionReviewContent({ reviewDetails }: SubmissionReviewContentProps
                 <div className="flex flex-col justify-end gap-1.5">
                   <Span className="text-xs font-semibold text-slate-700">Computed Grade Label</Span>
                   <div className="flex h-9 items-center rounded-lg border border-slate-200 bg-slate-50 px-3 font-mono text-xs font-bold text-slate-800">
-                    {previewGradeLabel ? `Grade: ${previewGradeLabel}` : '—'}
+                    <Span>{previewGradeLabel ? `Grade: ${previewGradeLabel}` : '—'}</Span>
                   </div>
                 </div>
               </div>
@@ -369,8 +377,12 @@ function SubmissionReviewContent({ reviewDetails }: SubmissionReviewContentProps
           {activeTab === 'resubmit' && (
             <form onSubmit={(e) => void handleResubmitSubmit(e)} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor={resubmitInputId} className="text-xs font-semibold text-slate-700">
-                  Reason for Resubmission Request *
+                <Label
+                  htmlFor={resubmitInputId}
+                  required
+                  className="text-xs font-semibold text-slate-700"
+                >
+                  Reason for Resubmission Request
                 </Label>
                 <textarea
                   id={resubmitInputId}

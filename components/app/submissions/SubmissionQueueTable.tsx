@@ -5,6 +5,7 @@ import React, { useId, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 import { H3, Muted, P, Span } from '@/components/ui/Typography';
 import { useSubmissionQueue } from '@/hooks/useGrading';
 import { formatDateIST } from '@/lib/date';
@@ -57,19 +58,19 @@ export function SubmissionQueueTable() {
           {/* Status Dropdown */}
           <div className="flex items-center gap-1.5">
             <Span className="font-mono text-xs text-slate-500">Status:</Span>
-            <select
+            <Select
               value={statusFilter}
               onChange={(e) => {
                 setStatusFilter(e.target.value as SubmissionStatus | 'ALL');
                 setPage(1);
               }}
-              className="h-9 rounded-xl border border-slate-300 bg-white px-2.5 font-mono text-xs text-slate-700 focus:border-blue-500 focus:outline-none"
+              className="h-9 w-auto font-mono text-xs text-slate-700"
             >
               <option value={SubmissionStatus.SUBMITTED}>Pending Review (Default)</option>
               <option value="ALL">All Statuses</option>
               <option value={SubmissionStatus.RESUBMIT_REQUESTED}>Resubmit Requested</option>
               <option value={SubmissionStatus.GRADED}>Graded</option>
-            </select>
+            </Select>
           </div>
 
           {/* Newest / Oldest Sort Toggle (REV-02, REV-03) */}
