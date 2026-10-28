@@ -92,6 +92,7 @@ export interface CreateAllocationsPayload {
 
 export interface CreateAllocationsResponse {
   readonly created: readonly CourseAllocation[];
+  readonly allocations?: readonly CourseAllocation[] | undefined;
   readonly skipped: ReadonlyArray<{ readonly menteeId: string; readonly reason: string }>;
 }
 
@@ -159,6 +160,24 @@ interface ApiResponse<T> {
   readonly message?: string | undefined;
 }
 
+interface RawAllocationsEnvelope {
+  readonly allocations?: readonly CourseAllocation[] | undefined;
+  readonly created?: readonly CourseAllocation[] | undefined;
+  readonly skipped?:
+    ReadonlyArray<{ readonly menteeId: string; readonly reason: string }> | undefined;
+}
+
+function normalizeAllocationsResponse(
+  data: RawAllocationsEnvelope | undefined,
+): CreateAllocationsResponse {
+  const created = data?.created ?? data?.allocations ?? [];
+  return {
+    created,
+    allocations: created,
+    skipped: data?.skipped ?? [],
+  };
+}
+
 const BASE = '/course-allocations';
 
 export const allocationsService = {
@@ -208,11 +227,11 @@ export const allocationsService = {
   },
 
   async createAllocations(payload: CreateAllocationsPayload): Promise<CreateAllocationsResponse> {
-    const res = await apiClient<ApiResponse<CreateAllocationsResponse>>(BASE, {
+    const res = await apiClient<ApiResponse<RawAllocationsEnvelope>>(BASE, {
       method: 'POST',
       body: JSON.stringify(payload),
     });
-    return res.data;
+    return normalizeAllocationsResponse(res.data);
   },
 
   async updateAllocationDates(
@@ -256,14 +275,11 @@ export const allocationsService = {
     id: string,
     payload: AddMenteesPayload,
   ): Promise<CreateAllocationsResponse> {
-    const res = await apiClient<ApiResponse<CreateAllocationsResponse>>(
-      `${BASE}/${id}/add-mentees`,
-      {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      },
-    );
-    return res.data;
+    const res = await apiClient<ApiResponse<RawAllocationsEnvelope>>(`${BASE}/${id}/add-mentees`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return normalizeAllocationsResponse(res.data);
   },
 
   async getAssignmentOverrides(id: string): Promise<readonly AssignmentDueOverride[]> {
