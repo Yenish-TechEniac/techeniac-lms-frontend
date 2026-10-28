@@ -110,6 +110,20 @@ interface ApiResponse<T> {
 }
 
 const BASE = '/course-allocations';
+const DEFAULT_PAGE_LIMIT = 20;
+
+function buildFallbackPagination(
+  filters: ProgressTrackerFilters,
+  total: number,
+): ProgressTrackerPagination {
+  const limit = filters.limit ?? DEFAULT_PAGE_LIMIT;
+  return {
+    page: filters.page ?? 1,
+    limit,
+    total,
+    totalPages: Math.ceil(total / limit) || 1,
+  };
+}
 
 export const progressService = {
   async getAllocationProgress(allocationId: string): Promise<AllocationProgressResponse> {
@@ -183,34 +197,29 @@ export const progressService = {
       params,
     });
 
-    let trackers: ProgressTrackerItem[] = [];
+    const trackers: ProgressTrackerItem[] = Array.isArray(res.data)
+      ? res.data
+      : res.data && Array.isArray(res.data.trackers)
+        ? res.data.trackers
+        : [];
+
     let pagination: ProgressTrackerPagination;
 
-    if (Array.isArray(res.data)) {
-      trackers = res.data;
-      const page = res.meta?.page ?? filters.page ?? 1;
-      const limit = res.meta?.limit ?? filters.limit ?? 20;
-      const total = res.meta?.total ?? trackers.length;
-      const totalPages = res.meta?.totalPages ?? (Math.ceil(total / limit) || 1);
+    if (res.meta) {
+      const page = res.meta.page ?? filters.page ?? 1;
+      const limit = res.meta.limit ?? filters.limit ?? DEFAULT_PAGE_LIMIT;
+      const total = res.meta.total ?? trackers.length;
+      const totalPages = res.meta.totalPages ?? (Math.ceil(total / limit) || 1);
       pagination = { page, limit, total, totalPages };
-    } else if (
-      res.data &&
-      Array.isArray((res.data as { trackers?: ProgressTrackerItem[] }).trackers)
-    ) {
-      trackers = (res.data as { trackers: ProgressTrackerItem[] }).trackers;
-      pagination = (res.data as { pagination?: ProgressTrackerPagination }).pagination ?? {
-        page: filters.page ?? 1,
-        limit: filters.limit ?? 20,
-        total: trackers.length,
-        totalPages: Math.ceil(trackers.length / (filters.limit ?? 20)) || 1,
-      };
+    } else if (!Array.isArray(res.data) && res.data?.pagination) {
+      const legacy = res.data.pagination;
+      const page = legacy.page ?? filters.page ?? 1;
+      const limit = legacy.limit ?? filters.limit ?? DEFAULT_PAGE_LIMIT;
+      const total = legacy.total ?? trackers.length;
+      const totalPages = legacy.totalPages ?? (Math.ceil(total / limit) || 1);
+      pagination = { page, limit, total, totalPages };
     } else {
-      pagination = {
-        page: filters.page ?? 1,
-        limit: filters.limit ?? 20,
-        total: 0,
-        totalPages: 1,
-      };
+      pagination = buildFallbackPagination(filters, trackers.length);
     }
 
     return { trackers, pagination };
