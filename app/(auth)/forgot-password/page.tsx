@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import React from 'react';
 
 import { AuthShell } from '@/components/app/auth/AuthShell';
 import { ForgotPasswordForm } from '@/components/app/auth/ForgotPasswordForm';
@@ -10,10 +11,7 @@ export const metadata: Metadata = {
 
 export default function ForgotPasswordPage() {
   return (
-    <AuthShell
-      title="Reset your password"
-      subtitle="Enter your verified work email address to receive a secure password reset link."
-    >
+    <AuthShell title="Forgot Password">
       <ForgotPasswordForm />
     </AuthShell>
   );

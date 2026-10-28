@@ -61,7 +61,7 @@ export function ForgotPasswordForm() {
   if (isDispatched) {
     return (
       <div className="space-y-6 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-blue-600">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-[#0044D3]">
           <svg
             className="h-8 w-8"
             fill="none"
@@ -82,13 +82,12 @@ export function ForgotPasswordForm() {
           <H3 className="mb-1 text-xl font-bold text-slate-900">Check your email</H3>
           <P className="text-sm leading-relaxed text-slate-600">
             We sent a password reset link to{' '}
-            <Span className="font-semibold text-slate-800">{email}</Span>. The link is valid for 30
-            minutes.
+            <Span className="font-semibold text-slate-800">{email}</Span>.
           </P>
         </div>
 
         {resendStatus ? (
-          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-2.5 text-xs font-medium text-emerald-800">
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-2.5 text-xs font-medium text-emerald-800">
             {resendStatus}
           </div>
         ) : null}
@@ -103,7 +102,7 @@ export function ForgotPasswordForm() {
             }}
             disabled={isResending}
             isLoading={isResending}
-            className="w-full"
+            className="h-11 w-full rounded-full text-xs font-bold"
           >
             {isResending ? 'Resending link...' : 'Resend link'}
           </Button>
@@ -116,14 +115,14 @@ export function ForgotPasswordForm() {
               setIsDispatched(false);
               setResendStatus(null);
             }}
-            className="w-full"
+            className="h-11 w-full rounded-full text-xs font-semibold"
           >
             Use a different email
           </Button>
 
           <Link
             href="/login"
-            className="inline-block text-sm font-semibold text-blue-600 transition-colors hover:text-blue-700"
+            className="inline-block text-xs font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
           >
             ← Return to sign in
           </Link>
@@ -134,43 +133,65 @@ export function ForgotPasswordForm() {
 
   return (
     <Form
-      className="space-y-5"
+      className="space-y-4"
       onSubmit={(e) => {
         void handleSubmit(e);
       }}
     >
       <div className="space-y-1.5">
-        <Label htmlFor="email">Work Email</Label>
+        <Label
+          htmlFor="email"
+          className="flex items-center gap-2 text-xs font-semibold text-slate-700"
+        >
+          <svg
+            className="h-4 w-4 text-[#0044D3]"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.8"
+              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+            />
+          </svg>
+          Username / Email
+        </Label>
         <Input
           id="email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@company.com"
+          placeholder="Johnadams@gmail.com"
           autoComplete="email"
           hasError={Boolean(errors.email)}
           disabled={isSubmitting}
+          className="rounded-2xl border-slate-200/90 bg-slate-50 text-sm focus:bg-white"
         />
         <FieldError id="email-error" error={errors.email} />
       </div>
 
-      <Button
-        type="submit"
-        variant="primary"
-        size="lg"
-        disabled={isSubmitting}
-        isLoading={isSubmitting}
-        className="w-full"
-      >
-        {isSubmitting ? 'Sending link...' : 'Send reset link'}
-      </Button>
+      <div className="pt-2">
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          disabled={isSubmitting}
+          isLoading={isSubmitting}
+          className="h-12 w-full rounded-full bg-[#0044D3] text-sm font-bold shadow-md shadow-[#0044D3]/20 hover:bg-[#0036ab]"
+        >
+          {isSubmitting ? 'Sending link...' : 'Send Reset Link'}
+        </Button>
+      </div>
 
-      <div className="pt-4 text-center">
+      <div className="pt-3 text-center">
         <Link
           href="/login"
-          className="text-sm font-semibold text-blue-600 transition-colors hover:text-blue-700"
+          className="text-xs font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
         >
-          ← Back to sign in
+          Remember your password? Sign In
         </Link>
       </div>
     </Form>
