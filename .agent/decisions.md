@@ -205,3 +205,23 @@
   - Developers must work in feature/fix branches (`feat/*`, `fix/*`, `chore/*`) created off `dev`.
   - Direct commits on `main`, `staging`, or `dev` trigger immediate failure in `.husky/pre-commit`.
   - Merging into protected branches requires Pull Requests and passing CI checks.
+
+---
+
+## ADR-012: Domain Statuses Modeled as String Enums & Boundary Normalization
+
+- **Date**: 2026-10-28
+- **Status**: Accepted
+- **Context**: Domain status types across courses and submissions (e.g. `AssignmentScope`, `SubmissionMode`, `SubmissionStatus`, `AssignmentDerivedStatus`) had inconsistent modeling between string unions and TypeScript enums. Furthermore, submission payloads from backend APIs could contain dual camelCase/snake_case keys (`pdfUrl`/`pdf_url`, `zipUrl`/`zip_url`, `linkUrl`/`url`), causing unsafe `as` casts across consuming components.
+- **Options**:
+  1. Plain string union aliases throughout the frontend without runtime enum objects.
+  2. Ad-hoc dual-key checks and `as string` casts scattered across individual React components.
+  3. Standardize domain statuses as TypeScript string enums matching backend entities, and normalize API response/request data at the service boundary (`services/submissions.service.ts`).
+- **Choice**: Option 3 (String enums + service boundary normalization).
+- **Reasons**:
+  - Consistency: Establishes a uniform convention across all LMS domain statuses matching `types/courses.ts` (`AssignmentScope`, `SubmissionMode`) and backend entities (`SubmissionStatus`).
+  - Type safety: Eliminates magic strings and typo-prone comparisons across filters, badges, and version histories.
+  - Boundary isolation: Normalizing `submissionData` at the service boundary guarantees components consume clean, canonical `{ pdfUrl, zipUrl, linkUrl }` without needing dual-key checks or `as` type assertions.
+- **Consequences**:
+  - Status types must be exported as string enums in `types/`.
+  - API response and payload translation must occur within `services/` rather than leaking into React components.

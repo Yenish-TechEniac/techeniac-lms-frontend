@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Span } from '@/components/ui/Typography';
 import { useUpdateTopicDeadlineMutation } from '@/hooks/useProgress';
+import { toISTDateInputValue } from '@/lib/date';
 
 export interface TopicDeadlineModalProps {
   readonly isOpen: boolean;
@@ -42,17 +43,17 @@ function TopicDeadlineModalDialog({
 }: Readonly<TopicDeadlineModalProps>) {
   const [deadline, setDeadline] = useState<string>(() => {
     if (currentDeadline) {
-      return currentDeadline.split('T')[0] ?? '';
+      return toISTDateInputValue(currentDeadline);
     }
-    return allocationDueDate.split('T')[0] ?? '';
+    return toISTDateInputValue(allocationDueDate);
   });
   const [errorMsg, setErrorMsg] = useState<unknown>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const deadlineMutation = useUpdateTopicDeadlineMutation();
 
-  const minDate = allocationStartDate.split('T')[0] ?? '';
-  const maxDate = allocationDueDate.split('T')[0] ?? '';
+  const minDate = toISTDateInputValue(allocationStartDate);
+  const maxDate = toISTDateInputValue(allocationDueDate);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,12 +65,8 @@ function TopicDeadlineModalDialog({
       return;
     }
 
-    const selectedTime = new Date(deadline).getTime();
-    const startTime = new Date(minDate).getTime();
-    const dueTime = new Date(maxDate).getTime();
-
     // Range validation: FR-8.6, PRG-18
-    if (selectedTime < startTime || selectedTime > dueTime) {
+    if (deadline < minDate || deadline > maxDate) {
       setValidationError(
         `Deadline must be between allocation start (${minDate}) and due date (${maxDate}).`,
       );
@@ -77,8 +74,8 @@ function TopicDeadlineModalDialog({
     }
 
     try {
-      // Send as ISO 8601 string clamped to allocation boundaries (prevents exceeding due instant when end-of-day is used)
-      const targetTime = new Date(`${deadline}T23:59:59.000Z`).getTime();
+      // Send as ISO 8601 string clamped to allocation boundaries (IST end-of-day: 23:59:59+05:30)
+      const targetTime = new Date(`${deadline}T23:59:59+05:30`).getTime();
       const dueTime = new Date(allocationDueDate).getTime();
       const startTime = new Date(allocationStartDate).getTime();
 

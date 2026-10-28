@@ -4,6 +4,7 @@ import type {
   CreateSubmissionInput,
   ListMyAssignmentsQuery,
   PaginatedAssignmentsResponse,
+  SubmissionData,
   SubmissionVersion,
 } from '@/types/submissions';
 
@@ -25,6 +26,28 @@ interface DetailApiResponse {
 
 interface SubmitApiResponse {
   data: SubmissionVersion;
+}
+
+/**
+ * Normalizes submissionData across raw API responses and legacy aliases
+ * into the canonical camelCase structure (pdfUrl, zipUrl, linkUrl).
+ */
+function normalizeSubmissionData(raw: Record<string, unknown> | null | undefined): SubmissionData {
+  if (!raw) return {};
+  return {
+    pdfUrl: ((raw.pdfUrl ?? raw.pdf_url ?? null) as string | null) || undefined,
+    zipUrl: ((raw.zipUrl ?? raw.zip_url ?? null) as string | null) || undefined,
+    linkUrl: ((raw.linkUrl ?? raw.link_url ?? raw.url ?? null) as string | null) || undefined,
+  };
+}
+
+function normalizeSubmissionVersion(v: SubmissionVersion): SubmissionVersion {
+  return {
+    ...v,
+    submissionData: normalizeSubmissionData(
+      v.submissionData as unknown as Record<string, unknown> | null | undefined,
+    ),
+  };
 }
 
 export const submissionsService = {
@@ -61,15 +84,32 @@ export const submissionsService = {
       signal ? { signal } : {},
     );
 
-    return response.data;
+    return {
+      ...response.data,
+      versions: (response.data.versions || []).map(normalizeSubmissionVersion),
+    };
   },
 
   async submitAssignment(input: CreateSubmissionInput): Promise<SubmissionVersion> {
+    const payload = {
+      ...input,
+      submissionData: {
+        pdfUrl: input.submissionData.pdfUrl || undefined,
+        zipUrl: input.submissionData.zipUrl || undefined,
+        linkUrl: input.submissionData.linkUrl || undefined,
+        // Backend compatibility: include snake_case and 'url' aliases for legacy backend validators
+        pdf_url: input.submissionData.pdfUrl || undefined,
+        zip_url: input.submissionData.zipUrl || undefined,
+        link_url: input.submissionData.linkUrl || undefined,
+        url: input.submissionData.linkUrl || undefined,
+      },
+    };
+
     const response = await apiClient<SubmitApiResponse>('/submissions', {
       method: 'POST',
-      body: JSON.stringify(input),
+      body: JSON.stringify(payload),
     });
 
-    return response.data;
+    return normalizeSubmissionVersion(response.data);
   },
 };
