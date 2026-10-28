@@ -242,8 +242,8 @@ function AssignCourseModalDialog({
   };
 
   if (result) {
-    const createdAllocations = result.created ?? result.allocations ?? [];
-    const skippedAllocations = result.skipped ?? [];
+    const createdAllocations = result.created;
+    const skippedAllocations = result.skipped;
 
     return (
       <Modal

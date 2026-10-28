@@ -160,6 +160,24 @@ interface ApiResponse<T> {
   readonly message?: string | undefined;
 }
 
+interface RawAllocationsEnvelope {
+  readonly allocations?: readonly CourseAllocation[] | undefined;
+  readonly created?: readonly CourseAllocation[] | undefined;
+  readonly skipped?:
+    ReadonlyArray<{ readonly menteeId: string; readonly reason: string }> | undefined;
+}
+
+function normalizeAllocationsResponse(
+  data: RawAllocationsEnvelope | undefined,
+): CreateAllocationsResponse {
+  const created = data?.created ?? data?.allocations ?? [];
+  return {
+    created,
+    allocations: created,
+    skipped: data?.skipped ?? [],
+  };
+}
+
 const BASE = '/course-allocations';
 
 export const allocationsService = {
@@ -209,24 +227,11 @@ export const allocationsService = {
   },
 
   async createAllocations(payload: CreateAllocationsPayload): Promise<CreateAllocationsResponse> {
-    const res = await apiClient<
-      ApiResponse<{
-        readonly allocations?: readonly CourseAllocation[] | undefined;
-        readonly created?: readonly CourseAllocation[] | undefined;
-        readonly skipped?:
-          ReadonlyArray<{ readonly menteeId: string; readonly reason: string }> | undefined;
-      }>
-    >(BASE, {
+    const res = await apiClient<ApiResponse<RawAllocationsEnvelope>>(BASE, {
       method: 'POST',
       body: JSON.stringify(payload),
     });
-    const created = res.data?.created ?? res.data?.allocations ?? [];
-    const skipped = res.data?.skipped ?? [];
-    return {
-      created,
-      allocations: created,
-      skipped,
-    };
+    return normalizeAllocationsResponse(res.data);
   },
 
   async updateAllocationDates(
@@ -270,24 +275,11 @@ export const allocationsService = {
     id: string,
     payload: AddMenteesPayload,
   ): Promise<CreateAllocationsResponse> {
-    const res = await apiClient<
-      ApiResponse<{
-        readonly allocations?: readonly CourseAllocation[] | undefined;
-        readonly created?: readonly CourseAllocation[] | undefined;
-        readonly skipped?:
-          ReadonlyArray<{ readonly menteeId: string; readonly reason: string }> | undefined;
-      }>
-    >(`${BASE}/${id}/add-mentees`, {
+    const res = await apiClient<ApiResponse<RawAllocationsEnvelope>>(`${BASE}/${id}/add-mentees`, {
       method: 'POST',
       body: JSON.stringify(payload),
     });
-    const created = res.data?.created ?? res.data?.allocations ?? [];
-    const skipped = res.data?.skipped ?? [];
-    return {
-      created,
-      allocations: created,
-      skipped,
-    };
+    return normalizeAllocationsResponse(res.data);
   },
 
   async getAssignmentOverrides(id: string): Promise<readonly AssignmentDueOverride[]> {
