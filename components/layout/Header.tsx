@@ -261,35 +261,8 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
     <>
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-md">
         <div className="flex h-16 w-full items-center justify-between px-6 sm:px-10 lg:px-16">
-          {/* Left Corner: Drawer Toggle + Logo + Product Name */}
+          {/* Left Corner: Logo + Product Name */}
           <div className="flex items-center gap-3">
-            {nav.length > 0 ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsDrawerOpen((prev) => !prev)}
-                className="h-10 w-10 p-0 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                aria-label={isDrawerOpen ? 'Close navigation menu' : 'Open navigation menu'}
-                aria-expanded={isDrawerOpen}
-              >
-                <svg
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-              </Button>
-            ) : null}
-
             <Link href={homeUrl} className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0044D3] text-sm font-bold text-white shadow-sm">
                 TL
@@ -473,8 +446,8 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
           })}
         </nav>
 
-        {/* Bottom: Expand Toggle Button + Profile */}
-        <div className="flex flex-col items-center gap-3">
+        {/* Bottom: Expand Toggle Button */}
+        <div className="flex flex-col items-center">
           <button
             type="button"
             onClick={() => setIsDrawerOpen(true)}
@@ -493,17 +466,6 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
               <path d="M9 3v18" />
             </svg>
           </button>
-          {user ? (
-            <button
-              type="button"
-              onClick={() => setIsProfileOpen((prev) => !prev)}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-xs font-bold text-[#0044D3] shadow-xs transition-transform hover:scale-105"
-              title={`${user.name} (${formattedRole})`}
-              aria-label="User profile"
-            >
-              {userInitials}
-            </button>
-          ) : null}
         </div>
       </aside>
 

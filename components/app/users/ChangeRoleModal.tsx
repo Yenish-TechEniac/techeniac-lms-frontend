@@ -41,11 +41,11 @@ function getDefaultTargetRole(currentRole: UserRole): UserRole {
 function getRoleLabel(role: UserRole): string {
   switch (role) {
     case 'SUPER_ADMIN':
-      return 'Super Admin — Global configuration & policy controller';
+      return 'Super Admin';
     case 'MENTOR':
-      return 'Mentor — Instructional oversight & queue evaluations';
+      return 'Mentor';
     case 'MENTEE':
-      return 'Mentee — Standard track learner & batch submissions';
+      return 'Mentee';
   }
 }
 
@@ -130,28 +130,22 @@ function ChangeRoleModalContent({
         isOpen={true}
         onClose={onClose}
         title="Change Role"
-        description="Reassign operational permissions and instructional scope."
         size="md"
         footer={
-          <div className="flex w-full items-center justify-between">
-            <div className="flex items-center gap-1.5 text-xs text-slate-400">
-              <Span className="font-mono">Audited action</Span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={onClose} disabled={isSubmitting}>
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                form="change-role-form"
-                variant="danger"
-                size="sm"
-                isLoading={isSubmitting}
-                disabled={!canSubmit}
-              >
-                Change Role &rarr;
-              </Button>
-            </div>
+          <div className="flex w-full items-center justify-end gap-3">
+            <Button variant="outline" size="md" onClick={onClose} disabled={isSubmitting}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              form="change-role-form"
+              variant="primary"
+              size="md"
+              isLoading={isSubmitting}
+              disabled={!canSubmit}
+            >
+              Change Role
+            </Button>
           </div>
         }
       >
@@ -165,42 +159,26 @@ function ChangeRoleModalContent({
           {error ? (
             <div
               role="alert"
-              className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700"
+              className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-medium text-red-700"
             >
-              <Span className="font-bold">Error:</Span>
-              <Span>{error}</Span>
+              {error}
             </div>
           ) : null}
 
           {/* User Identity Ribbon */}
-          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-200 font-mono text-xs font-bold text-slate-700">
-                {user.name
-                  .split(' ')
-                  .map((n) => n[0])
-                  .slice(0, 2)
-                  .join('')
-                  .toUpperCase()}
-              </div>
-              <div>
-                <P className="font-semibold text-slate-900">{user.name}</P>
-                <P className="font-mono text-slate-500">{user.email}</P>
-              </div>
+          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <div>
+              <P className="text-sm font-bold text-slate-900">{user.name}</P>
+              <P className="font-mono text-xs text-slate-500">{user.email}</P>
             </div>
-            <div className="text-right">
-              <Span className="block text-[10px] font-bold tracking-wider text-slate-400 uppercase">
-                Current Role
-              </Span>
-              <Span className="mt-0.5 inline-block rounded-full bg-slate-200 px-2 py-0.5 font-mono text-[11px] font-semibold text-slate-800">
-                {currentRole}
-              </Span>
-            </div>
+            <Span className="rounded-full bg-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-800">
+              Current: {getRoleLabel(currentRole)}
+            </Span>
           </div>
 
           {/* Target Role Selector */}
-          <div className="space-y-1">
-            <Label htmlFor="target-role" required>
+          <div className="space-y-1.5">
+            <Label htmlFor="target-role" required className="text-sm font-semibold text-slate-900">
               New Assigned Role
             </Label>
             <Select
@@ -210,6 +188,7 @@ function ChangeRoleModalContent({
                 setNewRole(e.target.value as UserRole);
                 setConfirmed(false);
               }}
+              className="h-11 font-semibold"
             >
               {availableTargetRoles.map((role) => (
                 <option key={role} value={role}>
@@ -222,20 +201,10 @@ function ChangeRoleModalContent({
           {/* Blocked Alert: Active Mentees requiring Wizard */}
           {hasActiveMentees && (
             <div className="rounded-xl border border-amber-300 bg-amber-50 p-3.5 text-xs text-amber-950">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 font-bold text-amber-900">
-                  <Span>⚠️</Span>
-                  <Span>Active Mentees Require Reassignment</Span>
-                </div>
-                <Span className="rounded-full bg-amber-200 px-2 py-0.5 font-mono text-[11px] font-bold text-amber-900">
-                  {roleImpact?.activeMenteesCount} Mentees
-                </Span>
-              </div>
-              <P className="mt-1.5 text-slate-700">
-                This mentor is actively assigned to{' '}
-                <Span className="font-bold">{roleImpact?.activeMenteesCount} mentee(s)</Span>. In
-                accordance with the LMS PRD Section 4 policy, active mentees must be reassigned to
-                other mentors before this role change can be completed.
+              <P className="font-bold text-amber-900">Active Mentees Require Reassignment</P>
+              <P className="mt-1 text-slate-700">
+                This mentor is assigned to {roleImpact?.activeMenteesCount} mentee(s). Please
+                reassign them before changing role.
               </P>
               <div className="mt-3 flex justify-end">
                 <Button
@@ -244,7 +213,7 @@ function ChangeRoleModalContent({
                   size="sm"
                   onClick={() => setIsWizardOpen(true)}
                 >
-                  Open Reassignment Wizard &rarr;
+                  Open Reassignment Wizard
                 </Button>
               </div>
             </div>
@@ -253,60 +222,25 @@ function ChangeRoleModalContent({
           {/* Blocked Alert: Last Super Admin */}
           {isLastSuperAdmin && (
             <div className="rounded-xl border border-red-300 bg-red-50 p-3.5 text-xs text-red-900">
-              <div className="flex items-center gap-2 font-bold text-red-800">
-                <Span>🛑</Span>
-                <Span>Role Demotion Prohibited</Span>
-              </div>
-              <P className="mt-1.5 text-slate-700">
-                This user is the <Span className="font-bold">last active Super Admin</Span> in the
-                system. The last active Super Admin cannot be demoted or converted to another role.
+              <P className="font-bold text-red-800">Role Demotion Prohibited</P>
+              <P className="mt-1 text-slate-700">
+                Cannot demote the last active Super Admin on the platform.
               </P>
             </div>
           )}
 
-          {/* "What will happen" Section */}
-          {!isBlocked && (
-            <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-xs">
-              <div className="flex items-center justify-between">
-                <Span className="font-semibold text-slate-800">What will happen:</Span>
-                {isLoadingImpact ? (
-                  <Span className="animate-pulse text-[11px] text-slate-400">
-                    Assessing live impact...
-                  </Span>
-                ) : null}
-              </div>
-              <ul className="space-y-1.5 text-slate-600">
-                {roleImpact?.impactPoints && roleImpact.impactPoints.length > 0 ? (
-                  roleImpact.impactPoints.map((point) => (
-                    <li key={point} className="flex items-start gap-2">
-                      <Span className="mt-0.5 text-blue-600">&bull;</Span>
-                      <Span>{point}</Span>
-                    </li>
-                  ))
-                ) : (
-                  <>
-                    <li className="flex items-start gap-2">
-                      <Span className="mt-0.5 text-blue-600">&bull;</Span>
-                      <Span>Operational permissions will update immediately upon commit</Span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Span className="mt-0.5 text-blue-600">&bull;</Span>
-                      <Span>Active user sessions will be revoked (tokenVersion incremented)</Span>
-                    </li>
-                  </>
-                )}
-              </ul>
-            </div>
-          )}
-
-          {/* Mandatory Reason Field (FR-2.3) */}
-          <div className="space-y-1">
+          {/* Reason Field */}
+          <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <Label htmlFor="role-reason" required>
-                Reason for Role Change
+              <Label
+                htmlFor="role-reason"
+                required
+                className="text-sm font-semibold text-slate-900"
+              >
+                Reason
               </Label>
               <Span
-                className={`font-mono text-[11px] ${
+                className={`font-mono text-xs ${
                   reason.length < 10 ? 'font-semibold text-amber-800' : 'text-slate-400'
                 }`}
               >
@@ -315,10 +249,11 @@ function ChangeRoleModalContent({
             </div>
             <Textarea
               id="role-reason"
-              rows={3}
+              rows={2}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Provide a mandatory justification for auditing purposes (min 10 characters)..."
+              placeholder="Reason for role change (minimum 10 characters)..."
+              className="text-sm"
             />
           </div>
 
@@ -326,16 +261,14 @@ function ChangeRoleModalContent({
           {!isBlocked && (
             <Label
               htmlFor={confirmCheckboxId}
-              className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 bg-white p-2.5 hover:bg-slate-50"
+              className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-slate-200 bg-white p-3 hover:bg-slate-50"
             >
               <Checkbox
                 id={confirmCheckboxId}
                 checked={confirmed}
                 onChange={(e) => setConfirmed(e.target.checked)}
               />
-              <Span className="text-xs font-medium text-slate-700">
-                I understand and confirm this role change and its operational impacts
-              </Span>
+              <Span className="text-xs font-medium text-slate-700">I confirm this role change</Span>
             </Label>
           )}
         </Form>
