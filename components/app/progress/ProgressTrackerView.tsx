@@ -623,10 +623,6 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
           currentDeadline={deadlineModalTopic.deadline}
           allocationStartDate={drawerProgressData.allocation.startDate}
           allocationDueDate={drawerProgressData.allocation.dueDate}
-          onSuccess={() => {
-            void refetchDrawerProgress();
-            void refetchTrackers();
-          }}
         />
       )}
     </div>

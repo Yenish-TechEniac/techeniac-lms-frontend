@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import React from 'react';
 
+import { LatestSubmissionsWidget } from '@/components/app/dashboard/LatestSubmissionsWidget';
 import { MENTOR_PORTAL_NAV } from '@/components/app/navigation/portal-nav.config';
 import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
 import { Header } from '@/components/layout/Header';
@@ -317,28 +318,42 @@ export default function MentorPage() {
           <MentorMenteesTable isLoading={isLoadingMentees} mentees={mentees} />
         </div>
 
-        {/* Action Areas / Upcoming Modules */}
+        {/* Section 3: Latest Submissions Widget (FR-10.1, REV-01) */}
+        <div className="mb-8">
+          <LatestSubmissionsWidget />
+        </div>
+
+        {/* Action Areas */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           {/* Card 1: Submission Reviews */}
-          <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
+          <Link
+            href="/mentor/submissions"
+            className="group flex flex-col justify-between rounded-xl border border-blue-200 bg-blue-50/50 p-5 shadow-xs transition-all hover:border-blue-300 hover:bg-blue-50 hover:shadow-sm"
+          >
             <div>
               <div className="flex items-center justify-between">
-                <Span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                <Span className="text-[10px] font-bold tracking-wider text-blue-700 uppercase">
                   Grading Queue
                 </Span>
-                <Span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
-                  Module 4
+                <Span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-800">
+                  Active
                 </Span>
               </div>
-              <H3 className="mt-2 text-base font-bold text-slate-900">Assignment Reviews</H3>
+              <H3 className="mt-2 text-base font-bold text-slate-900 transition-colors group-hover:text-blue-700">
+                Submission Queue & Reviews
+              </H3>
               <P className="mt-1 text-xs leading-relaxed text-slate-600">
-                Review code submissions, provide feedback, request resubmissions, and mark grades.
+                Filter and review student submissions, give marks and feedback, or request
+                resubmissions.
               </P>
             </div>
-            <div className="mt-4 border-t border-slate-100 pt-3">
-              <Span className="text-[11px] text-slate-400">Zero pending reviews</Span>
+            <div className="mt-4 flex items-center justify-between border-t border-blue-100 pt-3">
+              <Span className="text-[11px] font-semibold text-blue-700 group-hover:underline">
+                Open Submission Queue &rarr;
+              </Span>
+              <Span className="text-[10px] font-medium text-blue-600">FR-10.1 - 10.7</Span>
             </div>
-          </div>
+          </Link>
 
           {/* Card 3: Curriculum & Course Library */}
           <Link

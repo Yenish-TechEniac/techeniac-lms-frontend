@@ -220,7 +220,7 @@ export const batchesService = {
         name: m.user?.name ?? 'Unknown Mentor',
         email: m.user?.email ?? '',
         memberRole: 'MENTOR' as const,
-        joinedAt: m.createdAt.slice(0, 10),
+        joinedAt: (m.createdAt ? String(m.createdAt) : '').slice(0, 10),
       })),
       ...(res.data.mentees ?? []).map((m) => ({
         id: m.user?.id ?? m.id,
@@ -228,7 +228,7 @@ export const batchesService = {
         email: m.user?.email ?? '',
         memberRole: 'MENTEE' as const,
         mappedToName: m.mappedToUser?.name,
-        joinedAt: m.createdAt.slice(0, 10),
+        joinedAt: (m.createdAt ? String(m.createdAt) : '').slice(0, 10),
       })),
     ];
 
@@ -237,7 +237,7 @@ export const batchesService = {
       fromStatus: h.fromStatus,
       toStatus: h.toStatus,
       changedBy: h.changedByUser?.name ?? 'Super Admin',
-      changedAt: h.createdAt.slice(0, 10),
+      changedAt: (h.createdAt ? String(h.createdAt) : '').slice(0, 10),
       reason: h.reason,
     }));
 
