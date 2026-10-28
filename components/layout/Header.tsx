@@ -362,164 +362,164 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
         </div>
       </header>
 
+      {/* Mobile-Only Backdrop Overlay (< md) */}
+      <div
+        onClick={() => setIsDrawerOpen(false)}
+        className={`backdrop-blur-2xs fixed inset-0 z-40 bg-slate-900/30 transition-opacity duration-300 md:hidden ${
+          isDrawerOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+        }`}
+        aria-hidden="true"
+      />
+
       {/* Side Navigation Drawer / Persistent Sidebar */}
-      {isDrawerOpen ? (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Site Navigation Drawer"
-          className="fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-[#E1E6EC] bg-white shadow-2xl transition-all duration-200 md:shadow-md"
-        >
-          {/* Mobile-Only Backdrop Overlay (< md) */}
-          <div
-            onClick={() => setIsDrawerOpen(false)}
-            className="animate-fade-in backdrop-blur-2xs fixed inset-0 -z-10 bg-slate-900/30 transition-opacity md:hidden"
-            aria-hidden="true"
-          />
-
-          {/* Drawer Header: TL Logo + Techeniac LMS Title + Close Button */}
-          <div className="flex h-16 items-center justify-between border-b border-[#E1E6EC] px-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0044D3] text-sm font-black text-white shadow-xs">
-                TL
-              </div>
-              <Span className="text-base font-bold tracking-tight text-[#111827]">
-                Techeniac LMS
-              </Span>
+      <aside
+        role="dialog"
+        aria-modal="true"
+        aria-label="Site Navigation Drawer"
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-[#E1E6EC] bg-white shadow-2xl transition-transform duration-300 ease-in-out md:shadow-md ${
+          isDrawerOpen ? 'translate-x-0' : 'pointer-events-none -translate-x-full'
+        }`}
+      >
+        {/* Drawer Header: TL Logo + Techeniac LMS Title + Close Button */}
+        <div className="flex h-16 items-center justify-between border-b border-[#E1E6EC] px-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0044D3] text-sm font-black text-white shadow-xs">
+              TL
             </div>
+            <Span className="text-base font-bold tracking-tight text-[#111827]">Techeniac LMS</Span>
+          </div>
 
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsDrawerOpen(false)}
-              className="h-8 w-8 rounded-xl p-0 text-[#667085] hover:bg-[#F6F8FC] hover:text-[#111827]"
-              title="Close sidebar"
-              aria-label="Close navigation sidebar"
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsDrawerOpen(false)}
+            className="h-8 w-8 rounded-xl p-0 text-[#667085] hover:bg-[#F6F8FC] hover:text-[#111827]"
+            title="Close sidebar"
+            aria-label="Close navigation sidebar"
+          >
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
             >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </Button>
+        </div>
+
+        {/* Navigation Category Label (Matching LeadNest Reference) */}
+        <div className="px-5 pt-5 pb-2">
+          <Span className="font-mono text-xs font-bold tracking-wider text-[#667085] uppercase">
+            PORTAL NAVIGATION
+          </Span>
+        </div>
+
+        {/* Navigation List with Generous Spacing (Matching Reference) */}
+        <div className="flex-1 overflow-y-auto px-4 py-2">
+          <nav className="flex flex-col space-y-2" aria-label="Portal Navigation Links">
+            {nav.map((item) => {
+              const isActive = Boolean(item.active);
+              const icon = getNavIcon(item.label);
+
+              if (item.href !== '#') {
+                return (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    onClick={() => {
+                      if (typeof window !== 'undefined' && window.innerWidth < 768) {
+                        setIsDrawerOpen(false);
+                      }
+                    }}
+                    className={`flex items-center gap-3.5 rounded-2xl px-4 py-3.5 text-base transition-all ${
+                      isActive
+                        ? 'bg-blue-50/90 font-semibold text-[#0044D3] shadow-xs'
+                        : 'font-medium text-[#667085] hover:bg-[#F6F8FC] hover:text-[#111827]'
+                    }`}
+                  >
+                    <span className={isActive ? 'text-[#0044D3]' : 'text-[#667085]'}>{icon}</span>
+                    <Span className="flex-1">{item.label}</Span>
+                    {isActive ? <span className="h-2 w-2 rounded-full bg-[#0044D3]" /> : null}
+                  </Link>
+                );
+              }
+
+              return (
+                <div
+                  key={item.label}
+                  className="flex cursor-not-allowed items-center gap-3.5 rounded-2xl px-4 py-3.5 text-base font-medium text-slate-300"
+                >
+                  <span className="text-slate-300">{icon}</span>
+                  <Span className="flex-1">{item.label}</Span>
+                  <Span className="text-xs tracking-wider text-slate-400 uppercase">Soon</Span>
+                </div>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Dock / Collapse Button (Matching Reference Image Dock Icon) */}
+        <div className="flex items-center justify-end px-5 py-2">
+          <button
+            type="button"
+            onClick={() => setIsDrawerOpen(false)}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#E1E6EC] text-[#667085] transition-colors hover:bg-[#F6F8FC] hover:text-[#111827]"
+            title="Collapse sidebar"
+            aria-label="Collapse sidebar"
+          >
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M9 3v18" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Drawer Footer with Logout Action */}
+        <div className="border-t border-[#E1E6EC] bg-[#F6F8FC]/50 p-4">
+          <Button
+            type="button"
+            variant="outline"
+            size="md"
+            onClick={() => {
+              void handleLogout();
+            }}
+            disabled={isLoggingOut}
+            isLoading={isLoggingOut}
+            className="h-11 w-full justify-center gap-2 rounded-full border-[#E1E6EC] bg-white text-sm font-semibold text-[#667085] transition-colors hover:border-red-200 hover:bg-red-50 hover:text-[#D92D20]"
+          >
+            {!isLoggingOut ? (
               <svg
-                className="h-5 w-5"
+                className="h-4 w-4"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
-                aria-hidden="true"
+                strokeWidth="2"
               >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M6 18L18 6M6 6l12 12"
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                 />
               </svg>
-            </Button>
-          </div>
-
-          {/* Navigation Category Label (Matching LeadNest Reference) */}
-          <div className="px-5 pt-5 pb-2">
-            <Span className="font-mono text-xs font-bold tracking-wider text-[#667085] uppercase">
-              PORTAL NAVIGATION
-            </Span>
-          </div>
-
-          {/* Navigation List with Generous Spacing (Matching Reference) */}
-          <div className="flex-1 overflow-y-auto px-4 py-2">
-            <nav className="flex flex-col space-y-2" aria-label="Portal Navigation Links">
-              {nav.map((item) => {
-                const isActive = Boolean(item.active);
-                const icon = getNavIcon(item.label);
-
-                if (item.href !== '#') {
-                  return (
-                    <Link
-                      key={item.label}
-                      href={item.href}
-                      onClick={() => {
-                        if (typeof window !== 'undefined' && window.innerWidth < 768) {
-                          setIsDrawerOpen(false);
-                        }
-                      }}
-                      className={`flex items-center gap-3.5 rounded-2xl px-4 py-3.5 text-base transition-all ${
-                        isActive
-                          ? 'bg-blue-50/90 font-semibold text-[#0044D3] shadow-xs'
-                          : 'font-medium text-[#667085] hover:bg-[#F6F8FC] hover:text-[#111827]'
-                      }`}
-                    >
-                      <span className={isActive ? 'text-[#0044D3]' : 'text-[#667085]'}>{icon}</span>
-                      <Span className="flex-1">{item.label}</Span>
-                      {isActive ? <span className="h-2 w-2 rounded-full bg-[#0044D3]" /> : null}
-                    </Link>
-                  );
-                }
-
-                return (
-                  <div
-                    key={item.label}
-                    className="flex cursor-not-allowed items-center gap-3.5 rounded-2xl px-4 py-3.5 text-base font-medium text-slate-300"
-                  >
-                    <span className="text-slate-300">{icon}</span>
-                    <Span className="flex-1">{item.label}</Span>
-                    <Span className="text-xs tracking-wider text-slate-400 uppercase">Soon</Span>
-                  </div>
-                );
-              })}
-            </nav>
-          </div>
-
-          {/* Dock / Collapse Button (Matching Reference Image Dock Icon) */}
-          <div className="flex items-center justify-end px-5 py-2">
-            <button
-              type="button"
-              onClick={() => setIsDrawerOpen(false)}
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#E1E6EC] text-[#667085] transition-colors hover:bg-[#F6F8FC] hover:text-[#111827]"
-              title="Collapse sidebar"
-              aria-label="Collapse sidebar"
-            >
-              <svg
-                className="h-4 w-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <rect x="3" y="3" width="18" height="18" rx="2" />
-                <path d="M9 3v18" />
-              </svg>
-            </button>
-          </div>
-
-          {/* Drawer Footer with Logout Action */}
-          <div className="border-t border-[#E1E6EC] bg-[#F6F8FC]/50 p-4">
-            <Button
-              type="button"
-              variant="outline"
-              size="md"
-              onClick={() => {
-                void handleLogout();
-              }}
-              disabled={isLoggingOut}
-              isLoading={isLoggingOut}
-              className="h-11 w-full justify-center gap-2 rounded-full border-[#E1E6EC] bg-white text-sm font-semibold text-[#667085] transition-colors hover:border-red-200 hover:bg-red-50 hover:text-[#D92D20]"
-            >
-              {!isLoggingOut ? (
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                  />
-                </svg>
-              ) : null}
-              {isLoggingOut ? 'Signing out...' : 'Sign Out'}
-            </Button>
-          </div>
+            ) : null}
+            {isLoggingOut ? 'Signing out...' : 'Sign Out'}
+          </Button>
         </div>
-      ) : null}
+      </aside>
     </>
   );
 }

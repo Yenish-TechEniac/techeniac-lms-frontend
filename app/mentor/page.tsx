@@ -7,6 +7,7 @@ import { MENTOR_PORTAL_NAV } from '@/components/app/navigation/portal-nav.config
 import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
 import { Header } from '@/components/layout/Header';
 import { Alert } from '@/components/ui/Alert';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { H1, H2, H3, P, Span } from '@/components/ui/Typography';
 import { useMentorBatches, useMentorMentees } from '@/hooks/useBatches';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
@@ -34,8 +35,19 @@ function MentorBatchesTable({
 }>) {
   if (isLoading) {
     return (
-      <div className="p-8 text-center text-xs font-medium text-slate-400">
-        Loading assigned cohorts...
+      <div className="space-y-4 p-6">
+        {[1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="flex items-center justify-between gap-4 border-b border-[#E1E6EC]/60 py-2.5 last:border-0"
+          >
+            <Skeleton className="h-5 w-48" />
+            <Skeleton className="h-5 w-20" />
+            <Skeleton className="h-5 w-24" />
+            <Skeleton className="h-5 w-32" />
+            <Skeleton className="h-5 w-12" />
+          </div>
+        ))}
       </div>
     );
   }
@@ -129,8 +141,17 @@ function MentorMenteesTable({
 }>) {
   if (isLoading) {
     return (
-      <div className="p-8 text-center text-xs font-medium text-slate-400">
-        Loading mapped mentees...
+      <div className="space-y-4 p-6">
+        {[1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="flex items-center justify-between gap-4 border-b border-[#E1E6EC]/60 py-2.5 last:border-0"
+          >
+            <Skeleton className="h-5 w-44" />
+            <Skeleton className="h-5 w-28" />
+            <Skeleton className="h-5 w-32" />
+          </div>
+        ))}
       </div>
     );
   }
@@ -212,7 +233,7 @@ export default function MentorPage() {
       <PortalSessionState
         sessionError={sessionError}
         loadingMessage="Loading mentor workspace..."
-        spinnerColor="border-emerald-600"
+        variant="mentor"
       />
     );
   }
@@ -225,27 +246,23 @@ export default function MentorPage() {
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
         {/* Welcome Section */}
-        <div className="mb-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs sm:p-8">
+        <div className="mb-8 rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                <Span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                <Span>Mentor Workspace Active</Span>
-              </div>
-              <H1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+              <H1 className="text-3xl font-bold tracking-tight text-[#111827] sm:text-4xl">
                 Welcome, {user.name}
               </H1>
-              <P variant="muted" className="mt-1 text-sm text-slate-500">
+              <P className="mt-2 text-base text-[#667085]">
                 Guide your mentees, review progress, and manage assigned cohorts.
               </P>
             </div>
 
-            <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-xs">
-              <Span className="block text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+            <div className="rounded-2xl border border-[#E1E6EC] bg-[#F6F8FC] p-4 text-xs sm:min-w-64">
+              <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
                 Assigned Role
               </Span>
-              <Span className="mt-0.5 block font-bold text-slate-800">{user.role}</Span>
-              <Span className="mt-1 block text-slate-500">{user.email}</Span>
+              <Span className="mt-1 block text-base font-bold text-[#111827]">{user.role}</Span>
+              <Span className="mt-0.5 block text-sm text-[#667085]">{user.email}</Span>
             </div>
           </div>
         </div>
@@ -267,38 +284,38 @@ export default function MentorPage() {
 
         {/* Metric Cards */}
         <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-3">
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
-            <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
+          <div className="rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
+            <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
               Assigned Cohorts
             </Span>
-            <P className="mt-1 font-mono text-3xl font-bold text-slate-900">
+            <P className="mt-1 font-mono text-3xl font-bold text-[#111827]">
               {isLoadingBatches ? '—' : batches.length}
             </P>
           </div>
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
-            <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
+          <div className="rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
+            <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
               Mapped Mentees
             </Span>
-            <P className="mt-1 font-mono text-3xl font-bold text-slate-900">
+            <P className="mt-1 font-mono text-3xl font-bold text-[#111827]">
               {isLoadingMentees ? '—' : mentees.length}
             </P>
           </div>
-          <div className="col-span-2 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs lg:col-span-1">
-            <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
+          <div className="col-span-2 rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs lg:col-span-1">
+            <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
               Live Cohorts
             </Span>
-            <P className="mt-1 font-mono text-3xl font-bold text-emerald-600">
+            <P className="mt-1 font-mono text-3xl font-bold text-[#0044D3]">
               {isLoadingBatches ? '—' : liveBatchesCount}
             </P>
           </div>
         </div>
 
         {/* Section 1: Assigned Batches */}
-        <div className="mb-8 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs">
-          <div className="border-b border-slate-100 p-5">
-            <H2 className="text-base font-bold text-slate-900">Assigned Cohorts</H2>
-            <P variant="muted" className="text-xs text-slate-500">
-              Cohorts you are currently facilitating as an active mentor (FR-4.1)
+        <div className="mb-8 overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
+          <div className="border-b border-[#E1E6EC] p-5">
+            <H2 className="text-base font-bold text-[#111827]">Assigned Cohorts</H2>
+            <P className="mt-0.5 text-xs text-[#667085]">
+              Cohorts you are currently facilitating as an active mentor
             </P>
           </div>
 
@@ -306,67 +323,132 @@ export default function MentorPage() {
         </div>
 
         {/* Section 2: Mapped Mentees */}
-        <div className="mb-8 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs">
-          <div className="border-b border-slate-100 p-5">
-            <H2 className="text-base font-bold text-slate-900">Your Mapped Mentees</H2>
-            <P variant="muted" className="text-xs text-slate-500">
-              Students assigned directly to your mentorship across your cohorts (FR-4.2 - 4.3)
+        <div className="mb-8 overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
+          <div className="border-b border-[#E1E6EC] p-5">
+            <H2 className="text-base font-bold text-[#111827]">Your Mapped Mentees</H2>
+            <P className="mt-0.5 text-xs text-[#667085]">
+              Students assigned directly to your mentorship across your cohorts
             </P>
           </div>
 
           <MentorMenteesTable isLoading={isLoadingMentees} mentees={mentees} />
         </div>
 
-        {/* Action Areas / Upcoming Modules */}
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          {/* Card 1: Submission Reviews */}
-          <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-            <div>
-              <div className="flex items-center justify-between">
-                <Span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
-                  Grading Queue
-                </Span>
-                <Span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
-                  Module 4
-                </Span>
-              </div>
-              <H3 className="mt-2 text-base font-bold text-slate-900">Assignment Reviews</H3>
-              <P className="mt-1 text-xs leading-relaxed text-slate-600">
-                Review code submissions, provide feedback, request resubmissions, and mark grades.
-              </P>
-            </div>
-            <div className="mt-4 border-t border-slate-100 pt-3">
-              <Span className="text-[11px] text-slate-400">Zero pending reviews</Span>
-            </div>
-          </div>
+        {/* Action Areas / Quick Navigation Cards */}
+        <div className="mb-6">
+          <H2 className="text-xl font-bold text-[#111827]">Mentor Workspace Domains</H2>
+          <P className="mt-1 text-sm text-[#667085]">
+            Quick navigation across curriculum, allocations, and mentee progress
+          </P>
+        </div>
 
-          {/* Card 3: Curriculum & Course Library */}
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+          {/* Card 1: Curriculum & Course Library */}
           <Link
             href="/mentor/courses"
-            className="group flex flex-col justify-between rounded-xl border border-emerald-200 bg-emerald-50/50 p-5 shadow-xs transition-all hover:border-emerald-300 hover:bg-emerald-50 hover:shadow-sm"
+            className="group flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs transition-all duration-200 hover:border-[#0044D3] hover:bg-white hover:shadow-md"
           >
             <div>
               <div className="flex items-center justify-between">
-                <Span className="text-[10px] font-bold tracking-wider text-emerald-700 uppercase">
-                  Courses
-                </Span>
-                <Span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
-                  Active
-                </Span>
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#0044D3] transition-colors group-hover:bg-[#0044D3] group-hover:text-white">
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                    />
+                  </svg>
+                </div>
+                <span className="text-[#667085] transition-transform group-hover:translate-x-0.5 group-hover:text-[#0044D3]">
+                  &rarr;
+                </span>
               </div>
-              <H3 className="mt-2 text-base font-bold text-slate-900 transition-colors group-hover:text-emerald-700">
+              <H3 className="mt-4 text-base font-bold text-[#111827] transition-colors group-hover:text-[#0044D3]">
                 Course Library & Builder
               </H3>
-              <P className="mt-1 text-xs leading-relaxed text-slate-600">
-                Course syllabi, outline builder, subtopic lessons, embedded assignments, and live
-                saves.
+              <P className="mt-1.5 text-xs leading-relaxed text-[#667085]">
+                Course syllabi, outline builder, subtopic lessons, and curriculum assignments.
               </P>
             </div>
-            <div className="mt-4 flex items-center justify-between border-t border-emerald-100 pt-3">
-              <Span className="text-[11px] font-semibold text-emerald-700 group-hover:underline">
-                Manage Courses &rarr;
-              </Span>
-              <Span className="text-[10px] font-medium text-emerald-600">Syllabus Builder</Span>
+          </Link>
+
+          {/* Card 2: Course Allocations */}
+          <Link
+            href="/mentor/allocations"
+            className="group flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs transition-all duration-200 hover:border-[#0044D3] hover:bg-white hover:shadow-md"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#0044D3] transition-colors group-hover:bg-[#0044D3] group-hover:text-white">
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                    />
+                  </svg>
+                </div>
+                <span className="text-[#667085] transition-transform group-hover:translate-x-0.5 group-hover:text-[#0044D3]">
+                  &rarr;
+                </span>
+              </div>
+              <H3 className="mt-4 text-base font-bold text-[#111827] transition-colors group-hover:text-[#0044D3]">
+                Course Allocations
+              </H3>
+              <P className="mt-1.5 text-xs leading-relaxed text-[#667085]">
+                Track assigned courses across cohorts, review start and due dates, and manage
+                timelines.
+              </P>
+            </div>
+          </Link>
+
+          {/* Card 3: Progress Tracker */}
+          <Link
+            href="/mentor/progress"
+            className="group flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs transition-all duration-200 hover:border-[#0044D3] hover:bg-white hover:shadow-md"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#0044D3] transition-colors group-hover:bg-[#0044D3] group-hover:text-white">
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                    />
+                  </svg>
+                </div>
+                <span className="text-[#667085] transition-transform group-hover:translate-x-0.5 group-hover:text-[#0044D3]">
+                  &rarr;
+                </span>
+              </div>
+              <H3 className="mt-4 text-base font-bold text-[#111827] transition-colors group-hover:text-[#0044D3]">
+                Learning Progress
+              </H3>
+              <P className="mt-1.5 text-xs leading-relaxed text-[#667085]">
+                Monitor mentee topic completions, check deadlines, and identify overdue milestones.
+              </P>
             </div>
           </Link>
         </div>
