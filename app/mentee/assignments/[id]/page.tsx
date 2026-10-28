@@ -7,6 +7,7 @@ import { MENTEE_ASSIGNMENTS_NAV } from '@/components/app/navigation/portal-nav.c
 import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
 import { AssignmentSubmissionForm } from '@/components/app/submissions/AssignmentSubmissionForm';
 import { SubmissionVersionHistory } from '@/components/app/submissions/SubmissionVersionHistory';
+import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { H1, H2, H3, P, Span } from '@/components/ui/Typography';
@@ -42,7 +43,7 @@ function MenteeAssignmentDetailContent({ params }: Readonly<PageProps>) {
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
       <Header {...MENTEE_ASSIGNMENTS_NAV} />
 
-      <main className="mx-auto w-full max-w-5xl flex-1 space-y-8 px-4 py-8 sm:px-6 lg:px-8">
+      <DashboardContent className="space-y-8">
         {/* Breadcrumb Navigation */}
         <div className="flex items-center gap-2 text-xs text-slate-500">
           <Link href="/mentee/assignments" className="font-medium hover:text-blue-600">
@@ -199,7 +200,7 @@ function MenteeAssignmentDetailContent({ params }: Readonly<PageProps>) {
             <SubmissionVersionHistory versions={versions} maxMarks={assignment.maxMarks} />
           </div>
         )}
-      </main>
+      </DashboardContent>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { Span } from '@/components/ui/Typography';
+import { useSidebar } from '@/context/SidebarContext';
 import { useAuth } from '@/hooks/useAuth';
 
 export interface HeaderNavItem {
@@ -200,8 +201,8 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutError, setLogoutError] = useState<string | null>(null);
 
-  // Side Drawer State (Always on by default)
-  const [isDrawerOpen, setIsDrawerOpen] = useState(true);
+  // Side Drawer State managed by SidebarContext
+  const { isDrawerOpen, setIsDrawerOpen } = useSidebar();
 
   // Profile Popover State
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -235,7 +236,7 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, []);
+  }, [setIsDrawerOpen]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -259,10 +260,14 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
 
   return (
     <>
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-md">
-        <div className="flex h-16 w-full items-center justify-between px-6 sm:px-10 lg:px-16">
-          {/* Left Corner: Logo + Product Name */}
-          <div className="flex items-center gap-3">
+      <header
+        className={`sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-md transition-all duration-300 ${
+          isDrawerOpen ? 'md:ml-72' : 'md:ml-20'
+        }`}
+      >
+        <div className="flex h-16 w-full items-center justify-between px-6 sm:px-8 lg:px-10">
+          {/* Left Corner: Logo + Product Name (Hidden on desktop as sidebar displays it) */}
+          <div className="flex items-center gap-3 md:hidden">
             <Link href={homeUrl} className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0044D3] text-sm font-bold text-white shadow-sm">
                 TL
@@ -274,7 +279,7 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
           </div>
 
           {/* Right Corner: Profile Button (with Hover Popover) + Sign Out Icon */}
-          <div className="relative flex items-center gap-3">
+          <div className="relative ml-auto flex items-center gap-3">
             {logoutError ? (
               <div
                 role="alert"
@@ -387,64 +392,61 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
       {/* Collapsed Side Navigation Rail (Icon Rail matching LeadNest Figma design) */}
       <aside
         aria-label="Collapsed Navigation Rail"
-        className={`fixed inset-y-0 left-0 z-40 hidden w-20 flex-col items-center justify-between border-r border-[#E1E6EC] bg-white py-4 transition-all duration-300 md:flex ${
+        className={`fixed inset-y-0 left-0 z-40 hidden w-20 flex-col items-center justify-between border-r border-[#E1E6EC] bg-white py-5 transition-all duration-300 md:flex ${
           isDrawerOpen
             ? 'pointer-events-none -translate-x-full opacity-0'
             : 'pointer-events-auto translate-x-0 opacity-100 shadow-sm'
         }`}
       >
-        {/* Top: Logo + Separator */}
-        <div className="flex flex-col items-center gap-3">
+        {/* Top: Logo + Navigation Icons grouped at the top */}
+        <div className="flex w-full flex-col items-center gap-6">
           <Link
             href={homeUrl}
-            className="group flex items-center justify-center"
+            className="group flex items-center justify-center pt-1"
             title="Techeniac LMS"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0044D3] text-sm font-black text-white shadow-xs transition-transform group-hover:scale-105">
               TL
             </div>
           </Link>
-          <div className="flex items-center justify-center text-xs tracking-widest text-[#98A2B3] select-none">
-            •••
-          </div>
-        </div>
 
-        {/* Middle: Icon Nav List */}
-        <nav className="flex flex-col items-center space-y-3" aria-label="Quick Navigation">
-          {nav.map((item) => {
-            const isActive = Boolean(item.active);
-            const icon = getNavIcon(item.label);
+          {/* Icon Nav List directly below logo */}
+          <nav className="flex flex-col items-center space-y-3" aria-label="Quick Navigation">
+            {nav.map((item) => {
+              const isActive = Boolean(item.active);
+              const icon = getNavIcon(item.label);
 
-            if (item.href !== '#') {
+              if (item.href !== '#') {
+                return (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    title={item.label}
+                    aria-label={item.label}
+                    className={`flex h-11 w-11 items-center justify-center rounded-full transition-all ${
+                      isActive
+                        ? 'bg-blue-100 text-[#0044D3] shadow-xs'
+                        : 'text-[#667085] hover:bg-[#F6F8FC] hover:text-[#111827]'
+                    }`}
+                  >
+                    {icon}
+                  </Link>
+                );
+              }
+
               return (
-                <Link
+                <div
                   key={item.label}
-                  href={item.href}
-                  title={item.label}
-                  aria-label={item.label}
-                  className={`flex h-11 w-11 items-center justify-center rounded-full transition-all ${
-                    isActive
-                      ? 'bg-blue-100 text-[#0044D3] shadow-xs'
-                      : 'text-[#667085] hover:bg-[#F6F8FC] hover:text-[#111827]'
-                  }`}
+                  title={`${item.label} (Coming Soon)`}
+                  aria-label={`${item.label} (Coming Soon)`}
+                  className="flex h-11 w-11 cursor-not-allowed items-center justify-center rounded-full text-slate-300"
                 >
                   {icon}
-                </Link>
+                </div>
               );
-            }
-
-            return (
-              <div
-                key={item.label}
-                title={`${item.label} (Coming Soon)`}
-                aria-label={`${item.label} (Coming Soon)`}
-                className="flex h-11 w-11 cursor-not-allowed items-center justify-center rounded-full text-slate-300"
-              >
-                {icon}
-              </div>
-            );
-          })}
-        </nav>
+            })}
+          </nav>
+        </div>
 
         {/* Bottom: Expand Toggle Button */}
         <div className="flex flex-col items-center">

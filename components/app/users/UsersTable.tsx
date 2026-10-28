@@ -293,6 +293,7 @@ export function UsersTable() {
     total: totalCount,
     counts,
     isLoading,
+    isFetching,
     error: usersError,
     fetchUsers,
     createUser,
@@ -841,14 +842,15 @@ export function UsersTable() {
             <TableRow>
               <TableHead>User</TableHead>
               <TableHead>Email</TableHead>
+              <TableHead>Role</TableHead>
               <TableHead>Batch</TableHead>
               <TableHead>Mentor</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading && !isInitialLoading ? (
-              // 5 Realistic Skeleton Rows while Querying/Searching
+            {(isLoading || isFetching) && !isInitialLoading ? (
+              // 5 Realistic Skeleton Rows while Querying/Searching/Filtering
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={`skeleton-row-${i}`}>
                   <TableCell>
@@ -861,6 +863,9 @@ export function UsersTable() {
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-4 w-40 rounded-md" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-6 w-20 rounded-lg" />
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-4 w-24 rounded-md" />
@@ -891,6 +896,9 @@ export function UsersTable() {
                     <Skeleton className="h-4 w-40 rounded-md" />
                   </TableCell>
                   <TableCell>
+                    <Skeleton className="h-6 w-20 rounded-lg" />
+                  </TableCell>
+                  <TableCell>
                     <Skeleton className="h-4 w-24 rounded-md" />
                   </TableCell>
                   <TableCell>
@@ -907,7 +915,7 @@ export function UsersTable() {
               ))
             ) : usersError ? (
               <TableRow>
-                <TableCell colSpan={5} className="py-12 text-center">
+                <TableCell colSpan={6} className="py-12 text-center">
                   <div className="mx-auto flex max-w-sm flex-col items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-lg text-red-600">
                       ⚠️
@@ -933,7 +941,7 @@ export function UsersTable() {
               </TableRow>
             ) : users.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="py-12 text-center text-slate-400">
+                <TableCell colSpan={6} className="py-12 text-center text-slate-400">
                   <Span>No users match your filters.</Span>
                 </TableCell>
               </TableRow>
@@ -996,6 +1004,25 @@ export function UsersTable() {
                     {/* Email Column */}
                     <TableCell className="font-mono text-sm text-slate-600 select-all">
                       {u.email}
+                    </TableCell>
+
+                    {/* Role Column */}
+                    <TableCell>
+                      <Span
+                        className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-semibold ${
+                          u.role === 'SUPER_ADMIN'
+                            ? 'bg-purple-50 text-purple-700'
+                            : u.role === 'MENTOR'
+                              ? 'bg-blue-50 text-[#0044D3]'
+                              : 'bg-emerald-50 text-emerald-700'
+                        }`}
+                      >
+                        {u.role === 'SUPER_ADMIN'
+                          ? 'Super Admin'
+                          : u.role === 'MENTOR'
+                            ? 'Mentor'
+                            : 'Mentee'}
+                      </Span>
                     </TableCell>
 
                     {/* Batch Column */}

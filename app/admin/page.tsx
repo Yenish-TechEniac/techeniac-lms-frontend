@@ -5,6 +5,7 @@ import React from 'react';
 
 import { ADMIN_PORTAL_NAV } from '@/components/app/navigation/portal-nav.config';
 import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
+import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 import { H1, H2, H3, P, Span } from '@/components/ui/Typography';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
@@ -26,7 +27,7 @@ export default function AdminPage() {
     <div className="flex min-h-screen flex-col bg-[#F6F8FC] text-[#111827]">
       <Header {...ADMIN_PORTAL_NAV} />
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+      <DashboardContent>
         {/* Welcome Section */}
         <div className="mb-8 rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -80,6 +81,16 @@ export default function AdminPage() {
                     />
                   </svg>
                 </div>
+                <svg
+                  className="h-5 w-5 text-slate-400 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[#0044D3]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
               </div>
               <H3 className="mt-4 text-lg font-bold text-[#111827] transition-colors group-hover:text-[#0044D3]">
                 User Management
@@ -114,6 +125,16 @@ export default function AdminPage() {
                     />
                   </svg>
                 </div>
+                <svg
+                  className="h-5 w-5 text-slate-400 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[#0044D3]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
               </div>
               <H3 className="mt-4 text-lg font-bold text-[#111827] transition-colors group-hover:text-[#0044D3]">
                 Batches & Cohorts
@@ -147,6 +168,16 @@ export default function AdminPage() {
                     />
                   </svg>
                 </div>
+                <svg
+                  className="h-5 w-5 text-slate-400 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[#0044D3]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
               </div>
               <H3 className="mt-4 text-lg font-bold text-[#111827] transition-colors group-hover:text-[#0044D3]">
                 Course Library & Builder
@@ -181,6 +212,16 @@ export default function AdminPage() {
                     />
                   </svg>
                 </div>
+                <svg
+                  className="h-5 w-5 text-slate-400 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[#0044D3]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
               </div>
               <H3 className="mt-4 text-lg font-bold text-[#111827] transition-colors group-hover:text-[#0044D3]">
                 Course Allocations
@@ -192,7 +233,7 @@ export default function AdminPage() {
             </div>
           </Link>
         </div>
-      </main>
+      </DashboardContent>
     </div>
   );
 }
