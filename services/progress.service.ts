@@ -100,6 +100,12 @@ export interface ProgressTrackerFilters {
 interface ApiResponse<T> {
   success: boolean;
   data: T;
+  meta?: {
+    page?: number;
+    limit?: number;
+    total?: number;
+    totalPages?: number;
+  };
   message?: string;
 }
 
@@ -165,22 +171,47 @@ export const progressService = {
     if (filters.limit) params.limit = String(filters.limit);
 
     const res = await apiClient<
-      ApiResponse<{
-        trackers: ProgressTrackerItem[];
-        pagination?: ProgressTrackerPagination;
-      }>
+      ApiResponse<
+        | ProgressTrackerItem[]
+        | {
+            trackers: ProgressTrackerItem[];
+            pagination?: ProgressTrackerPagination;
+          }
+      >
     >('/progress/trackers', {
       method: 'GET',
       params,
     });
 
-    const trackers = res.data?.trackers ?? [];
-    const pagination = res.data?.pagination ?? {
-      page: filters.page ?? 1,
-      limit: filters.limit ?? 20,
-      total: trackers.length,
-      totalPages: Math.ceil(trackers.length / (filters.limit ?? 20)) || 1,
-    };
+    let trackers: ProgressTrackerItem[] = [];
+    let pagination: ProgressTrackerPagination;
+
+    if (Array.isArray(res.data)) {
+      trackers = res.data;
+      const page = res.meta?.page ?? filters.page ?? 1;
+      const limit = res.meta?.limit ?? filters.limit ?? 20;
+      const total = res.meta?.total ?? trackers.length;
+      const totalPages = res.meta?.totalPages ?? (Math.ceil(total / limit) || 1);
+      pagination = { page, limit, total, totalPages };
+    } else if (
+      res.data &&
+      Array.isArray((res.data as { trackers?: ProgressTrackerItem[] }).trackers)
+    ) {
+      trackers = (res.data as { trackers: ProgressTrackerItem[] }).trackers;
+      pagination = (res.data as { pagination?: ProgressTrackerPagination }).pagination ?? {
+        page: filters.page ?? 1,
+        limit: filters.limit ?? 20,
+        total: trackers.length,
+        totalPages: Math.ceil(trackers.length / (filters.limit ?? 20)) || 1,
+      };
+    } else {
+      pagination = {
+        page: filters.page ?? 1,
+        limit: filters.limit ?? 20,
+        total: 0,
+        totalPages: 1,
+      };
+    }
 
     return { trackers, pagination };
   },
