@@ -177,9 +177,19 @@ export function ResetPasswordForm() {
 
           <Link
             href="/login"
-            className="inline-block text-xs font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
+            className="group inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
           >
-            ← Return to sign in
+            <svg
+              className="h-4 w-4 shrink-0 transition-transform group-hover:-translate-x-0.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span className="leading-none">Return to sign in</span>
           </Link>
         </div>
       </div>
@@ -295,7 +305,7 @@ export function ResetPasswordForm() {
           size="lg"
           disabled={isSubmitting}
           isLoading={isSubmitting}
-          className="h-12 w-full rounded-full bg-[#0044D3] text-sm font-bold shadow-md shadow-[#0044D3]/20 hover:bg-[#0036ab]"
+          className="h-12 w-full rounded-full bg-[#0044D3] text-base font-medium shadow-md shadow-[#0044D3]/20 hover:bg-[#0036AB]"
         >
           {isSubmitting ? 'Updating...' : 'Reset Password'}
         </Button>
@@ -304,9 +314,19 @@ export function ResetPasswordForm() {
       <div className="pt-2 text-center">
         <Link
           href="/login"
-          className="text-xs font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
+          className="group inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
         >
-          Cancel and return to sign in
+          <svg
+            className="h-4 w-4 shrink-0 transition-transform group-hover:-translate-x-0.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth="2"
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <span className="leading-none">Cancel and return to sign in</span>
         </Link>
       </div>
     </Form>

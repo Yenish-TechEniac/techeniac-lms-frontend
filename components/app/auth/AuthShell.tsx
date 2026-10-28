@@ -12,58 +12,89 @@ export interface AuthShellProps {
 
 export function AuthShell({ children, title, footerContent }: Readonly<AuthShellProps>) {
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-slate-900/90 p-3 selection:bg-blue-100 selection:text-[#0044D3] sm:p-6 lg:p-10">
-      {/* Centered Main Canvas */}
-      <div className="flex min-h-[660px] w-full max-w-6xl flex-col items-stretch justify-between gap-8 rounded-[32px] border border-slate-200/40 bg-slate-50/95 p-4 shadow-2xl sm:rounded-[36px] sm:p-8 md:flex-row lg:p-10">
-        {/* Left Side: Solid Cobalt Blue Rounded Panel (#0044D3) */}
-        <div className="relative flex min-h-[360px] w-full flex-col justify-between overflow-hidden rounded-[28px] bg-[#0044D3] p-8 text-white shadow-md sm:rounded-[32px] md:min-h-[580px] md:w-1/2">
-          {/* Ambient Subtle Highlights */}
-          <div className="pointer-events-none absolute -top-24 -left-24 h-96 w-96 rounded-full bg-blue-400/20 blur-3xl" />
-          <div className="pointer-events-none absolute right-0 -bottom-20 h-80 w-80 rounded-full bg-blue-900/40 blur-2xl" />
+    <div className="flex min-h-screen w-full flex-col bg-white selection:bg-blue-100 selection:text-[#0044D3] md:flex-row">
+      {/* Mobile-Only Top Brand Bar (< md) */}
+      <div className="flex w-full items-center justify-between border-b border-blue-600 bg-[#0044D3] px-6 py-4 text-white md:hidden">
+        <Link href="/" className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-sm font-black text-[#0044D3] shadow-sm">
+            TL
+          </div>
+          <Span className="text-lg font-bold tracking-tight text-white">Techeniac LMS</Span>
+        </Link>
+        <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-[10px] font-semibold text-blue-100">
+          Enterprise
+        </span>
+      </div>
 
-          {/* Top Brand Tag inside blue card */}
-          <div className="relative z-10 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-base font-bold text-[#0044D3] shadow-sm">
+      {/* Left 50%: Solid Cobalt Blue Full-Height Panel (#0044D3) for Tablet, Laptop, Desktop (>= md) */}
+      <div className="relative hidden w-full flex-col justify-between overflow-hidden bg-[#0044D3] p-8 text-white shadow-xl md:flex md:min-h-screen md:w-1/2 md:p-10 lg:p-16">
+        {/* Ambient Subtle Depth Highlights */}
+        <div className="animate-glow pointer-events-none absolute -top-32 -left-32 h-[500px] w-[500px] rounded-full bg-blue-400/20 blur-3xl" />
+        <div className="pointer-events-none absolute -right-20 -bottom-20 h-96 w-96 animate-pulse rounded-full bg-blue-900/40 blur-2xl" />
+
+        {/* Top Header Brand inside blue panel */}
+        <div className="relative z-10 flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3 transition-transform hover:scale-102">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-base font-extrabold text-[#0044D3] shadow-md">
               TL
             </div>
-            <Span className="text-xl font-bold tracking-tight text-white">Techeniac LMS</Span>
-          </div>
+            <div className="flex flex-col">
+              <Span className="text-xl font-bold tracking-tight text-white">Techeniac LMS</Span>
+              <Span className="font-mono text-[10px] tracking-wider text-blue-200 uppercase">
+                Enterprise Platform
+              </Span>
+            </div>
+          </Link>
+        </div>
 
-          {/* Bottom Trust Tag */}
-          <div className="relative z-10 mt-auto pt-8">
-            <Span className="block text-xs font-medium tracking-wide text-blue-100/80 uppercase">
-              Enterprise Learning Management
-            </Span>
-            <Span className="mt-1 block text-lg font-semibold text-white">
-              Secure Role-Governed Workspace
-            </Span>
+        {/* Center Hero Messaging inside blue panel (visible on tablet, laptop, desktop) */}
+        <div className="relative z-10 my-auto max-w-lg py-10 lg:py-14">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1 text-xs font-semibold text-white backdrop-blur-md">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
+            Active Enterprise Learning Mesh
+          </div>
+          <H1 className="mb-4 text-3xl leading-tight font-extrabold tracking-tight text-white sm:text-4xl lg:text-5xl">
+            Empower Learning, Mentorship & Growth
+          </H1>
+          <Span className="block text-base leading-relaxed text-blue-100 sm:text-lg">
+            A centralized operational system connecting administrators, mentors, and mentees with
+            structured cohorts and real-time tracking.
+          </Span>
+
+          <div className="mt-10 flex items-center gap-8 border-t border-white/15 pt-8 text-xs font-medium text-blue-100">
+            <div className="flex items-center gap-2.5">
+              <span className="h-2 w-2 rounded-full bg-emerald-400" />
+              <span>Multi-Role RBAC</span>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <span className="h-2 w-2 rounded-full bg-white" />
+              <span>Real-Time Auditing</span>
+            </div>
           </div>
         </div>
 
-        {/* Right Side: Form Container */}
-        <div className="flex flex-1 flex-col items-center justify-center py-4">
-          {/* Logo & Product Name Header */}
-          <Link
-            href="/"
-            className="mb-6 flex items-center gap-2.5 transition-transform hover:scale-102"
-          >
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0044D3] text-sm font-bold text-white shadow-sm">
-              TL
-            </div>
-            <Span className="text-xl font-bold tracking-tight text-slate-900">Techeniac LMS</Span>
-          </Link>
+        {/* Bottom Trust Tag */}
+        <div className="relative z-10 flex items-center justify-between pt-6 font-mono text-xs text-blue-200/80">
+          <Span>OPERATIONAL CONSOLE</Span>
+          <Span>v2.0 ENTERPRISE SPEC</Span>
+        </div>
+      </div>
 
-          {/* White Rounded Form Card */}
-          <div className="w-full max-w-[420px] rounded-[28px] border border-slate-100/90 bg-white p-6 shadow-xl shadow-slate-200/50 sm:p-8">
-            <H1 className="mb-6 text-center text-2xl font-bold tracking-tight text-slate-900">
+      {/* Right 50%: Form Workspace Container (Full-height edge-to-edge, fully responsive) */}
+      <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 py-10 sm:px-12 md:min-h-screen md:w-1/2 md:p-12 lg:p-16">
+        <div className="w-full max-w-[420px] lg:max-w-[460px]">
+          {/* Form Title */}
+          <div className="mb-8 text-center sm:text-left">
+            <H1 className="text-2xl font-bold tracking-tight text-[#111827] sm:text-3xl">
               {title}
             </H1>
-
-            {children}
           </div>
 
-          {/* Optional Footer Content */}
-          {footerContent ? <div className="w-full max-w-[420px] pt-4">{footerContent}</div> : null}
+          {/* Main Form Body */}
+          <div className="w-full">{children}</div>
+
+          {/* Optional Footer Content (below the form) */}
+          {footerContent ? <div className="w-full pt-6">{footerContent}</div> : null}
         </div>
       </div>
     </div>

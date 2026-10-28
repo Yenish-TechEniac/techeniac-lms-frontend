@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { H3, P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
-import { extractZodErrors, forgotPasswordSchema } from '@/lib/validation';
+import { emailSchema } from '@/lib/validation';
 
 export function ForgotPasswordForm() {
   const { forgotPassword } = useAuth();
@@ -27,15 +27,21 @@ export function ForgotPasswordForm() {
     setErrors({});
     setResendStatus(null);
 
-    const result = forgotPasswordSchema.safeParse({ email });
-    if (!result.success) {
-      setErrors(extractZodErrors(result.error.issues));
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      setErrors({ email: 'Please enter email' });
+      return;
+    }
+
+    const emailResult = emailSchema.safeParse(trimmedEmail);
+    if (!emailResult.success) {
+      setErrors({ email: 'Invalid email address format' });
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await forgotPassword(email);
+      await forgotPassword(trimmedEmail);
     } catch {
       // Suppress server errors to prevent user account enumeration
     } finally {
@@ -49,7 +55,7 @@ export function ForgotPasswordForm() {
     setIsResending(true);
     setResendStatus(null);
     try {
-      await forgotPassword(email);
+      await forgotPassword(email.trim());
     } catch {
       // Suppress server errors to prevent user account enumeration
     } finally {
@@ -120,12 +126,28 @@ export function ForgotPasswordForm() {
             Use a different email
           </Button>
 
-          <Link
-            href="/login"
-            className="inline-block text-xs font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
-          >
-            ← Return to sign in
-          </Link>
+          <div className="pt-2">
+            <Link
+              href="/login"
+              className="group inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
+            >
+              <svg
+                className="h-4 w-4 shrink-0 transition-transform group-hover:-translate-x-0.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
+              </svg>
+              <span className="leading-none">Return to sign in</span>
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -157,18 +179,28 @@ export function ForgotPasswordForm() {
               d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
             />
           </svg>
-          Username / Email
+          Email Address
         </Label>
         <Input
           id="email"
           type="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Johnadams@gmail.com"
+          onChange={(e) => {
+            const val = e.target.value;
+            setEmail(val);
+            if (errors.email) {
+              setErrors((prev) => {
+                const next = { ...prev };
+                delete next.email;
+                return next;
+              });
+            }
+          }}
+          placeholder="name@company.com"
           autoComplete="email"
           hasError={Boolean(errors.email)}
           disabled={isSubmitting}
-          className="rounded-2xl border-slate-200/90 bg-slate-50 text-sm focus:bg-white"
+          className="rounded-2xl bg-slate-50 text-sm focus:bg-white"
         />
         <FieldError id="email-error" error={errors.email} />
       </div>
@@ -180,7 +212,7 @@ export function ForgotPasswordForm() {
           size="lg"
           disabled={isSubmitting}
           isLoading={isSubmitting}
-          className="h-12 w-full rounded-full bg-[#0044D3] text-sm font-bold shadow-md shadow-[#0044D3]/20 hover:bg-[#0036ab]"
+          className="h-12 w-full rounded-full bg-[#0044D3] text-base font-medium shadow-md shadow-[#0044D3]/20 hover:bg-[#0036AB]"
         >
           {isSubmitting ? 'Sending link...' : 'Send Reset Link'}
         </Button>
@@ -189,9 +221,19 @@ export function ForgotPasswordForm() {
       <div className="pt-3 text-center">
         <Link
           href="/login"
-          className="text-xs font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
+          className="group inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
         >
-          Remember your password? Sign In
+          <svg
+            className="h-4 w-4 shrink-0 transition-transform group-hover:-translate-x-0.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth="2"
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <span className="leading-none">Return to sign in</span>
         </Link>
       </div>
     </Form>
