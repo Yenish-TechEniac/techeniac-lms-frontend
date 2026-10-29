@@ -6,6 +6,7 @@ import React, { Suspense, useState } from 'react';
 import { MENTEE_ASSIGNMENTS_NAV } from '@/components/app/navigation/portal-nav.config';
 import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
 import { MyAssignmentsTable } from '@/components/app/submissions/MyAssignmentsTable';
+import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
 import { H1, P, Span } from '@/components/ui/Typography';
@@ -47,6 +48,7 @@ function MenteeAssignmentsContent() {
       <PortalSessionState
         sessionError={sessionError}
         loadingMessage="Loading student assignments..."
+        variant="mentee"
       />
     );
   }
@@ -55,7 +57,7 @@ function MenteeAssignmentsContent() {
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
       <Header {...MENTEE_ASSIGNMENTS_NAV} />
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+      <DashboardContent>
         {/* Page Header */}
         <div className="mb-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs sm:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -122,7 +124,7 @@ function MenteeAssignmentsContent() {
             },
           }}
         />
-      </main>
+      </DashboardContent>
     </div>
   );
 }
@@ -131,7 +133,11 @@ export default function MenteeAssignmentsPage() {
   return (
     <Suspense
       fallback={
-        <PortalSessionState sessionError={null} loadingMessage="Loading student assignments..." />
+        <PortalSessionState
+          sessionError={null}
+          loadingMessage="Loading student assignments..."
+          variant="mentee"
+        />
       }
     >
       <MenteeAssignmentsContent />

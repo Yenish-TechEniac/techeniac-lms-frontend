@@ -31,21 +31,21 @@ export function getButtonClassName(
 
   const variants: Record<ButtonVariant, string> = {
     primary:
-      'bg-blue-600 text-white shadow-sm shadow-blue-600/25 hover:bg-blue-700 active:bg-blue-800 focus-visible:ring-blue-500',
+      'bg-[#0044D3] text-white shadow-xs hover:bg-[#0039B3] active:bg-[#002FA0] focus-visible:ring-[#0044D3]',
     secondary:
       'bg-slate-100 text-slate-800 hover:bg-slate-200 active:bg-slate-300 focus-visible:ring-slate-400',
     outline:
-      'border border-slate-200 bg-transparent text-slate-700 hover:bg-slate-50 active:bg-slate-100 focus-visible:ring-slate-400',
+      'border border-[#E1E6EC] bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100 focus-visible:ring-slate-400',
     ghost:
       'bg-transparent text-slate-700 hover:bg-slate-100 active:bg-slate-200 focus-visible:ring-slate-400',
     danger:
-      'bg-red-600 text-white shadow-sm shadow-red-600/25 hover:bg-red-700 active:bg-red-800 focus-visible:ring-red-500',
+      'bg-red-600 text-white shadow-xs hover:bg-red-700 active:bg-red-800 focus-visible:ring-red-500',
   };
 
   const sizes: Record<ButtonSize, string> = {
-    sm: 'h-9 px-3 text-xs rounded-lg',
-    md: 'h-11 px-4 text-sm rounded-xl',
-    lg: 'h-12 px-6 text-base rounded-xl',
+    sm: 'h-9 px-4 text-xs rounded-full',
+    md: 'h-11 px-5 text-sm rounded-full',
+    lg: 'h-12 px-7 text-base rounded-full',
   };
 
   const isSize = isButtonSize(sizeOrClassName);

@@ -6,8 +6,19 @@ import React from 'react';
 import { LatestSubmissionsWidget } from '@/components/app/dashboard/LatestSubmissionsWidget';
 import { MENTOR_PORTAL_NAV } from '@/components/app/navigation/portal-nav.config';
 import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
+import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 import { Alert } from '@/components/ui/Alert';
+import { Skeleton } from '@/components/ui/Skeleton';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/Table';
 import { H1, H2, H3, P, Span } from '@/components/ui/Typography';
 import { useMentorBatches, useMentorMentees } from '@/hooks/useBatches';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
@@ -35,8 +46,19 @@ function MentorBatchesTable({
 }>) {
   if (isLoading) {
     return (
-      <div className="p-8 text-center text-xs font-medium text-slate-400">
-        Loading assigned cohorts...
+      <div className="space-y-4 p-6">
+        {[1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="flex items-center justify-between gap-4 border-b border-[#E1E6EC]/60 py-3.5 last:border-0"
+          >
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-6 w-20" />
+            <Skeleton className="h-6 w-24" />
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-6 w-12" />
+          </div>
+        ))}
       </div>
     );
   }
@@ -44,8 +66,8 @@ function MentorBatchesTable({
   if (batches.length === 0) {
     return (
       <div className="p-8 text-center">
-        <P className="text-sm font-semibold text-slate-700">No Cohorts Assigned</P>
-        <P className="mt-1 text-xs text-slate-500">
+        <P className="text-base font-semibold text-[#111827]">No Cohorts Assigned</P>
+        <P className="mt-1 text-sm text-[#667085]">
           You are not currently assigned to any cohorts. An administrator will assign you to an
           upcoming batch.
         </P>
@@ -54,63 +76,48 @@ function MentorBatchesTable({
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full border-collapse text-left text-sm">
-        <thead className="border-b border-slate-100 bg-slate-50/80 text-xs font-semibold tracking-wider text-slate-500 uppercase">
-          <tr>
-            <th className="px-6 py-3">
-              <Span>Batch Name</Span>
-            </th>
-            <th className="px-4 py-3">
-              <Span>Code</Span>
-            </th>
-            <th className="px-4 py-3">
-              <Span>Status</Span>
-            </th>
-            <th className="px-4 py-3">
-              <Span>Schedule Window</Span>
-            </th>
-            <th className="px-6 py-3 text-right">
-              <Span>Mentees</Span>
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100">
+    <TableContainer className="rounded-none border-0 shadow-none">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Batch Name</TableHead>
+            <TableHead>Code</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Schedule Window</TableHead>
+            <TableHead className="text-right">Mentees</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {batches.map((batch) => (
-            <tr key={batch.id} className="transition-colors hover:bg-slate-50/50">
-              <td className="px-6 py-4">
-                <P className="font-semibold text-slate-900">{batch.name}</P>
-                {batch.description ? (
-                  <P className="text-xs text-slate-500">{batch.description}</P>
-                ) : null}
-              </td>
-              <td className="px-4 py-4 font-mono text-xs font-bold text-slate-700">
-                <Span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5">
+            <TableRow key={batch.id}>
+              <TableCell>
+                <P className="text-base font-bold text-[#111827]">{batch.name}</P>
+              </TableCell>
+              <TableCell>
+                <Span className="inline-block rounded-md border border-[#E1E6EC] bg-[#F6F8FC] px-2.5 py-1 font-mono text-xs font-bold text-[#111827]">
                   {batch.code}
                 </Span>
-              </td>
-              <td className="px-4 py-4">
+              </TableCell>
+              <TableCell>
                 <Span
-                  className={`inline-block rounded-full px-2.5 py-0.5 font-mono text-[11px] font-bold uppercase ${getBatchStatusBadgeClass(
+                  className={`inline-block rounded-full px-3 py-1 font-mono text-xs font-bold uppercase ${getBatchStatusBadgeClass(
                     batch.status,
                   )}`}
                 >
                   {batch.status}
                 </Span>
-              </td>
-              <td className="px-4 py-4 font-mono text-xs text-slate-600">
-                <Span>
-                  {batch.startDate} → {batch.endDate}
-                </Span>
-              </td>
-              <td className="px-6 py-4 text-right font-mono text-xs font-bold text-slate-800">
-                <Span>{batch.menteesCount ?? 0}</Span>
-              </td>
-            </tr>
+              </TableCell>
+              <TableCell className="font-mono text-sm text-[#667085]">
+                {batch.startDate} → {batch.endDate}
+              </TableCell>
+              <TableCell className="text-right font-mono text-base font-bold text-[#111827]">
+                {batch.menteesCount ?? 0}
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
-    </div>
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 }
 
@@ -130,8 +137,17 @@ function MentorMenteesTable({
 }>) {
   if (isLoading) {
     return (
-      <div className="p-8 text-center text-xs font-medium text-slate-400">
-        Loading mapped mentees...
+      <div className="space-y-4 p-6">
+        {[1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="flex items-center justify-between gap-4 border-b border-[#E1E6EC]/60 py-3.5 last:border-0"
+          >
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-6 w-28" />
+            <Skeleton className="h-6 w-32" />
+          </div>
+        ))}
       </div>
     );
   }
@@ -139,57 +155,50 @@ function MentorMenteesTable({
   if (mentees.length === 0) {
     return (
       <div className="p-8 text-center">
-        <P className="text-sm font-semibold text-slate-700">No Mentees Mapped</P>
-        <P className="mt-1 text-xs text-slate-500">
-          You do not currently have any mentees mapped to you. Mentees will appear here once mapped
-          by administrators.
+        <P className="text-base font-semibold text-[#111827]">No Mentees Mapped</P>
+        <P className="mt-1 text-sm text-[#667085]">
+          You do not currently have any mentees mapped to you.
         </P>
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full border-collapse text-left text-sm">
-        <thead className="border-b border-slate-100 bg-slate-50/80 text-xs font-semibold tracking-wider text-slate-500 uppercase">
-          <tr>
-            <th className="px-6 py-3">
-              <Span>Mentee</Span>
-            </th>
-            <th className="px-4 py-3">
-              <Span>Cohort</Span>
-            </th>
-            <th className="px-4 py-3">
-              <Span>Cohort Code</Span>
-            </th>
-            <th className="px-6 py-3 text-right">
-              <Span>Mapped Since</Span>
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100">
+    <TableContainer className="rounded-none border-0 shadow-none">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Mentee</TableHead>
+            <TableHead>Cohort</TableHead>
+            <TableHead>Cohort Code</TableHead>
+            <TableHead className="text-right">Mapped Since</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {mentees.map((mentee) => (
-            <tr key={mentee.id} className="transition-colors hover:bg-slate-50/50">
-              <td className="px-6 py-4">
-                <P className="font-semibold text-slate-900">{mentee.name ?? 'Assigned Mentee'}</P>
-                <P className="font-mono text-xs text-slate-500">{mentee.email ?? '—'}</P>
-              </td>
-              <td className="px-4 py-4 text-xs font-medium text-slate-800">
-                <Span>{mentee.batchName ?? 'Batch'}</Span>
-              </td>
-              <td className="px-4 py-4 font-mono text-xs text-slate-600">
-                <Span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5">
+            <TableRow key={mentee.id}>
+              <TableCell>
+                <P className="text-base font-bold text-[#111827]">
+                  {mentee.name ?? 'Assigned Mentee'}
+                </P>
+                <P className="font-mono text-xs text-[#667085]">{mentee.email ?? '—'}</P>
+              </TableCell>
+              <TableCell className="text-sm font-semibold text-[#111827]">
+                {mentee.batchName ?? 'Batch'}
+              </TableCell>
+              <TableCell>
+                <Span className="inline-block rounded-md border border-[#E1E6EC] bg-[#F6F8FC] px-2.5 py-1 font-mono text-xs font-bold text-[#111827]">
                   {mentee.batchCode ?? '—'}
                 </Span>
-              </td>
-              <td className="px-6 py-4 text-right font-mono text-xs text-slate-500">
-                <Span>{mentee.startDate?.slice(0, 10) ?? '—'}</Span>
-              </td>
-            </tr>
+              </TableCell>
+              <TableCell className="text-right font-mono text-sm text-[#667085]">
+                {mentee.startDate?.slice(0, 10) ?? '—'}
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
-    </div>
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 }
 
@@ -213,7 +222,7 @@ export default function MentorPage() {
       <PortalSessionState
         sessionError={sessionError}
         loadingMessage="Loading mentor workspace..."
-        spinnerColor="border-emerald-600"
+        variant="mentor"
       />
     );
   }
@@ -224,29 +233,22 @@ export default function MentorPage() {
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
       <Header {...MENTOR_PORTAL_NAV} />
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+      <DashboardContent>
         {/* Welcome Section */}
-        <div className="mb-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs sm:p-8">
+        <div className="mb-8 rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                <Span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                <Span>Mentor Workspace Active</Span>
-              </div>
-              <H1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+              <H1 className="text-3xl font-bold tracking-tight text-[#111827] sm:text-4xl">
                 Welcome, {user.name}
               </H1>
-              <P variant="muted" className="mt-1 text-sm text-slate-500">
-                Guide your mentees, review progress, and manage assigned cohorts.
-              </P>
+              <P className="mt-1 text-sm font-medium text-[#667085]">{user.email}</P>
             </div>
 
-            <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-xs">
-              <Span className="block text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+            <div className="rounded-2xl border border-[#E1E6EC] bg-[#F6F8FC] p-4 text-xs sm:min-w-64">
+              <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
                 Assigned Role
               </Span>
-              <Span className="mt-0.5 block font-bold text-slate-800">{user.role}</Span>
-              <Span className="mt-1 block text-slate-500">{user.email}</Span>
+              <Span className="mt-1 block text-base font-bold text-[#111827]">{user.role}</Span>
             </div>
           </div>
         </div>
@@ -268,51 +270,45 @@ export default function MentorPage() {
 
         {/* Metric Cards */}
         <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-3">
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
-            <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
+          <div className="rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
+            <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
               Assigned Cohorts
             </Span>
-            <P className="mt-1 font-mono text-3xl font-bold text-slate-900">
+            <P className="mt-1 font-mono text-3xl font-bold text-[#111827]">
               {isLoadingBatches ? '—' : batches.length}
             </P>
           </div>
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
-            <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
+          <div className="rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
+            <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
               Mapped Mentees
             </Span>
-            <P className="mt-1 font-mono text-3xl font-bold text-slate-900">
+            <P className="mt-1 font-mono text-3xl font-bold text-[#111827]">
               {isLoadingMentees ? '—' : mentees.length}
             </P>
           </div>
-          <div className="col-span-2 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs lg:col-span-1">
-            <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
+          <div className="col-span-2 rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs lg:col-span-1">
+            <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
               Live Cohorts
             </Span>
-            <P className="mt-1 font-mono text-3xl font-bold text-emerald-600">
+            <P className="mt-1 font-mono text-3xl font-bold text-[#0044D3]">
               {isLoadingBatches ? '—' : liveBatchesCount}
             </P>
           </div>
         </div>
 
         {/* Section 1: Assigned Batches */}
-        <div className="mb-8 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs">
-          <div className="border-b border-slate-100 p-5">
-            <H2 className="text-base font-bold text-slate-900">Assigned Cohorts</H2>
-            <P variant="muted" className="text-xs text-slate-500">
-              Cohorts you are currently facilitating as an active mentor (FR-4.1)
-            </P>
+        <div className="mb-8 overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
+          <div className="border-b border-[#E1E6EC] p-5">
+            <H2 className="text-xl font-bold text-[#111827]">Assigned Cohorts</H2>
           </div>
 
           <MentorBatchesTable isLoading={isLoadingBatches} batches={batches} />
         </div>
 
         {/* Section 2: Mapped Mentees */}
-        <div className="mb-8 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs">
-          <div className="border-b border-slate-100 p-5">
-            <H2 className="text-base font-bold text-slate-900">Your Mapped Mentees</H2>
-            <P variant="muted" className="text-xs text-slate-500">
-              Students assigned directly to your mentorship across your cohorts (FR-4.2 - 4.3)
-            </P>
+        <div className="mb-8 overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
+          <div className="border-b border-[#E1E6EC] p-5">
+            <H2 className="text-xl font-bold text-[#111827]">Your Mapped Mentees</H2>
           </div>
 
           <MentorMenteesTable isLoading={isLoadingMentees} mentees={mentees} />
@@ -354,37 +350,93 @@ export default function MentorPage() {
             </div>
           </Link>
 
-          {/* Card 3: Curriculum & Course Library */}
+          {/* Card 2: Course Allocations */}
           <Link
-            href="/mentor/courses"
-            className="group flex flex-col justify-between rounded-xl border border-emerald-200 bg-emerald-50/50 p-5 shadow-xs transition-all hover:border-emerald-300 hover:bg-emerald-50 hover:shadow-sm"
+            href="/mentor/allocations"
+            className="group flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs transition-all duration-200 hover:border-[#0044D3] hover:bg-white hover:shadow-md"
           >
             <div>
               <div className="flex items-center justify-between">
-                <Span className="text-[10px] font-bold tracking-wider text-emerald-700 uppercase">
-                  Courses
-                </Span>
-                <Span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
-                  Active
-                </Span>
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#0044D3] transition-colors group-hover:bg-[#0044D3] group-hover:text-white">
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                    />
+                  </svg>
+                </div>
+                <svg
+                  className="h-5 w-5 text-slate-400 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[#0044D3]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
               </div>
-              <H3 className="mt-2 text-base font-bold text-slate-900 transition-colors group-hover:text-emerald-700">
-                Course Library & Builder
+              <H3 className="mt-4 text-base font-bold text-[#111827] transition-colors group-hover:text-[#0044D3]">
+                Course Allocations
               </H3>
-              <P className="mt-1 text-xs leading-relaxed text-slate-600">
-                Course syllabi, outline builder, subtopic lessons, embedded assignments, and live
-                saves.
+              <P className="mt-1 text-xs text-[#667085]">
+                Manage mentee track assignments, pacing, and completion schedules.
               </P>
             </div>
-            <div className="mt-4 flex items-center justify-between border-t border-emerald-100 pt-3">
-              <Span className="text-[11px] font-semibold text-emerald-700 group-hover:underline">
-                Manage Courses &rarr;
-              </Span>
-              <Span className="text-[10px] font-medium text-emerald-600">Syllabus Builder</Span>
+          </Link>
+
+          {/* Card 3: Progress Tracker */}
+          <Link
+            href="/mentor/progress"
+            className="group flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs transition-all duration-200 hover:border-[#0044D3] hover:bg-white hover:shadow-md"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#0044D3] transition-colors group-hover:bg-[#0044D3] group-hover:text-white">
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                    />
+                  </svg>
+                </div>
+                <svg
+                  className="h-5 w-5 text-slate-400 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[#0044D3]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+              <H3 className="mt-4 text-base font-bold text-[#111827] transition-colors group-hover:text-[#0044D3]">
+                Learning Progress
+              </H3>
+              <P className="mt-1 text-xs text-[#667085]">
+                Monitor real-time cohort milestone velocity and individual mentee pace.
+              </P>
             </div>
           </Link>
         </div>
-      </main>
+      </DashboardContent>
     </div>
   );
 }

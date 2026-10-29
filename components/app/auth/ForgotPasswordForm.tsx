@@ -27,7 +27,8 @@ export function ForgotPasswordForm() {
     setErrors({});
     setResendStatus(null);
 
-    const result = forgotPasswordSchema.safeParse({ email });
+    const trimmedEmail = email.trim();
+    const result = forgotPasswordSchema.safeParse({ email: trimmedEmail });
     if (!result.success) {
       setErrors(extractZodErrors(result.error.issues));
       return;
@@ -35,7 +36,7 @@ export function ForgotPasswordForm() {
 
     setIsSubmitting(true);
     try {
-      await forgotPassword(email);
+      await forgotPassword(trimmedEmail);
     } catch {
       // Suppress server errors to prevent user account enumeration
     } finally {
@@ -49,7 +50,7 @@ export function ForgotPasswordForm() {
     setIsResending(true);
     setResendStatus(null);
     try {
-      await forgotPassword(email);
+      await forgotPassword(email.trim());
     } catch {
       // Suppress server errors to prevent user account enumeration
     } finally {
@@ -61,7 +62,7 @@ export function ForgotPasswordForm() {
   if (isDispatched) {
     return (
       <div className="space-y-6 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-blue-600">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-[#0044D3]">
           <svg
             className="h-8 w-8"
             fill="none"
@@ -82,13 +83,12 @@ export function ForgotPasswordForm() {
           <H3 className="mb-1 text-xl font-bold text-slate-900">Check your email</H3>
           <P className="text-sm leading-relaxed text-slate-600">
             We sent a password reset link to{' '}
-            <Span className="font-semibold text-slate-800">{email}</Span>. The link is valid for 30
-            minutes.
+            <Span className="font-semibold text-slate-800">{email}</Span>.
           </P>
         </div>
 
         {resendStatus ? (
-          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-2.5 text-xs font-medium text-emerald-800">
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-2.5 text-xs font-medium text-emerald-800">
             {resendStatus}
           </div>
         ) : null}
@@ -103,7 +103,7 @@ export function ForgotPasswordForm() {
             }}
             disabled={isResending}
             isLoading={isResending}
-            className="w-full"
+            className="h-11 w-full rounded-full text-sm font-semibold"
           >
             {isResending ? 'Resending link...' : 'Resend link'}
           </Button>
@@ -116,17 +116,33 @@ export function ForgotPasswordForm() {
               setIsDispatched(false);
               setResendStatus(null);
             }}
-            className="w-full"
+            className="h-11 w-full rounded-full text-sm font-semibold"
           >
             Use a different email
           </Button>
 
-          <Link
-            href="/login"
-            className="inline-block text-sm font-semibold text-blue-600 transition-colors hover:text-blue-700"
-          >
-            ← Return to sign in
-          </Link>
+          <div className="pt-2">
+            <Link
+              href="/login"
+              className="group inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
+            >
+              <svg
+                className="h-4 w-4 shrink-0 transition-transform group-hover:-translate-x-0.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
+              </svg>
+              <Span className="leading-none">Return to sign in</Span>
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -134,43 +150,85 @@ export function ForgotPasswordForm() {
 
   return (
     <Form
-      className="space-y-5"
+      className="space-y-4"
       onSubmit={(e) => {
         void handleSubmit(e);
       }}
     >
       <div className="space-y-1.5">
-        <Label htmlFor="email">Work Email</Label>
+        <Label
+          htmlFor="email"
+          className="flex items-center gap-2 text-sm font-semibold text-[#111827]"
+        >
+          <svg
+            className="h-4 w-4 text-[#0044D3]"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.8"
+              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+            />
+          </svg>
+          Email Address
+        </Label>
         <Input
           id="email"
           type="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@company.com"
+          onChange={(e) => {
+            const val = e.target.value;
+            setEmail(val);
+            if (errors.email) {
+              setErrors((prev) => {
+                const next = { ...prev };
+                delete next.email;
+                return next;
+              });
+            }
+          }}
+          placeholder="name@company.com"
           autoComplete="email"
           hasError={Boolean(errors.email)}
           disabled={isSubmitting}
+          className="rounded-2xl bg-slate-50 text-base focus:bg-white"
         />
         <FieldError id="email-error" error={errors.email} />
       </div>
 
-      <Button
-        type="submit"
-        variant="primary"
-        size="lg"
-        disabled={isSubmitting}
-        isLoading={isSubmitting}
-        className="w-full"
-      >
-        {isSubmitting ? 'Sending link...' : 'Send reset link'}
-      </Button>
+      <div className="pt-2">
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          disabled={isSubmitting}
+          isLoading={isSubmitting}
+          className="h-12 w-full rounded-full bg-[#0044D3] text-base font-medium shadow-md shadow-[#0044D3]/20 hover:bg-[#0036AB]"
+        >
+          {isSubmitting ? 'Sending link...' : 'Send Reset Link'}
+        </Button>
+      </div>
 
-      <div className="pt-4 text-center">
+      <div className="pt-3 text-center">
         <Link
           href="/login"
-          className="text-sm font-semibold text-blue-600 transition-colors hover:text-blue-700"
+          className="group inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
         >
-          ← Back to sign in
+          <svg
+            className="h-4 w-4 shrink-0 transition-transform group-hover:-translate-x-0.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth="2"
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <Span className="leading-none">Return to sign in</Span>
         </Link>
       </div>
     </Form>

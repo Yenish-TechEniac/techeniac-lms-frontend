@@ -195,11 +195,13 @@ export const batchesService = {
         };
         mentors: Array<{
           id: string;
+          userId?: string;
           user?: ApiBatchMemberUser;
           createdAt: string;
         }>;
         mentees: Array<{
           id: string;
+          userId?: string;
           user?: ApiBatchMemberUser;
           mappedToUser?: { id: string; name: string };
           createdAt: string;
@@ -220,14 +222,14 @@ export const batchesService = {
     const b = res.data.batch;
     const members: ApiBatchMemberItem[] = [
       ...(res.data.mentors ?? []).map((m) => ({
-        id: m.user?.id ?? m.id,
+        id: m.user?.id ?? m.userId ?? m.id,
         name: m.user?.name ?? 'Unknown Mentor',
         email: m.user?.email ?? '',
         memberRole: 'MENTOR' as const,
         joinedAt: toDateOnly(m.createdAt),
       })),
       ...(res.data.mentees ?? []).map((m) => ({
-        id: m.user?.id ?? m.id,
+        id: m.user?.id ?? m.userId ?? m.id,
         name: m.user?.name ?? 'Unknown Mentee',
         email: m.user?.email ?? '',
         memberRole: 'MENTEE' as const,

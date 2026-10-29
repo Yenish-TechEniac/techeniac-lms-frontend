@@ -8,7 +8,7 @@ import { Form } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Select } from '@/components/ui/Select';
-import { H2, P, Span } from '@/components/ui/Typography';
+import { H2, Span } from '@/components/ui/Typography';
 import { useDialogAccessibility } from '@/hooks/useDialogAccessibility';
 import { type CreateUserFormData, createUserSchema, type UserRole } from '@/lib/validation';
 
@@ -46,8 +46,8 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setErrors({});
 
     const result = createUserSchema.safeParse({ name, email, role });
@@ -81,126 +81,137 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/40 backdrop-blur-sm transition-opacity">
+    <div
+      onClick={handleResetAndClose}
+      className="fixed inset-0 z-50 flex justify-end bg-slate-900/40 backdrop-blur-xs transition-opacity"
+      aria-label="Create user drawer overlay"
+    >
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="create-user-drawer-title"
-        className="flex h-full w-full max-w-md flex-col justify-between border-l border-slate-200 bg-white shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+        className="flex h-full w-full max-w-lg flex-col justify-between border-l border-[#E1E6EC] bg-[#F6F8FC] shadow-2xl transition-transform duration-300 ease-in-out"
       >
-        <div className="overflow-y-auto p-6">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-5">
-            <div>
-              <H2 id="create-user-drawer-title" className="text-xl font-bold text-slate-900">
-                Create New User
-              </H2>
-              <P className="mt-0.5 text-xs text-slate-500">
-                Add an individual to the platform. An invitation email will be queued.
-              </P>
-            </div>
+        {/* Top Header Bar with Save Changes and Circular Close Button */}
+        <div className="flex items-center justify-between border-b border-[#E1E6EC] bg-white px-6 py-4">
+          <H2 id="create-user-drawer-title" className="text-xl font-bold text-slate-900">
+            Create User
+          </H2>
+          <div className="flex items-center gap-3">
             <Button
               type="button"
               variant="ghost"
               size="sm"
               onClick={handleResetAndClose}
               aria-label="Close drawer"
-              className="h-8 w-8 p-0 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              className="h-9 w-9 rounded-full border border-slate-200 p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
             >
               ✕
             </Button>
           </div>
-
-          {errors.general ? (
-            <div
-              role="alert"
-              className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-medium text-red-700"
-            >
-              {errors.general}
-            </div>
-          ) : null}
-
-          <Form
-            id="create-user-form"
-            onSubmit={(e) => {
-              void handleSubmit(e);
-            }}
-            className="space-y-5 pt-6"
-          >
-            {/* Full Name */}
-            <div className="space-y-1.5">
-              <Label htmlFor="create-name" required>
-                Full Name
-              </Label>
-              <Input
-                ref={nameInputRef}
-                id="create-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Kaustav Sen"
-                hasError={Boolean(errors.name)}
-                disabled={isSubmitting}
-              />
-              <FieldError error={errors.name} />
-            </div>
-
-            {/* Email Address */}
-            <div className="space-y-1.5">
-              <Label htmlFor="create-email" required>
-                Email Address
-              </Label>
-              <Input
-                id="create-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="kaustav@techeniac.com"
-                hasError={Boolean(errors.email)}
-                disabled={isSubmitting}
-              />
-              <FieldError error={errors.email} />
-            </div>
-
-            {/* Initial Role */}
-            <div className="space-y-1.5">
-              <Label htmlFor="create-role" required>
-                Initial Role Assignment
-              </Label>
-              <Select
-                id="create-role"
-                value={role}
-                onChange={(e) => setRole(e.target.value as UserRole)}
-                disabled={isSubmitting}
-                className="h-12 cursor-pointer"
-              >
-                <option value="MENTEE">Mentee (Learner)</option>
-                <option value="MENTOR">Mentor (Instructor / Reviewer)</option>
-                <option value="SUPER_ADMIN">Super Admin (System Administrator)</option>
-              </Select>
-            </div>
-
-            {/* PRD Rule Notice */}
-            <div className="rounded-xl border border-blue-200 bg-blue-50 p-3.5 text-xs leading-relaxed text-blue-900">
-              <Span className="mb-0.5 block font-semibold">PRD Compliance (FR-2.1):</Span>
-              Only name, email, and initial role are collected. A temporary password will be
-              generated and dispatched via the queued invite email.
-            </div>
-          </Form>
         </div>
 
-        <div className="flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50 p-6">
-          <Button variant="outline" size="sm" onClick={handleResetAndClose} disabled={isSubmitting}>
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            form="create-user-form"
-            variant="primary"
-            size="sm"
-            isLoading={isSubmitting}
-          >
-            Create & Send Invite
-          </Button>
+        {/* Scrollable Body: LeadNest Form Card */}
+        <div className="flex-1 space-y-4 overflow-y-auto p-6">
+          <div className="rounded-3xl border border-[#E1E6EC] bg-white p-7 shadow-xs">
+            {errors.general ? (
+              <div
+                role="alert"
+                className="mb-5 rounded-2xl border border-red-200 bg-red-50 p-3.5 text-sm font-medium text-red-700"
+              >
+                {errors.general}
+              </div>
+            ) : null}
+
+            <Form
+              id="create-user-form"
+              onSubmit={(e) => {
+                void handleSubmit(e);
+              }}
+              className="space-y-5"
+            >
+              {/* Full Name */}
+              <div className="space-y-2">
+                <Label
+                  htmlFor="create-name"
+                  className="flex items-center gap-1 text-base font-semibold text-slate-900"
+                >
+                  <Span>Full Name</Span>
+                  <Span className="text-base font-bold text-red-500">*</Span>
+                </Label>
+                <Input
+                  ref={nameInputRef}
+                  id="create-name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Kaustav Sen"
+                  hasError={Boolean(errors.name)}
+                  disabled={isSubmitting}
+                  className="h-12 rounded-full border border-slate-200 bg-[#F6F8FC] px-5 text-base font-medium transition-all focus:border-[#0044D3] focus:bg-white"
+                />
+                <FieldError error={errors.name} />
+              </div>
+
+              {/* Email Address */}
+              <div className="space-y-2">
+                <Label
+                  htmlFor="create-email"
+                  className="flex items-center gap-1 text-base font-semibold text-slate-900"
+                >
+                  <Span>Email Address</Span>
+                  <Span className="text-base font-bold text-red-500">*</Span>
+                </Label>
+                <Input
+                  id="create-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="kaustav@techeniac.com"
+                  hasError={Boolean(errors.email)}
+                  disabled={isSubmitting}
+                  className="h-12 rounded-full border border-slate-200 bg-[#F6F8FC] px-5 font-mono text-base font-medium transition-all focus:border-[#0044D3] focus:bg-white"
+                />
+                <FieldError error={errors.email} />
+              </div>
+
+              {/* Role Assignment */}
+              <div className="space-y-2 rounded-2xl border border-slate-100 bg-[#F6F8FC] p-4">
+                <Label
+                  htmlFor="create-role"
+                  className="flex items-center gap-1 text-base font-semibold text-slate-900"
+                >
+                  <Span>Role Assignment</Span>
+                  <Span className="text-base font-bold text-red-500">*</Span>
+                </Label>
+                <Select
+                  id="create-role"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value as UserRole)}
+                  disabled={isSubmitting}
+                  className="h-12 rounded-full border border-[#E1E6EC] bg-white px-5 text-base font-semibold shadow-2xs focus:border-[#0044D3]"
+                >
+                  <option value="MENTEE">Mentee (Learner)</option>
+                  <option value="MENTOR">Mentor (Instructor / Reviewer)</option>
+                  <option value="SUPER_ADMIN">Super Admin (Administrator)</option>
+                </Select>
+              </div>
+
+              {/* Bottom Full-Width Pill Action Button */}
+              <div className="pt-4">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="lg"
+                  isLoading={isSubmitting}
+                  className="h-12 w-full rounded-full bg-[#0044D3] text-base font-bold text-white shadow-md hover:bg-[#0039B3]"
+                >
+                  Create User & Send Invite
+                </Button>
+              </div>
+            </Form>
+          </div>
         </div>
       </div>
     </div>
