@@ -390,28 +390,6 @@ export function UsersTable() {
     handleFilterUpdate({ search: val, page: 1 });
   };
 
-  const hasActiveFilters = Boolean(
-    search.trim() !== '' ||
-    selectedRole !== 'ALL' ||
-    selectedStatus !== 'ALL' ||
-    selectedMentor !== 'ALL',
-  );
-
-  const handleResetFilters = () => {
-    setSearch('');
-    setSelectedRole('ALL');
-    setSelectedStatus('ALL');
-    setSelectedMentor('ALL');
-    setPage(1);
-    handleFilterUpdate({
-      role: 'ALL',
-      status: 'ALL',
-      search: '',
-      mentorId: 'ALL',
-      page: 1,
-    });
-  };
-
   const handleCreateUser = async (data: CreateUserFormData) => {
     try {
       const newUser = await createUser(data);
@@ -568,8 +546,8 @@ export function UsersTable() {
         }
       />
 
-      {/* Role-Based Navigation Tabs (LeadNest style per PRD Section 5.1) */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-[#E1E6EC] pb-3">
+      {/* Role-Based Navigation Tabs (LeadNest Grip Style per reference) */}
+      <div className="flex items-center gap-6 overflow-x-auto border-b border-[#E1E6EC]">
         {[
           { label: 'All Users', value: 'ALL' },
           { label: 'Mentees', value: 'MENTEE' },
@@ -593,22 +571,35 @@ export function UsersTable() {
                   handleFilterUpdate({ role: tab.value, page: 1 });
                 }
               }}
-              className={`h-9 rounded-full px-4 text-xs font-semibold transition-all ${
+              className={`-mb-px flex h-auto items-center gap-2 rounded-none border-b-2 px-1 pt-2 pb-3 text-sm transition-colors hover:bg-transparent ${
                 isActive
-                  ? 'bg-[#0044D3] text-white shadow-xs hover:bg-[#0039B3]'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  ? 'border-[#0044D3] font-bold text-[#0044D3]'
+                  : 'border-transparent font-medium text-[#667085] hover:text-slate-900'
               }`}
             >
-              {tab.label}
+              <svg
+                className={`h-3.5 w-3.5 shrink-0 ${isActive ? 'text-[#0044D3]' : 'text-[#98A2B3]'}`}
+                viewBox="0 0 16 16"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <circle cx="5" cy="3" r="1.5" />
+                <circle cx="11" cy="3" r="1.5" />
+                <circle cx="5" cy="8" r="1.5" />
+                <circle cx="11" cy="8" r="1.5" />
+                <circle cx="5" cy="13" r="1.5" />
+                <circle cx="11" cy="13" r="1.5" />
+              </svg>
+              <Span>{tab.label}</Span>
             </Button>
           );
         })}
       </div>
 
-      {/* Filter Row with Half-Size Search, Filter Dropdowns Alongside, and Always-Present Reset Button */}
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#E1E6EC] bg-white p-3.5 shadow-xs">
-        {/* Half-size Search Input */}
-        <div className="w-full shrink-0 sm:w-72 md:w-80">
+      {/* Filter Row with Expanded Search Input and Filter Dropdowns at the End */}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#E1E6EC] bg-white p-3.5 shadow-xs">
+        {/* Expanded Search Input */}
+        <div className="w-full flex-1 sm:max-w-md lg:max-w-lg">
           <UserSearchInput
             value={search}
             onSearchChange={handleSearchChange}
@@ -616,80 +607,56 @@ export function UsersTable() {
           />
         </div>
 
-        {/* Status Dropdown beside Search Bar */}
-        <div className="w-40 shrink-0 sm:w-44">
-          <Select
-            value={selectedStatus}
-            onChange={(e) => {
-              const val = e.target.value;
-              setSelectedStatus(val);
-              setPage(1);
-              handleFilterUpdate({ status: val, page: 1 });
-            }}
-            aria-label="Filter by status"
-            className="h-11 text-xs font-semibold"
-          >
-            <option value="ALL">All Statuses</option>
-            <option value="ACTIVE">Active Users</option>
-            <option value="INACTIVE">Inactive Users</option>
-          </Select>
-        </div>
-
-        {/* Mentor Dropdown beside Status Dropdown */}
-        {!isMentorFilterDisabled && (selectedRole === 'ALL' || selectedRole === 'MENTEE') ? (
-          <div className="w-40 shrink-0 sm:w-48">
+        {/* Filter Dropdowns at the End */}
+        <div className="flex w-full flex-wrap items-center gap-3 sm:ml-auto sm:w-auto">
+          {/* Status Dropdown */}
+          <div className="w-full sm:w-44">
             <Select
-              value={selectedMentor}
+              value={selectedStatus}
               onChange={(e) => {
                 const val = e.target.value;
-                setSelectedMentor(val);
+                setSelectedStatus(val);
                 setPage(1);
-                handleFilterUpdate({ mentorId: val, page: 1 });
+                handleFilterUpdate({ status: val, page: 1 });
               }}
-              aria-label="Filter by assigned mentor"
+              aria-label="Filter by status"
               className="h-11 text-xs font-semibold"
             >
-              <option value="ALL">All Mentors</option>
-              {selectedMentor !== 'ALL' && !mentors.some((m) => m.id === selectedMentor) && (
-                <option value={selectedMentor} disabled>
-                  Selected Mentor
-                </option>
-              )}
-              {mentors.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name}
-                </option>
-              ))}
+              <option value="ALL">All Statuses</option>
+              <option value="ACTIVE">Active Users</option>
+              <option value="INACTIVE">Inactive Users</option>
             </Select>
           </div>
-        ) : null}
 
-        {/* Reset Filter Button - ALWAYS present: enabled if any filter active, disabled otherwise */}
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={!hasActiveFilters}
-          onClick={handleResetFilters}
-          className={`h-11 shrink-0 gap-1.5 rounded-full px-4 text-xs font-semibold transition-all ${
-            hasActiveFilters
-              ? 'border-blue-200 bg-blue-50 text-[#0044D3] shadow-2xs hover:bg-blue-100'
-              : 'cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400 opacity-60'
-          }`}
-          aria-label="Reset all search and role filters"
-        >
-          <svg
-            className="h-3.5 w-3.5 shrink-0"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth="2"
-            aria-hidden="true"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-          <Span>Reset Filters</Span>
-        </Button>
+          {/* Mentor Dropdown */}
+          {!isMentorFilterDisabled && (selectedRole === 'ALL' || selectedRole === 'MENTEE') ? (
+            <div className="w-full sm:w-48">
+              <Select
+                value={selectedMentor}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSelectedMentor(val);
+                  setPage(1);
+                  handleFilterUpdate({ mentorId: val, page: 1 });
+                }}
+                aria-label="Filter by assigned mentor"
+                className="h-11 text-xs font-semibold"
+              >
+                <option value="ALL">All Mentors</option>
+                {selectedMentor !== 'ALL' && !mentors.some((m) => m.id === selectedMentor) && (
+                  <option value={selectedMentor} disabled>
+                    Selected Mentor
+                  </option>
+                )}
+                {mentors.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          ) : null}
+        </div>
       </div>
 
       {/* Users Data Table */}
