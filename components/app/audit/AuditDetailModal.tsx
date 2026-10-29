@@ -41,6 +41,21 @@ export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalPro
     second: '2-digit',
   });
 
+  const val = entry.newValue ?? entry.oldValue;
+  let targetName: string | null = null;
+  if (val && typeof val === 'object') {
+    if (typeof val.name === 'string' && val.name.trim()) targetName = val.name;
+    else if (typeof val.title === 'string' && val.title.trim()) targetName = val.title;
+    else if (typeof val.email === 'string' && val.email.trim()) targetName = val.email;
+    else if (typeof val.batchName === 'string' && val.batchName.trim()) targetName = val.batchName;
+    else if (typeof val.courseTitle === 'string' && val.courseTitle.trim())
+      targetName = val.courseTitle;
+    else if (typeof val.assignmentTitle === 'string' && val.assignmentTitle.trim())
+      targetName = val.assignmentTitle;
+    else if (typeof val.menteeName === 'string' && val.menteeName.trim())
+      targetName = val.menteeName;
+  }
+
   return (
     <div
       role="dialog"
@@ -92,15 +107,10 @@ export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalPro
               <Span className="block text-[10px] font-bold text-slate-400 uppercase">
                 Target Entity
               </Span>
-              <Span className="font-medium text-slate-800">{entry.entity}</Span>
-              <Span className="block font-mono text-[10px] text-slate-500">
-                #
-                {entry.entityId
-                  ? entry.entityId.length > 12
-                    ? `${entry.entityId.slice(0, 8)}...`
-                    : entry.entityId
-                  : 'N/A'}
-              </Span>
+              <Span className="font-semibold text-slate-800">{targetName || entry.entity}</Span>
+              {targetName ? (
+                <Span className="block text-[10px] text-slate-500">{entry.entity}</Span>
+              ) : null}
             </div>
             <div>
               <Span className="block text-[10px] font-bold text-slate-400 uppercase">

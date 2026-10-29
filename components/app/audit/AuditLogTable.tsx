@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Select } from '@/components/ui/Select';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { Code, H2, P, Span } from '@/components/ui/Typography';
+import { H2, P, Span } from '@/components/ui/Typography';
 import { useAuditLogs } from '@/hooks/useAuditLogs';
 import type { ApiAuditItem, AuditType } from '@/lib/validation';
 import type { AuditQueryFilters } from '@/services/audit.service';
@@ -46,6 +46,41 @@ function getAuditTypeBadge(type: AuditType): string {
     default:
       return 'bg-slate-100 text-slate-800 border-slate-200';
   }
+}
+
+function getTargetEntityInfo(item: ApiAuditItem): {
+  name: string;
+  type: string;
+} {
+  const val = item.newValue ?? item.oldValue;
+  const friendlyType = item.entity.replace(/([a-z])([A-Z])/g, '$1 $2');
+
+  let resolvedName: string | null = null;
+  if (val && typeof val === 'object') {
+    if (typeof val.name === 'string' && val.name.trim()) resolvedName = val.name;
+    else if (typeof val.title === 'string' && val.title.trim()) resolvedName = val.title;
+    else if (typeof val.email === 'string' && val.email.trim()) resolvedName = val.email;
+    else if (typeof val.batchName === 'string' && val.batchName.trim())
+      resolvedName = val.batchName;
+    else if (typeof val.courseTitle === 'string' && val.courseTitle.trim())
+      resolvedName = val.courseTitle;
+    else if (typeof val.assignmentTitle === 'string' && val.assignmentTitle.trim())
+      resolvedName = val.assignmentTitle;
+    else if (typeof val.menteeName === 'string' && val.menteeName.trim())
+      resolvedName = val.menteeName;
+  }
+
+  if (resolvedName) {
+    return {
+      name: resolvedName,
+      type: friendlyType,
+    };
+  }
+
+  return {
+    name: friendlyType,
+    type: '',
+  };
 }
 
 export function AuditLogTable() {
@@ -335,14 +370,17 @@ export function AuditLogTable() {
 
                       {/* Target Entity */}
                       <td className="px-5 py-3.5 whitespace-nowrap text-slate-700">
-                        <div className="flex items-center gap-1.5">
-                          <Span className="font-medium">{item.entity}</Span>
-                          {item.entityId ? (
-                            <Code className="text-[10px] text-slate-500">
-                              #{item.entityId.slice(0, 6)}
-                            </Code>
-                          ) : null}
-                        </div>
+                        {(() => {
+                          const target = getTargetEntityInfo(item);
+                          return (
+                            <div className="flex flex-col">
+                              <Span className="font-semibold text-slate-900">{target.name}</Span>
+                              {target.type ? (
+                                <Span className="text-[10px] text-slate-500">{target.type}</Span>
+                              ) : null}
+                            </div>
+                          );
+                        })()}
                       </td>
 
                       {/* Payload Preview */}
