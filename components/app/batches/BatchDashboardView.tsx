@@ -17,6 +17,15 @@ import { PortalSessionState } from '@/components/app/navigation/PortalSessionSta
 import { Modal } from '@/components/patterns/Modal';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/Table';
 import { H1, H3, P, Span } from '@/components/ui/Typography';
 import { useBatchAllocations } from '@/hooks/useAllocations';
 import {
@@ -399,7 +408,20 @@ export function BatchDashboardView({
               onClick={() => setIsStatusOpen(true)}
               className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-bold text-white shadow-sm shadow-blue-600/25 hover:bg-blue-700"
             >
-              <Span>🔄</Span>
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
               <Span>Change Status</Span>
             </Button>
           </div>
@@ -506,7 +528,20 @@ export function BatchDashboardView({
                   onClick={() => setMapMenteeTarget({ isOpen: true, targetMentee: null })}
                   className="flex items-center gap-1.5 border-blue-200 text-blue-700 hover:bg-blue-50"
                 >
-                  <Span>🔗</Span>
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                    />
+                  </svg>
                   <Span>Map Mentees ({unmappedMentees.length})</Span>
                 </Button>
               ) : null}
@@ -527,7 +562,20 @@ export function BatchDashboardView({
 
           {batch.members.length === 0 ? (
             <div className="p-12 text-center">
-              <Span className="text-3xl">👥</Span>
+              <svg
+                className="mx-auto h-10 w-10 text-slate-300"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                />
+              </svg>
               <H3 className="mt-3 text-sm font-bold text-slate-800">No Members Enrolled Yet</H3>
               <P className="mx-auto mt-1 max-w-sm text-xs text-slate-500">
                 {isArchived
@@ -536,46 +584,36 @@ export function BatchDashboardView({
               </P>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-left text-sm">
-                <thead className="border-b border-slate-200/80 bg-slate-50/80 text-xs font-semibold tracking-wider text-slate-500 uppercase">
-                  <tr>
-                    <th className="px-6 py-3">
-                      <Span>Member</Span>
-                    </th>
-                    <th className="px-4 py-3">
-                      <Span>Role</Span>
-                    </th>
-                    <th className="px-4 py-3">
-                      <Span>Mapped Mentor</Span>
-                    </th>
-                    <th className="px-4 py-3">
-                      <Span>Enrolled Date</Span>
-                    </th>
-                    <th className="px-6 py-3 text-right">
-                      <Span>Actions</Span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
+            <TableContainer>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Member</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Mapped Mentor</TableHead>
+                    <TableHead>Enrolled Date</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {batch.members.map((m) => (
-                    <tr key={m.id} className="transition-colors hover:bg-slate-50/60">
-                      <td className="px-6 py-3.5">
+                    <TableRow key={m.id} className="transition-colors hover:bg-slate-50/60">
+                      <TableCell>
                         <P className="font-semibold text-slate-900">{m.name}</P>
                         <P className="font-mono text-xs text-slate-500">{m.email}</P>
-                      </td>
-                      <td className="px-4 py-3.5">
+                      </TableCell>
+                      <TableCell>
                         <Span
-                          className={`inline-block rounded-full px-2 py-0.5 font-mono text-[11px] font-bold ${
+                          className={`inline-block rounded-full px-2.5 py-0.5 font-mono text-[11px] font-bold ${
                             m.memberRole === 'MENTOR'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-emerald-100 text-emerald-800'
+                              ? 'border border-blue-200 bg-blue-50 text-blue-700'
+                              : 'border border-emerald-200 bg-emerald-50 text-emerald-700'
                           }`}
                         >
                           {m.memberRole}
                         </Span>
-                      </td>
-                      <td className="px-4 py-3.5 text-xs text-slate-700">
+                      </TableCell>
+                      <TableCell className="text-xs text-slate-700">
                         <MentorMappingCell
                           member={m}
                           isArchived={isArchived}
@@ -583,11 +621,11 @@ export function BatchDashboardView({
                             setMapMenteeTarget({ isOpen: true, targetMentee: target })
                           }
                         />
-                      </td>
-                      <td className="px-4 py-3.5 font-mono text-xs text-slate-500">
+                      </TableCell>
+                      <TableCell className="font-mono text-xs text-slate-500">
                         <Span>{m.joinedAt}</Span>
-                      </td>
-                      <td className="px-6 py-3.5 text-right">
+                      </TableCell>
+                      <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
                           {m.memberRole === 'MENTEE' && !isArchived ? (
                             <Button
@@ -602,7 +640,7 @@ export function BatchDashboardView({
                                   currentBatchName: batch.name,
                                 })
                               }
-                              className="px-2.5 py-1 text-xs text-blue-600 hover:bg-blue-50"
+                              className="px-2.5 py-1 text-xs text-[#0044D3] hover:bg-blue-50"
                             >
                               Transfer
                             </Button>
@@ -621,12 +659,12 @@ export function BatchDashboardView({
                             Remove
                           </Button>
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                </TableBody>
+              </Table>
+            </TableContainer>
           )}
         </div>
       ) : null}
@@ -649,61 +687,64 @@ export function BatchDashboardView({
             </Button>
           </div>
           {batch.courses.length > 0 ? (
-            <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-left text-sm">
-                  <thead className="border-b border-slate-200/80 bg-slate-50/80 text-xs font-semibold tracking-wider text-slate-500 uppercase">
-                    <tr>
-                      <th className="px-6 py-3">
-                        <Span>Course</Span>
-                      </th>
-                      <th className="px-4 py-3">
-                        <Span>Target Due Date</Span>
-                      </th>
-                      <th className="px-4 py-3">
-                        <Span>Cohort Avg Progress</Span>
-                      </th>
-                      <th className="px-6 py-3 text-right">
-                        <Span>Status</Span>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {batch.courses.map((c) => (
-                      <tr key={c.id} className="transition-colors hover:bg-slate-50/60">
-                        <td className="px-6 py-4 font-semibold text-slate-900">
-                          <Span>{c.title}</Span>
-                        </td>
-                        <td className="px-4 py-4 font-mono text-xs text-slate-600">
-                          <Span>{c.dueDate}</Span>
-                        </td>
-                        <td className="px-4 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="h-2 w-32 overflow-hidden rounded-full bg-slate-100">
-                              <div
-                                className="h-full rounded-full bg-blue-600"
-                                style={{ width: `${c.averageProgress}%` }}
-                              />
-                            </div>
-                            <Span className="font-mono text-xs font-bold text-slate-700">
-                              {c.averageProgress}%
-                            </Span>
+            <TableContainer>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Course</TableHead>
+                    <TableHead>Target Due Date</TableHead>
+                    <TableHead>Cohort Avg Progress</TableHead>
+                    <TableHead className="text-right">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {batch.courses.map((c) => (
+                    <TableRow key={c.id} className="transition-colors hover:bg-slate-50/60">
+                      <TableCell className="font-semibold text-slate-900">
+                        <Span>{c.title}</Span>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs text-slate-600">
+                        <Span>{c.dueDate}</Span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="h-2 w-32 overflow-hidden rounded-full bg-slate-100">
+                            <div
+                              className="h-full rounded-full bg-[#0044D3]"
+                              style={{ width: `${c.averageProgress}%` }}
+                            />
                           </div>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <Span className="rounded-full bg-emerald-50 px-2.5 py-0.5 font-mono text-xs font-medium text-emerald-700">
-                            {c.status}
+                          <Span className="font-mono text-xs font-semibold text-slate-700">
+                            {c.averageProgress}%
                           </Span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 font-mono text-xs font-medium text-emerald-700">
+                          {c.status}
+                        </Span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
           ) : (
             <div className="rounded-2xl border border-slate-200/80 bg-white p-12 text-center shadow-sm">
-              <Span className="text-3xl">📚</Span>
+              <svg
+                className="mx-auto h-10 w-10 text-slate-300"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                />
+              </svg>
               <H3 className="mt-3 text-base font-bold text-slate-900">No Courses Allocated Yet</H3>
               <P className="mx-auto mt-1 max-w-md text-xs text-slate-500">
                 Allocate active curriculum from the Course Library to this cohort.
