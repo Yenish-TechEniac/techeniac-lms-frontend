@@ -274,24 +274,25 @@ export function User360Shell({ userId }: User360ShellProps) {
           {TABS.map((tab, index) => {
             const isActive = activeTab === tab.key;
             return (
-              <button
+              <Button
                 key={tab.key}
                 id={`tab-${tab.key}`}
                 type="button"
+                variant="ghost"
                 role="tab"
                 aria-selected={isActive}
                 aria-controls={`panel-${tab.key}`}
                 tabIndex={isActive ? 0 : -1}
                 onClick={() => handleTabChange(tab.key)}
                 onKeyDown={(e) => handleTabKeyDown(e, index)}
-                className={`border-b-2 px-1 py-3 text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none ${
+                className={`rounded-none border-b-2 px-1 py-3 text-sm font-medium whitespace-nowrap transition-colors hover:bg-transparent focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none ${
                   isActive
                     ? 'border-blue-600 text-blue-600'
                     : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
                 }`}
               >
                 {tab.label}
-              </button>
+              </Button>
             );
           })}
         </nav>
