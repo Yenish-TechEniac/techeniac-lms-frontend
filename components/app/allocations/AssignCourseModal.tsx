@@ -80,6 +80,7 @@ function AssignCourseModalDialog({
   const { data: batchDetailData } = useBatchDetail(selectedBatchId);
   const { users: allUsers, isLoading: isLoadingUsers } = useUsers(
     targetType === 'INDIVIDUAL_MENTEES' ? { role: 'MENTEE', status: 'ACTIVE', limit: 100 } : {},
+    { enabled: targetType === 'INDIVIDUAL_MENTEES' && userRole === 'SUPER_ADMIN' },
   );
 
   const createMutation = useCreateAllocationsMutation();
