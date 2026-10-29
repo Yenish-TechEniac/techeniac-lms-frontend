@@ -546,7 +546,7 @@ export function UsersTable() {
         }
       />
 
-      {/* Role-Based Navigation Tabs (LeadNest Grip Style per reference) */}
+      {/* Role-Based Navigation Tabs */}
       <div className="flex items-center gap-6 overflow-x-auto border-b border-[#E1E6EC]">
         {[
           { label: 'All Users', value: 'ALL' },
@@ -571,25 +571,12 @@ export function UsersTable() {
                   handleFilterUpdate({ role: tab.value, page: 1 });
                 }
               }}
-              className={`-mb-px flex h-auto items-center gap-2 rounded-none border-b-2 px-1 pt-2 pb-3 text-sm transition-colors hover:bg-transparent ${
+              className={`-mb-px flex h-auto items-center rounded-none border-b-2 px-1 pt-2 pb-3 text-sm transition-colors hover:bg-transparent ${
                 isActive
                   ? 'border-[#0044D3] font-bold text-[#0044D3]'
                   : 'border-transparent font-medium text-[#667085] hover:text-slate-900'
               }`}
             >
-              <svg
-                className={`h-3.5 w-3.5 shrink-0 ${isActive ? 'text-[#0044D3]' : 'text-[#98A2B3]'}`}
-                viewBox="0 0 16 16"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <circle cx="5" cy="3" r="1.5" />
-                <circle cx="11" cy="3" r="1.5" />
-                <circle cx="5" cy="8" r="1.5" />
-                <circle cx="11" cy="8" r="1.5" />
-                <circle cx="5" cy="13" r="1.5" />
-                <circle cx="11" cy="13" r="1.5" />
-              </svg>
               <Span>{tab.label}</Span>
             </Button>
           );

@@ -5,225 +5,266 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { CreateBatchModal } from '@/components/app/batches/CreateBatchModal';
 import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
+import { PageHeader } from '@/components/patterns/PageHeader';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
-import { Checkbox } from '@/components/ui/Checkbox';
 import { Input } from '@/components/ui/Input';
-import { H1, P, Span } from '@/components/ui/Typography';
+import { Skeleton } from '@/components/ui/Skeleton';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/Table';
+import { Span } from '@/components/ui/Typography';
 import { useBatchesList } from '@/hooks/useBatches';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 import { type BatchStatus } from '@/lib/validation';
 import type { ApiBatchSummary } from '@/services/batches.service';
 
-const ALL_BATCH_STATUSES: readonly BatchStatus[] = [
-  'DRAFT',
-  'LIVE',
-  'ON_HOLD',
-  'COMPLETED',
-  'ARCHIVED',
+const BATCH_STATUS_TABS: ReadonlyArray<{ label: string; value: 'ALL' | BatchStatus }> = [
+  { label: 'All Batches', value: 'ALL' },
+  { label: 'Live', value: 'LIVE' },
+  { label: 'Draft', value: 'DRAFT' },
+  { label: 'On Hold', value: 'ON_HOLD' },
+  { label: 'Completed', value: 'COMPLETED' },
+  { label: 'Archived', value: 'ARCHIVED' },
 ];
 
 function getStatusBadge(status: BatchStatus): string {
   switch (status) {
     case 'LIVE':
-      return 'bg-emerald-50 text-emerald-800 border-emerald-300 font-bold';
+      return 'bg-emerald-50 text-emerald-700 border-emerald-200';
     case 'DRAFT':
-      return 'bg-blue-50 text-blue-800 border-blue-300 font-bold';
+      return 'bg-blue-50 text-blue-700 border-blue-200';
     case 'ON_HOLD':
-      return 'bg-amber-50 text-amber-800 border-amber-300 font-bold';
+      return 'bg-amber-50 text-amber-700 border-amber-200';
     case 'COMPLETED':
-      return 'bg-slate-100 text-slate-800 border-slate-300 font-bold';
+      return 'bg-slate-100 text-slate-700 border-slate-200';
     case 'ARCHIVED':
-      return 'bg-slate-200 text-slate-600 border-slate-300 font-bold';
+      return 'bg-slate-50 text-slate-500 border-slate-200';
     default:
-      return 'bg-slate-100 text-slate-700';
+      return 'bg-slate-100 text-slate-700 border-slate-200';
   }
 }
 
-function BatchStatusFilterDropdown({
-  selectedStatuses,
-  onChange,
-}: Readonly<{
-  selectedStatuses: BatchStatus[];
-  onChange: (statuses: BatchStatus[]) => void;
-}>) {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+interface BatchSearchInputProps {
+  value: string;
+  onSearchChange: (val: string) => void;
+  isSearching?: boolean;
+}
+
+function BatchSearchInput({
+  value,
+  onSearchChange,
+  isSearching = false,
+}: Readonly<BatchSearchInputProps>) {
+  const [localValue, setLocalValue] = useState(value);
+  const [prevValue, setPrevValue] = useState(value);
+  const [isDebouncing, setIsDebouncing] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const onSearchChangeRef = useRef(onSearchChange);
 
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen]);
+    onSearchChangeRef.current = onSearchChange;
+  });
 
-  const toggleStatus = (status: BatchStatus) => {
-    if (selectedStatuses.includes(status)) {
-      onChange(selectedStatuses.filter((s) => s !== status));
-    } else {
-      onChange([...selectedStatuses, status]);
+  if (prevValue !== value) {
+    setPrevValue(value);
+    setLocalValue(value);
+  }
+
+  useEffect(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
     }
+  }, [value]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const nextVal = e.target.value;
+    setLocalValue(nextVal);
+    setIsDebouncing(true);
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    timerRef.current = setTimeout(() => {
+      setIsDebouncing(false);
+      onSearchChangeRef.current(nextVal);
+    }, 300);
   };
 
-  const labelText = useMemo(() => {
-    if (selectedStatuses.length === 0) return 'Filter Status (All)';
-    if (selectedStatuses.length === ALL_BATCH_STATUSES.length) return 'All Statuses (5)';
-    if (selectedStatuses.length <= 2) return `Status: ${selectedStatuses.join(', ')}`;
-    return `${selectedStatuses.length} Statuses Selected`;
-  }, [selectedStatuses]);
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
 
   return (
-    <div className="relative inline-block text-left" ref={containerRef}>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={() => setIsOpen((prev) => !prev)}
-        className="flex h-10 items-center gap-2 rounded-xl border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-      >
-        <Span className="text-slate-400">🏷️</Span>
-        <Span>{labelText}</Span>
-        <Span className="text-[10px] text-slate-400">▼</Span>
-      </Button>
-
-      {isOpen ? (
-        <div className="absolute left-0 z-30 mt-1.5 w-64 rounded-xl border border-slate-200 bg-white p-3 shadow-lg ring-1 ring-black/5">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-            <Span className="text-xs font-bold text-slate-900">Filter by Status</Span>
-            <div className="flex items-center gap-2 text-[11px]">
-              <Button
-                type="button"
-                onClick={() => onChange([...ALL_BATCH_STATUSES])}
-                className="font-medium text-blue-600 hover:underline"
-              >
-                All
-              </Button>
-              <Span className="text-slate-300">|</Span>
-              <Button
-                type="button"
-                onClick={() => onChange([])}
-                className="font-medium text-slate-500 hover:underline"
-              >
-                Clear
-              </Button>
-            </div>
-          </div>
-
-          <div className="mt-2 space-y-1.5">
-            {ALL_BATCH_STATUSES.map((st) => {
-              const isChecked = selectedStatuses.includes(st);
-              return (
-                <label
-                  key={st}
-                  className="flex cursor-pointer items-center justify-between rounded-lg px-2 py-1.5 text-xs transition-colors hover:bg-slate-50"
-                >
-                  <div className="flex items-center gap-2">
-                    <Checkbox checked={isChecked} onChange={() => toggleStatus(st)} />
-                    <Span className="font-semibold text-slate-700">{st}</Span>
-                  </div>
-                  <Span
-                    className={`inline-block rounded-full border px-2 py-0.5 font-mono text-[10px] font-bold ${getStatusBadge(
-                      st,
-                    )}`}
-                  >
-                    {st}
-                  </Span>
-                </label>
-              );
-            })}
-          </div>
-        </div>
-      ) : null}
+    <div className="relative w-full">
+      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+        {isDebouncing || isSearching ? (
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#0044D3] border-t-transparent" />
+        ) : (
+          <svg
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        )}
+      </div>
+      <Input
+        type="text"
+        value={localValue}
+        onChange={handleChange}
+        placeholder="Search batches by name or code..."
+        className="h-11 w-full rounded-xl pl-10 text-sm font-medium"
+      />
     </div>
   );
 }
 
 function BatchesTableRow({ batch }: Readonly<{ batch: ApiBatchSummary }>) {
   return (
-    <tr className="transition-colors hover:bg-slate-50/60">
-      <td className="px-6 py-4">
+    <TableRow className="transition-colors hover:bg-slate-50/60">
+      <TableCell className="font-semibold text-slate-900">
         <Link
           href={`/admin/batches/${batch.id}`}
-          className="font-bold text-slate-900 transition-colors hover:text-blue-600"
+          className="transition-colors hover:text-[#0044D3]"
         >
           {batch.name}
         </Link>
-      </td>
-      <td className="px-4 py-4 font-mono text-xs font-bold text-slate-700">
+      </TableCell>
+      <TableCell className="font-mono text-xs font-semibold text-slate-600">
         <Span>{batch.code}</Span>
-      </td>
-      <td className="px-4 py-4">
+      </TableCell>
+      <TableCell>
         <Span
-          className={`inline-block rounded-full border px-2.5 py-0.5 font-mono text-xs font-bold ${getStatusBadge(
+          className={`inline-block rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getStatusBadge(
             batch.status,
           )}`}
         >
           {batch.status}
         </Span>
-      </td>
-      <td className="px-4 py-4 font-mono text-xs text-slate-600">
+      </TableCell>
+      <TableCell className="font-mono text-xs text-slate-500">
         <Span>
           {batch.startDate} → {batch.endDate}
         </Span>
-      </td>
-      <td className="px-4 py-4 font-mono text-xs font-semibold text-slate-700">
+      </TableCell>
+      <TableCell className="text-xs font-medium text-slate-700">
         <Span>{batch.menteesCount ?? 0} mentees</Span>
-      </td>
-      <td className="px-4 py-4">
+      </TableCell>
+      <TableCell>
         <div className="flex items-center gap-2">
           <div className="h-2 w-24 overflow-hidden rounded-full bg-slate-100">
             <div
-              className="h-full rounded-full bg-blue-600"
+              className="h-full rounded-full bg-[#0044D3]"
               style={{ width: `${batch.progressPercent ?? 0}%` }}
             />
           </div>
-          <Span className="font-mono text-xs font-bold text-slate-700">
+          <Span className="font-mono text-xs font-semibold text-slate-700">
             {batch.progressPercent ?? 0}%
           </Span>
         </div>
-      </td>
-      <td className="px-6 py-4 text-right">
+      </TableCell>
+      <TableCell className="text-right">
         <Link
           href={`/admin/batches/${batch.id}`}
-          className="inline-block rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 transition-colors hover:bg-blue-100"
+          className="inline-flex items-center gap-1 rounded-lg border border-[#E1E6EC] bg-white px-3 py-1.5 text-xs font-semibold text-[#0044D3] transition-colors hover:bg-blue-50"
         >
-          Manage →
+          <Span>Manage</Span>
+          <svg
+            className="h-3 w-3"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2.5}
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
         </Link>
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
+  );
+}
+
+function BatchesTableSkeleton() {
+  return (
+    <>
+      {[1, 2, 3, 4, 5].map((idx) => (
+        <TableRow key={idx}>
+          <TableCell>
+            <Skeleton className="h-4 w-44 rounded-sm" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-16 rounded-sm" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-5 w-20 rounded-full" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-32 rounded-sm" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-14 rounded-sm" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-2 w-28 rounded-full" />
+          </TableCell>
+          <TableCell className="text-right">
+            <Skeleton className="ml-auto h-7 w-20 rounded-lg" />
+          </TableCell>
+        </TableRow>
+      ))}
+    </>
   );
 }
 
 export function BatchesTable() {
   const { user, isAuthorized, sessionError } = useRoleRedirect({ allowedRoles: ['SUPER_ADMIN'] });
   const [search, setSearch] = useState('');
-  const [selectedStatuses, setSelectedStatuses] = useState<BatchStatus[]>([]);
+  const [selectedStatusTab, setSelectedStatusTab] = useState<'ALL' | BatchStatus>('ALL');
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [isCreateOpen, setIsCreateOpen] = useState(
     () => typeof window !== 'undefined' && window.location.search.includes('create=true'),
   );
 
+  const filterStatus = useMemo(() => {
+    if (selectedStatusTab === 'ALL') return undefined;
+    return [selectedStatusTab];
+  }, [selectedStatusTab]);
+
   const {
     data: batchesResponse,
     isLoading,
-    isSuccess,
+    isFetching,
     error,
   } = useBatchesList({
-    status: selectedStatuses.length > 0 ? selectedStatuses : undefined,
+    status: filterStatus,
     search: search.trim() || undefined,
     page,
     limit,
   });
 
+  const isTableLoading = Boolean(isLoading || isFetching);
   const batches = useMemo(() => batchesResponse?.items ?? [], [batchesResponse]);
   const pagination = useMemo(
     () =>
@@ -241,18 +282,20 @@ export function BatchesTable() {
     setPage(1);
   };
 
-  const handleStatusFilterChange = (statuses: BatchStatus[]) => {
-    setSelectedStatuses(statuses);
-    setPage(1);
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
-  const handleResetFilters = () => {
-    setSearch('');
-    setSelectedStatuses([]);
+  const handleLimitChange = (newLimit: number) => {
+    setLimit(newLimit);
     setPage(1);
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
-
-  const isLiveConnected = isSuccess && batchesResponse !== undefined;
 
   if (!isAuthorized || !user) {
     return (
@@ -265,38 +308,63 @@ export function BatchesTable() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Top Header */}
-      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-        <div>
-          <div className="mb-1 flex items-center gap-2 text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            <Span>Administration</Span>
-            <Span>/</Span>
-            <Span className="text-blue-600">Cohorts</Span>
-          </div>
-          <div className="flex items-center gap-3">
-            <H1 className="text-3xl font-extrabold tracking-tight text-slate-900">Batches</H1>
-            {isLiveConnected ? (
-              <Span className="inline-flex items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-0.5 font-mono text-[11px] font-bold text-emerald-800">
-                <Span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
-                Live API
-              </Span>
-            ) : null}
-          </div>
-          <P className="mt-1 max-w-2xl text-sm text-slate-600">
-            Configure learning batches, member assignments, and lifecycle status machines.
-          </P>
-        </div>
+    <div className="space-y-4">
+      {/* Top Header via Global PageHeader */}
+      <PageHeader
+        breadcrumbs={[
+          { label: 'Administration', href: '/admin' },
+          { label: 'Cohorts', active: true },
+        ]}
+        title="Batches"
+        actions={
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            onClick={() => setIsCreateOpen(true)}
+            className="h-9 gap-2 rounded-full bg-[#0044D3] px-4 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] sm:h-10 sm:text-sm"
+          >
+            <Span className="text-base font-bold">+</Span>
+            <Span>Create Batch</Span>
+          </Button>
+        }
+      />
 
-        <Button
-          type="button"
-          variant="primary"
-          onClick={() => setIsCreateOpen(true)}
-          className="flex h-11 items-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-bold text-white shadow-sm shadow-blue-600/25 transition-all hover:bg-blue-700"
-        >
-          <Span className="text-base font-extrabold">+</Span>
-          <Span>Create Batch</Span>
-        </Button>
+      {/* Status Navigation Tabs */}
+      <div className="flex items-center gap-6 overflow-x-auto border-b border-[#E1E6EC]">
+        {BATCH_STATUS_TABS.map((tab) => {
+          const isActive = selectedStatusTab === tab.value;
+          return (
+            <Button
+              key={tab.value}
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setSelectedStatusTab(tab.value);
+                setPage(1);
+              }}
+              className={`-mb-px flex h-auto items-center rounded-none border-b-2 px-1 pt-2 pb-3 text-sm transition-colors hover:bg-transparent ${
+                isActive
+                  ? 'border-[#0044D3] font-bold text-[#0044D3]'
+                  : 'border-transparent font-medium text-[#667085] hover:text-slate-900'
+              }`}
+            >
+              <Span>{tab.label}</Span>
+            </Button>
+          );
+        })}
+      </div>
+
+      {/* Filter Row with Expanded Search Input */}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#E1E6EC] bg-white p-3.5 shadow-xs">
+        <div className="w-full flex-1 sm:max-w-md lg:max-w-lg">
+          <BatchSearchInput
+            value={search}
+            onSearchChange={handleSearchChange}
+            isSearching={isTableLoading}
+          />
+        </div>
       </div>
 
       {error ? (
@@ -307,87 +375,34 @@ export function BatchesTable() {
         />
       ) : null}
 
-      {/* Filter and Search Bar */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:flex-row sm:items-center">
-        {/* Multi-Select Status Dropdown */}
-        <BatchStatusFilterDropdown
-          selectedStatuses={selectedStatuses}
-          onChange={handleStatusFilterChange}
-        />
-
-        {/* Search Input */}
-        <div className="relative flex-1">
-          <Span className="absolute top-2.5 left-3.5 text-sm text-slate-400">🔍</Span>
-          <Input
-            type="text"
-            value={search}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            placeholder="Search batches by name or code..."
-            className="h-10 pl-9 text-sm"
-          />
-        </div>
-
-        {search || selectedStatuses.length > 0 ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={handleResetFilters}
-            className="px-2 text-xs font-semibold whitespace-nowrap text-blue-600 hover:text-blue-700"
-          >
-            Reset Filters
-          </Button>
-        ) : null}
-      </div>
-
       {/* Batches Table View */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-left text-sm">
-            <thead className="border-b border-slate-200/80 bg-slate-50/80 text-xs font-semibold tracking-wider text-slate-500 uppercase">
-              <tr>
-                <th className="px-6 py-3.5">
-                  <Span>Batch Name</Span>
-                </th>
-                <th className="px-4 py-3.5">
-                  <Span>Code</Span>
-                </th>
-                <th className="px-4 py-3.5">
-                  <Span>Status</Span>
-                </th>
-                <th className="px-4 py-3.5">
-                  <Span>Timeline</Span>
-                </th>
-                <th className="px-4 py-3.5">
-                  <Span>Mentees</Span>
-                </th>
-                <th className="px-4 py-3.5">
-                  <Span>Overall Progress</Span>
-                </th>
-                <th className="px-6 py-3.5 text-right">
-                  <Span>Dashboard</Span>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {isLoading && batches.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <Span>Loading cohorts from live database...</Span>
-                  </td>
-                </tr>
-              ) : batches.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <Span>No batches match the applied filter.</Span>
-                  </td>
-                </tr>
-              ) : (
-                batches.map((b) => <BatchesTableRow key={b.id} batch={b} />)
-              )}
-            </tbody>
-          </table>
-        </div>
+      <TableContainer>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Batch Name</TableHead>
+              <TableHead>Code</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Timeline</TableHead>
+              <TableHead>Mentees</TableHead>
+              <TableHead>Overall Progress</TableHead>
+              <TableHead className="text-right">Dashboard</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isTableLoading && batches.length === 0 ? (
+              <BatchesTableSkeleton />
+            ) : batches.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="py-12 text-center text-slate-500">
+                  <Span>No batches match the applied filter.</Span>
+                </TableCell>
+              </TableRow>
+            ) : (
+              batches.map((b) => <BatchesTableRow key={b.id} batch={b} />)
+            )}
+          </TableBody>
+        </Table>
 
         {/* Pagination Controls */}
         <PaginationControls
@@ -395,15 +410,12 @@ export function BatchesTable() {
           limit={pagination.limit}
           total={pagination.total}
           totalPages={pagination.totalPages}
-          onPageChange={setPage}
-          onLimitChange={(l) => {
-            setLimit(l);
-            setPage(1);
-          }}
+          onPageChange={handlePageChange}
+          onLimitChange={handleLimitChange}
           itemLabel="cohorts"
           pageSizeOptions={[10, 20, 50]}
         />
-      </div>
+      </TableContainer>
 
       {/* Create Batch Modal */}
       <CreateBatchModal
