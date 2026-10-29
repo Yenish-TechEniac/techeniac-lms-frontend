@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { PaginationControls } from '@/components/patterns/PaginationControls';
+import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { P, Span } from '@/components/ui/Typography';
 import type { MenteePerformanceRow } from '@/services/performance.service';
 
@@ -13,6 +14,9 @@ interface PerformanceTableProps {
   readonly onPageChange: (page: number) => void;
   readonly onLimitChange: (limit: number) => void;
   readonly isLoading?: boolean;
+  readonly isError?: boolean;
+  readonly error?: unknown;
+  readonly onRetry?: () => void;
 }
 
 export function PerformanceTable({
@@ -24,7 +28,18 @@ export function PerformanceTable({
   onPageChange,
   onLimitChange,
   isLoading = false,
+  isError = false,
+  error,
+  onRetry,
 }: PerformanceTableProps) {
+  if (isError) {
+    return (
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-8 shadow-xs">
+        <ErrorMessage error={error} onRetry={onRetry} />
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">

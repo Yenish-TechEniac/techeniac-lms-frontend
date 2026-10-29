@@ -9,9 +9,15 @@ import {
   performanceService,
 } from '@/services/performance.service';
 
+export const PERFORMANCE_QUERY_KEYS = {
+  all: ['performance'] as const,
+  list: (params?: PerformanceFilterParams) => ['performance', params] as const,
+  learningHistory: (batchId?: string) => ['learning-history', batchId] as const,
+};
+
 export function usePerformanceQuery(params?: PerformanceFilterParams) {
   return useQuery<PaginatedPerformanceData, Error>({
-    queryKey: ['performance', params],
+    queryKey: PERFORMANCE_QUERY_KEYS.list(params),
     queryFn: () => performanceService.getPerformance(params),
     staleTime: 60 * 1000,
   });
@@ -19,7 +25,7 @@ export function usePerformanceQuery(params?: PerformanceFilterParams) {
 
 export function useLearningHistoryQuery(batchId?: string) {
   return useQuery<LearningHistoryResult, Error>({
-    queryKey: ['learning-history', batchId],
+    queryKey: PERFORMANCE_QUERY_KEYS.learningHistory(batchId),
     queryFn: () => performanceService.getLearningHistory(batchId),
     staleTime: 60 * 1000,
   });

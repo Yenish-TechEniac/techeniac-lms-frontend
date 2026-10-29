@@ -1,6 +1,4 @@
-import { env } from '@/lib/config';
-
-import { apiClient, type RequestOptions } from './api.client';
+import { apiBlobClient, apiClient, type RequestOptions } from './api.client';
 
 export interface GradeDistributionBucket {
   readonly count: number;
@@ -137,27 +135,25 @@ export const performanceService = {
   },
 
   async downloadCsv(params?: PerformanceFilterParams): Promise<void> {
-    const searchParams = new URLSearchParams();
-    searchParams.append('format', 'csv');
+    const queryParams: Record<string, string | number | boolean | undefined> = {
+      format: 'csv',
+    };
     if (params) {
-      for (const [key, value] of Object.entries(params)) {
-        if (value !== undefined && key !== 'page' && key !== 'limit') {
-          searchParams.append(key, String(value));
-        }
-      }
+      if (params.search !== undefined) queryParams.search = params.search;
+      if (params.batchId !== undefined) queryParams.batchId = params.batchId;
+      if (params.courseId !== undefined) queryParams.courseId = params.courseId;
+      if (params.status !== undefined) queryParams.status = params.status;
+      if (params.gradeRange !== undefined) queryParams.gradeRange = params.gradeRange;
+      if (params.sortBy !== undefined) queryParams.sortBy = params.sortBy;
+      if (params.sortOrder !== undefined) queryParams.sortOrder = params.sortOrder;
+      if (params.startDate !== undefined) queryParams.startDate = params.startDate;
+      if (params.endDate !== undefined) queryParams.endDate = params.endDate;
     }
 
-    const url = `${env.NEXT_PUBLIC_API_BASE_URL}/performance/export?${searchParams.toString()}`;
-    const response = await fetch(url, {
-      method: 'GET',
-      credentials: 'include',
+    const blob = await apiBlobClient('/performance/export', {
+      params: queryParams,
     });
 
-    if (!response.ok) {
-      throw new Error(`Export failed: ${response.statusText}`);
-    }
-
-    const blob = await response.blob();
     const blobUrl = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = blobUrl;

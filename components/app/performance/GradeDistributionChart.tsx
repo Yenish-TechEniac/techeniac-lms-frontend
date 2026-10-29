@@ -1,11 +1,15 @@
 import React from 'react';
 
+import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { H3, P, Span } from '@/components/ui/Typography';
 import type { PerformanceOverviewMetrics } from '@/services/performance.service';
 
 interface GradeDistributionChartProps {
   readonly distribution: PerformanceOverviewMetrics['gradeDistribution'] | undefined;
   readonly isLoading?: boolean;
+  readonly isError?: boolean;
+  readonly error?: unknown;
+  readonly onRetry?: () => void;
 }
 
 const GRADE_COLORS: Record<'A+' | 'A' | 'B' | 'C' | 'D' | 'F', { bar: string; badge: string }> = {
@@ -20,7 +24,18 @@ const GRADE_COLORS: Record<'A+' | 'A' | 'B' | 'C' | 'D' | 'F', { bar: string; ba
 export function GradeDistributionChart({
   distribution,
   isLoading = false,
+  isError = false,
+  error,
+  onRetry,
 }: GradeDistributionChartProps) {
+  if (isError) {
+    return (
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+        <ErrorMessage error={error} onRetry={onRetry} />
+      </div>
+    );
+  }
+
   if (isLoading || !distribution) {
     return (
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">

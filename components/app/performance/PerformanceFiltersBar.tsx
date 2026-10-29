@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Span } from '@/components/ui/Typography';
-import { useBatchesList } from '@/hooks/useBatches';
+import { useBatchesList, useMentorBatches } from '@/hooks/useBatches';
 import { useCourses } from '@/hooks/useCourses';
 import type { PerformanceFilterParams } from '@/services/performance.service';
 
@@ -14,6 +14,7 @@ interface PerformanceFiltersBarProps {
   readonly onExportCsv: () => void;
   readonly isExporting?: boolean;
   readonly onReset: () => void;
+  readonly role?: 'SUPER_ADMIN' | 'MENTOR';
 }
 
 export function PerformanceFiltersBar({
@@ -22,11 +23,25 @@ export function PerformanceFiltersBar({
   onExportCsv,
   isExporting = false,
   onReset,
+  role = 'SUPER_ADMIN',
 }: PerformanceFiltersBarProps) {
-  const { data: batchesData } = useBatchesList({ limit: 100 });
-  const { courses } = useCourses({ limit: 100 });
+  const isMentor = role === 'MENTOR';
+  const {
+    data: adminBatchesData,
+    isLoading: isLoadingAdminBatches,
+    error: adminBatchesError,
+  } = useBatchesList({ limit: 100 }, { enabled: !isMentor });
+  const {
+    data: mentorBatchesData,
+    isLoading: isLoadingMentorBatches,
+    error: mentorBatchesError,
+  } = useMentorBatches({ limit: 100 }, { enabled: isMentor });
 
-  const batches = batchesData?.items ?? [];
+  const { courses, isLoading: isLoadingCourses, error: coursesError } = useCourses({ limit: 100 });
+
+  const batches = isMentor ? (mentorBatchesData ?? []) : (adminBatchesData?.items ?? []);
+  const isLoadingBatches = isMentor ? isLoadingMentorBatches : isLoadingAdminBatches;
+  const batchesError = isMentor ? mentorBatchesError : adminBatchesError;
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
@@ -90,8 +105,15 @@ export function PerformanceFiltersBar({
             value={filters.batchId ?? ''}
             onChange={(e) => onFilterChange({ batchId: e.target.value || undefined, page: 1 })}
             className="h-9 text-xs"
+            disabled={isLoadingBatches}
           >
-            <option value="">All Batches</option>
+            <option value="">
+              {isLoadingBatches
+                ? 'Loading batches...'
+                : batchesError
+                  ? 'Error loading batches'
+                  : 'All Batches'}
+            </option>
             {batches.map((b) => (
               <option key={b.id} value={b.id}>
                 {b.name}
@@ -109,8 +131,15 @@ export function PerformanceFiltersBar({
             value={filters.courseId ?? ''}
             onChange={(e) => onFilterChange({ courseId: e.target.value || undefined, page: 1 })}
             className="h-9 text-xs"
+            disabled={isLoadingCourses}
           >
-            <option value="">All Courses</option>
+            <option value="">
+              {isLoadingCourses
+                ? 'Loading courses...'
+                : coursesError
+                  ? 'Error loading courses'
+                  : 'All Courses'}
+            </option>
             {courses.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.title}

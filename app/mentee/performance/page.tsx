@@ -12,7 +12,7 @@ import { useRoleGuard } from '@/hooks/useRoleGuard';
 export default function MenteePerformancePage() {
   useRoleGuard('MENTEE');
 
-  const { data: history, isLoading } = useLearningHistoryQuery();
+  const { data: history, isLoading, isError, error, refetch } = useLearningHistoryQuery();
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
@@ -28,7 +28,14 @@ export default function MenteePerformancePage() {
           </P>
         </div>
 
-        <LearningHistoryView history={history} isLoading={isLoading} isMentorPastView={false} />
+        <LearningHistoryView
+          history={history}
+          isLoading={isLoading}
+          isMentorPastView={false}
+          isError={isError}
+          error={error}
+          onRetry={() => void refetch()}
+        />
       </main>
     </div>
   );

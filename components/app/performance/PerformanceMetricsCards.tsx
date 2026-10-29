@@ -1,17 +1,32 @@
 import React from 'react';
 
+import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { H3, P, Span } from '@/components/ui/Typography';
 import type { PerformanceOverviewMetrics } from '@/services/performance.service';
 
 interface PerformanceMetricsCardsProps {
   readonly metrics: PerformanceOverviewMetrics | undefined;
   readonly isLoading?: boolean;
+  readonly isError?: boolean;
+  readonly error?: unknown;
+  readonly onRetry?: () => void;
 }
 
 export function PerformanceMetricsCards({
   metrics,
   isLoading = false,
+  isError = false,
+  error,
+  onRetry,
 }: PerformanceMetricsCardsProps) {
+  if (isError) {
+    return (
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
+        <ErrorMessage error={error} onRetry={onRetry} />
+      </div>
+    );
+  }
+
   if (isLoading || !metrics) {
     return (
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

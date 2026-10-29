@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 
+import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Select } from '@/components/ui/Select';
 import { H2, H3, P, Span } from '@/components/ui/Typography';
 import { formatDateIST } from '@/lib/date';
@@ -11,14 +12,28 @@ interface LearningHistoryViewProps {
   readonly history: LearningHistoryResult | undefined;
   readonly isLoading?: boolean;
   readonly isMentorPastView?: boolean;
+  readonly isError?: boolean;
+  readonly error?: unknown;
+  readonly onRetry?: () => void;
 }
 
 export function LearningHistoryView({
   history,
   isLoading = false,
   isMentorPastView = false,
+  isError = false,
+  error,
+  onRetry,
 }: LearningHistoryViewProps) {
   const [selectedBatchId, setSelectedBatchId] = useState<string>('ALL');
+
+  if (isError) {
+    return (
+      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-xs">
+        <ErrorMessage error={error} onRetry={onRetry} />
+      </div>
+    );
+  }
 
   if (isLoading || !history) {
     return (
