@@ -240,19 +240,42 @@ export function useBatchesMentors(batchIds: string[]) {
 
 /**
  * Optimized batch roster mapper:
- * Constrains queries to specified active batches and eliminates uncontrolled 100-batch cascades.
+ * Resolves batches and live member mappings so batch and mentor are always displayed accurately.
+ * Constrains batch queries to active/populated batches with 5-minute caching to eliminate N+1 cascades.
  */
 export function useAllBatchMembers(activeBatchIds?: string[]) {
-  const targetIds = useMemo(() => activeBatchIds ?? [], [activeBatchIds]);
+  const shouldFetchSummaries = !activeBatchIds || activeBatchIds.length === 0;
+  const { data: batchesResponse, isLoading: isBatchesLoading } = useBatchesList(
+    { limit: 100 },
+    { enabled: shouldFetchSummaries },
+  );
+
+  const targetIds = useMemo(() => {
+    if (activeBatchIds && activeBatchIds.length > 0) {
+      return activeBatchIds;
+    }
+    const items = batchesResponse?.items ?? [];
+    const populated = items.filter(
+      (b) =>
+        (b.menteesCount ?? 0) > 0 ||
+        (b.mentorsCount ?? 0) > 0 ||
+        b.status === 'LIVE' ||
+        b.status === 'ON_HOLD',
+    );
+    const selected = populated.length > 0 ? populated : items;
+    return selected.slice(0, 25).map((b) => b.id);
+  }, [activeBatchIds, batchesResponse]);
 
   const batchDetailsQueries = useQueries({
     queries: targetIds.map((id) => ({
       queryKey: ['batch-detail-with-members', id],
       queryFn: () => batchesService.getBatchById(id),
-      staleTime: 60_000,
+      staleTime: 5 * 60_000,
       enabled: Boolean(id),
     })),
   });
+
+  const isDetailsLoading = batchDetailsQueries.some((q) => q.isLoading);
 
   return useMemo(() => {
     const bMap = new Map<string, string>();
@@ -262,15 +285,27 @@ export function useAllBatchMembers(activeBatchIds?: string[]) {
       if (q.data) {
         const batch = q.data;
         for (const member of batch.members ?? []) {
-          bMap.set(member.id, batch.name);
+          const existing = bMap.get(member.id);
+          if (existing) {
+            if (!existing.includes(batch.name)) {
+              bMap.set(member.id, `${existing}, ${batch.name}`);
+            }
+          } else {
+            bMap.set(member.id, batch.name);
+          }
+
           if (member.mappedToName) {
             mMap.set(member.id, member.mappedToName);
           }
         }
       }
     }
-    return { userBatchMap: bMap, userMentorMap: mMap };
-  }, [batchDetailsQueries]);
+    return {
+      userBatchMap: bMap,
+      userMentorMap: mMap,
+      isLoading: (shouldFetchSummaries && isBatchesLoading) || isDetailsLoading,
+    };
+  }, [batchDetailsQueries, isBatchesLoading, isDetailsLoading, shouldFetchSummaries]);
 }
 
 export type { ApiBatchDetailData, ApiBatchListResponse, ApiBatchSummary, BatchQueryFilters };
