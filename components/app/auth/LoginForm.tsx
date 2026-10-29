@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/Label';
 import { useAuth } from '@/hooks/useAuth';
 import { redirectUserByRole, useRoleRedirect } from '@/hooks/useRoleRedirect';
 import { ApiError } from '@/lib/errors';
-import { emailSchema } from '@/lib/validation';
+import { extractZodErrors, loginSchema } from '@/lib/validation';
 
 import { PasswordVisibilityToggle } from './PasswordVisibilityToggle';
 
@@ -37,26 +37,10 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
     if (isFormLocked) return;
     setErrors({});
 
-    const newErrors: Record<string, string> = {};
-
-    // Validate email
     const trimmedEmail = email.trim();
-    if (!trimmedEmail) {
-      newErrors.email = 'Please enter email';
-    } else {
-      const emailResult = emailSchema.safeParse(trimmedEmail);
-      if (!emailResult.success) {
-        newErrors.email = 'Please enter a valid email address';
-      }
-    }
-
-    // Validate password
-    if (!password) {
-      newErrors.password = 'Please enter password';
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    const result = loginSchema.safeParse({ email: trimmedEmail, password });
+    if (!result.success) {
+      setErrors(extractZodErrors(result.error.issues));
       return;
     }
 

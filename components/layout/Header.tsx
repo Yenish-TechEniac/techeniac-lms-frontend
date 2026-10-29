@@ -307,15 +307,17 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
                 onMouseLeave={() => setIsProfileOpen(false)}
               >
                 {/* Profile Trigger Button */}
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setIsProfileOpen((prev) => !prev)}
-                  className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-xs font-bold text-[#0044D3] shadow-xs transition-all hover:border-blue-400 hover:bg-blue-100 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
+                  className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-blue-200 bg-blue-50 p-0 text-xs font-bold text-[#0044D3] shadow-xs transition-all hover:border-blue-400 hover:bg-blue-100 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
                   aria-label="User profile and account settings"
                   aria-expanded={isProfileOpen}
                 >
                   {userInitials}
-                </button>
+                </Button>
 
                 {/* Profile Popover / Dropdown Card */}
                 {isProfileOpen ? (
@@ -450,10 +452,12 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
 
         {/* Bottom: Expand Toggle Button */}
         <div className="flex flex-col items-center">
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={() => setIsDrawerOpen(true)}
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#E1E6EC] text-[#667085] transition-colors hover:bg-[#F6F8FC] hover:text-[#111827]"
+            className="flex h-10 w-10 items-center justify-center rounded-xl border-[#E1E6EC] p-0 text-[#667085] transition-colors hover:bg-[#F6F8FC] hover:text-[#111827]"
             title="Expand sidebar"
             aria-label="Expand sidebar"
           >
@@ -467,7 +471,7 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
               <rect x="3" y="3" width="18" height="18" rx="2" />
               <path d="M9 3v18" />
             </svg>
-          </button>
+          </Button>
         </div>
       </aside>
 
@@ -543,10 +547,12 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
 
         {/* Dock / Collapse Button (Matching Reference Image Dock Icon) */}
         <div className="flex items-center justify-end px-5 py-2">
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={() => setIsDrawerOpen(false)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#E1E6EC] text-[#667085] transition-colors hover:bg-[#F6F8FC] hover:text-[#111827]"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border-[#E1E6EC] p-0 text-[#667085] transition-colors hover:bg-[#F6F8FC] hover:text-[#111827]"
             title="Collapse sidebar"
             aria-label="Collapse sidebar"
           >
@@ -560,7 +566,7 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
               <rect x="3" y="3" width="18" height="18" rx="2" />
               <path d="M9 3v18" />
             </svg>
-          </button>
+          </Button>
         </div>
 
         {/* Drawer Footer with Logout Action */}

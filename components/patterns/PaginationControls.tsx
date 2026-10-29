@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
 import { Span } from '@/components/ui/Typography';
 import { cn } from '@/lib/cn';
@@ -60,11 +61,13 @@ export function PaginationControls({
       <div className="flex flex-wrap items-center gap-3">
         {/* Navigation Buttons with Numbered Page Pills */}
         <div className="flex items-center gap-1.5">
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={() => onPageChange(page - 1)}
             disabled={page <= 1}
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E1E6EC] text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-40"
+            className="h-8 w-8 rounded-lg border-[#E1E6EC] p-0 text-slate-500 hover:bg-slate-50 hover:text-slate-900"
             aria-label="Previous page"
           >
             <svg
@@ -76,7 +79,7 @@ export function PaginationControls({
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-          </button>
+          </Button>
 
           {pageNumbers.map((p, idx) =>
             p === 'ellipsis' ? (
@@ -84,11 +87,13 @@ export function PaginationControls({
                 …
               </span>
             ) : (
-              <button
+              <Button
                 key={p}
                 type="button"
+                variant={p === page ? 'primary' : 'ghost'}
+                size="sm"
                 onClick={() => onPageChange(p)}
-                className={`flex h-8 min-w-8 items-center justify-center rounded-full px-2.5 text-xs font-semibold transition-colors ${
+                className={`h-8 min-w-8 rounded-full px-2.5 text-xs font-semibold ${
                   p === page
                     ? 'bg-[#0044D3] text-white shadow-xs'
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
@@ -96,15 +101,17 @@ export function PaginationControls({
                 aria-current={p === page ? 'page' : undefined}
               >
                 {p}
-              </button>
+              </Button>
             ),
           )}
 
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={() => onPageChange(page + 1)}
             disabled={page >= totalPages}
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E1E6EC] text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-40"
+            className="h-8 w-8 rounded-lg border-[#E1E6EC] p-0 text-slate-500 hover:bg-slate-50 hover:text-slate-900"
             aria-label="Next page"
           >
             <svg
@@ -116,7 +123,7 @@ export function PaginationControls({
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
-          </button>
+          </Button>
         </div>
 
         {/* Page Size Selector */}

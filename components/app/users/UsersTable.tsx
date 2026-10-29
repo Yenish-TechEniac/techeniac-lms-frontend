@@ -350,15 +350,8 @@ export function UsersTable() {
 
   const users: UserItem[] = useMemo(() => {
     return apiUsers.map((u) => {
-      const mappedBatch =
-        userBatchMap.get(u.id) ??
-        (u as unknown as { batchName?: string; batch?: string }).batchName ??
-        (u as unknown as { batchName?: string; batch?: string }).batch;
-
-      const mappedMentor =
-        userMentorMap.get(u.id) ??
-        (u as unknown as { mentorName?: string; mentor?: { name: string } }).mentorName ??
-        (u as unknown as { mentorName?: string; mentor?: { name: string } }).mentor?.name;
+      const mappedBatch = userBatchMap.get(u.id);
+      const mappedMentor = userMentorMap.get(u.id);
 
       let displayBatch: string;
       if (mappedBatch) {

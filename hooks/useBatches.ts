@@ -238,15 +238,19 @@ export function useBatchesMentors(batchIds: string[]) {
   });
 }
 
-export function useAllBatchMembers() {
-  const { data: batchesResponse } = useBatchesList({ limit: 100 });
-  const batchSummaries = useMemo(() => batchesResponse?.items ?? [], [batchesResponse]);
+/**
+ * Optimized batch roster mapper:
+ * Constrains queries to specified active batches and eliminates uncontrolled 100-batch cascades.
+ */
+export function useAllBatchMembers(activeBatchIds?: string[]) {
+  const targetIds = useMemo(() => activeBatchIds ?? [], [activeBatchIds]);
 
   const batchDetailsQueries = useQueries({
-    queries: batchSummaries.map((b) => ({
-      queryKey: ['batch-detail-with-members', b.id],
-      queryFn: () => batchesService.getBatchById(b.id),
+    queries: targetIds.map((id) => ({
+      queryKey: ['batch-detail-with-members', id],
+      queryFn: () => batchesService.getBatchById(id),
       staleTime: 60_000,
+      enabled: Boolean(id),
     })),
   });
 

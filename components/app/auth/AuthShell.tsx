@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import React from 'react';
 
-import { H1, Span } from '@/components/ui/Typography';
+import { H1, H2, Span } from '@/components/ui/Typography';
 
 export interface AuthShellProps {
   readonly children: React.ReactNode;
@@ -53,9 +53,9 @@ export function AuthShell({ children, title, footerContent }: Readonly<AuthShell
             <Span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
             Enterprise Learning Platform
           </div>
-          <H1 className="mb-4 text-3xl leading-tight font-extrabold tracking-tight text-white sm:text-4xl lg:text-5xl">
+          <H2 className="mb-4 text-3xl leading-tight font-extrabold tracking-tight text-white sm:text-4xl lg:text-5xl">
             Empower Learning, Mentorship & Growth
-          </H1>
+          </H2>
           <Span className="block text-base leading-relaxed text-blue-100 sm:text-lg">
             A centralized operational system connecting administrators, mentors, and mentees with
             structured cohorts and real-time tracking.

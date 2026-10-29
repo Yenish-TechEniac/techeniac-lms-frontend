@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { H3, P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
-import { emailSchema } from '@/lib/validation';
+import { extractZodErrors, forgotPasswordSchema } from '@/lib/validation';
 
 export function ForgotPasswordForm() {
   const { forgotPassword } = useAuth();
@@ -28,14 +28,9 @@ export function ForgotPasswordForm() {
     setResendStatus(null);
 
     const trimmedEmail = email.trim();
-    if (!trimmedEmail) {
-      setErrors({ email: 'Please enter email' });
-      return;
-    }
-
-    const emailResult = emailSchema.safeParse(trimmedEmail);
-    if (!emailResult.success) {
-      setErrors({ email: 'Invalid email address format' });
+    const result = forgotPasswordSchema.safeParse({ email: trimmedEmail });
+    if (!result.success) {
+      setErrors(extractZodErrors(result.error.issues));
       return;
     }
 
