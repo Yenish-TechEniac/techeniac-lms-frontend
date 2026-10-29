@@ -5,9 +5,9 @@ import React from 'react';
 
 import { ADMIN_PORTAL_NAV } from '@/components/app/navigation/portal-nav.config';
 import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
+import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
-import { Button } from '@/components/ui/Button';
-import { Code, H1, H2, H3, P, Span } from '@/components/ui/Typography';
+import { H1, H2, H3, P, Span } from '@/components/ui/Typography';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 
 export default function AdminPage() {
@@ -18,217 +18,222 @@ export default function AdminPage() {
       <PortalSessionState
         sessionError={sessionError}
         loadingMessage="Loading admin console..."
-        spinnerColor="border-purple-600"
+        variant="admin"
       />
     );
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
+    <div className="flex min-h-screen flex-col bg-[#F6F8FC] text-[#111827]">
       <Header {...ADMIN_PORTAL_NAV} />
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+      <DashboardContent>
         {/* Welcome Section */}
-        <div className="mb-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs sm:p-8">
+        <div className="mb-8 rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700">
-                <Span className="h-1.5 w-1.5 rounded-full bg-purple-500" />
-                <Span>Super Admin Access</Span>
-              </div>
-              <H1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+              <H1 className="text-3xl font-bold tracking-tight text-[#111827] sm:text-4xl">
                 Super Admin Control Center
               </H1>
-              <P variant="muted" className="mt-1 text-sm text-slate-500">
+              <P className="mt-2 text-base text-[#667085]">
                 Manage organization identities, batch deployments, curriculum standards, and audit
                 logs.
               </P>
             </div>
 
-            <div className="flex flex-col gap-3 sm:items-end">
-              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-xs">
-                <Span className="block text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
-                  Active Administrator
-                </Span>
-                <Span className="mt-0.5 block font-bold text-slate-800">{user.name}</Span>
-                <Span className="mt-1 block text-slate-500">{user.email}</Span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Link href="/admin/batches?create=true">
-                  <Button
-                    type="button"
-                    variant="primary"
-                    size="sm"
-                    className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-bold text-white shadow-sm shadow-blue-600/25 hover:bg-blue-700"
-                  >
-                    <Span className="text-sm font-extrabold">+</Span>
-                    <Span>Create Batch</Span>
-                  </Button>
-                </Link>
-                <Link href="/admin/users">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-1.5 rounded-xl border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50"
-                  >
-                    <Span>Manage Users</Span>
-                  </Button>
-                </Link>
-              </div>
+            <div className="rounded-2xl border border-[#E1E6EC] bg-[#F6F8FC] p-4 text-xs sm:min-w-64">
+              <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
+                Active Administrator
+              </Span>
+              <Span className="mt-1 block text-base font-bold text-[#111827]">{user.name}</Span>
+              <Span className="mt-0.5 block text-sm text-[#667085]">{user.email}</Span>
             </div>
           </div>
         </div>
 
         {/* Administration Pillars */}
         <div className="mb-6">
-          <H2 className="text-base font-bold text-slate-900">System Governance</H2>
-          <P variant="muted" className="text-xs text-slate-500">
-            Core administrative domains across the LMS
-          </P>
+          <H2 className="text-xl font-bold text-[#111827]">System Governance</H2>
+          <P className="mt-1 text-sm text-[#667085]">Core administrative domains across the LMS</P>
         </div>
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Module 1: IAM */}
+          {/* Card 1: User Management */}
           <Link
             href="/admin/users"
-            className="group flex flex-col justify-between rounded-xl border border-purple-200 bg-purple-50/50 p-5 shadow-xs transition-all hover:border-purple-300 hover:bg-purple-50 hover:shadow-sm"
+            className="group flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs transition-all duration-200 hover:border-[#0044D3] hover:bg-white hover:shadow-md"
           >
             <div>
               <div className="flex items-center justify-between">
-                <Span className="text-[10px] font-bold tracking-wider text-purple-700 uppercase">
-                  Module 1
-                </Span>
-                <Span className="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-semibold text-purple-800">
-                  Operational
-                </Span>
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#0044D3] transition-colors group-hover:bg-[#0044D3] group-hover:text-white">
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                    />
+                  </svg>
+                </div>
+                <svg
+                  className="h-5 w-5 text-slate-400 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[#0044D3]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
               </div>
-              <H3 className="mt-2 text-base font-bold text-slate-900 transition-colors group-hover:text-purple-700">
+              <H3 className="mt-4 text-lg font-bold text-[#111827] transition-colors group-hover:text-[#0044D3]">
                 User Management
               </H3>
-              <P className="mt-1 text-xs leading-relaxed text-slate-600">
+              <P className="mt-2 text-sm leading-relaxed text-[#667085]">
                 Super Admin, Mentor, and Mentee accounts. Password resets, role history, and token
                 versions.
               </P>
             </div>
-            <div className="mt-4 flex items-center justify-between border-t border-purple-100 pt-3">
-              <Span className="text-[11px] font-semibold text-purple-700 group-hover:underline">
-                Manage Users &rarr;
-              </Span>
-              <Span className="text-[10px] font-medium text-purple-600">Contract Synchronized</Span>
-            </div>
           </Link>
 
-          {/* Module 2: Batches */}
-          <div className="group flex flex-col justify-between rounded-xl border border-blue-200 bg-blue-50/50 p-5 shadow-xs transition-all hover:border-blue-300 hover:bg-blue-50 hover:shadow-sm">
-            <div>
-              <div className="flex items-center justify-between">
-                <Span className="text-[10px] font-bold tracking-wider text-blue-700 uppercase">
-                  Module 2
-                </Span>
-                <Span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-800">
-                  Operational
-                </Span>
-              </div>
-              <Link href="/admin/batches" className="block">
-                <H3 className="mt-2 text-base font-bold text-slate-900 transition-colors group-hover:text-blue-700">
-                  Batches & Cohorts
-                </H3>
-              </Link>
-              <P className="mt-1 text-xs leading-relaxed text-slate-600">
-                Batch creation (DRAFT, LIVE, COMPLETED), mentor-mentee mapping, and batch transfers.
-              </P>
-            </div>
-            <div className="mt-4 flex items-center justify-between border-t border-blue-100 pt-3">
-              <Link
-                href="/admin/batches"
-                className="text-[11px] font-semibold text-blue-700 hover:underline"
-              >
-                <Span>Manage Batches &rarr;</Span>
-              </Link>
-              <Link
-                href="/admin/batches?create=true"
-                className="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1 text-[11px] font-bold text-white shadow-xs hover:bg-blue-700"
-              >
-                <Span>+</Span>
-                <Span>Create</Span>
-              </Link>
-            </div>
-          </div>
-
-          {/* Module 6: Curriculum & Courses */}
+          {/* Card 2: Batches & Cohorts */}
           <Link
-            href="/admin/courses"
-            className="group flex flex-col justify-between rounded-xl border border-blue-200 bg-blue-50/50 p-5 shadow-xs transition-all hover:border-blue-300 hover:bg-blue-50 hover:shadow-sm"
+            href="/admin/batches"
+            className="group flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs transition-all duration-200 hover:border-[#0044D3] hover:bg-white hover:shadow-md"
           >
             <div>
               <div className="flex items-center justify-between">
-                <Span className="text-[10px] font-bold tracking-wider text-blue-700 uppercase">
-                  Module 6
-                </Span>
-                <Span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-800">
-                  Operational
-                </Span>
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#0044D3] transition-colors group-hover:bg-[#0044D3] group-hover:text-white">
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                    />
+                  </svg>
+                </div>
+                <svg
+                  className="h-5 w-5 text-slate-400 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[#0044D3]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
               </div>
-              <H3 className="mt-2 text-base font-bold text-slate-900 transition-colors group-hover:text-blue-700">
+              <H3 className="mt-4 text-lg font-bold text-[#111827] transition-colors group-hover:text-[#0044D3]">
+                Batches & Cohorts
+              </H3>
+              <P className="mt-2 text-sm leading-relaxed text-[#667085]">
+                Batch creation (Draft, Live, Completed), mentor-mentee mapping, and batch transfers.
+              </P>
+            </div>
+          </Link>
+
+          {/* Card 3: Curriculum & Courses */}
+          <Link
+            href="/admin/courses"
+            className="group flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs transition-all duration-200 hover:border-[#0044D3] hover:bg-white hover:shadow-md"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#0044D3] transition-colors group-hover:bg-[#0044D3] group-hover:text-white">
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                    />
+                  </svg>
+                </div>
+                <svg
+                  className="h-5 w-5 text-slate-400 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[#0044D3]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+              <H3 className="mt-4 text-lg font-bold text-[#111827] transition-colors group-hover:text-[#0044D3]">
                 Course Library & Builder
               </H3>
-              <P className="mt-1 text-xs leading-relaxed text-slate-600">
+              <P className="mt-2 text-sm leading-relaxed text-[#667085]">
                 Course authoring, outline trees, subtopic lessons, embedded assignments, and live
                 saves.
               </P>
             </div>
-            <div className="mt-4 flex items-center justify-between border-t border-blue-100 pt-3">
-              <Span className="text-[11px] font-semibold text-blue-700 group-hover:underline">
-                Course Library &rarr;
-              </Span>
-              <Span className="text-[10px] font-medium text-blue-600">Contract Synchronized</Span>
-            </div>
           </Link>
 
-          {/* Module 4: Submissions */}
-          <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
+          {/* Card 4: Course Allocations */}
+          <Link
+            href="/admin/allocations"
+            className="group flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs transition-all duration-200 hover:border-[#0044D3] hover:bg-white hover:shadow-md"
+          >
             <div>
               <div className="flex items-center justify-between">
-                <Span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
-                  Module 4
-                </Span>
-                <Span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
-                  Upcoming
-                </Span>
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#0044D3] transition-colors group-hover:bg-[#0044D3] group-hover:text-white">
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                    />
+                  </svg>
+                </div>
+                <svg
+                  className="h-5 w-5 text-slate-400 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[#0044D3]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
               </div>
-              <H3 className="mt-2 text-base font-bold text-slate-900">Submissions & Audits</H3>
-              <P className="mt-1 text-xs leading-relaxed text-slate-600">
-                Mentee assignment submissions, mentor review rubrics, resubmissions, and audit
-                history.
+              <H3 className="mt-4 text-lg font-bold text-[#111827] transition-colors group-hover:text-[#0044D3]">
+                Course Allocations
+              </H3>
+              <P className="mt-2 text-sm leading-relaxed text-[#667085]">
+                Assign curriculum tracks to cohorts and mentees, configure due dates, and monitor
+                progress.
               </P>
             </div>
-            <div className="mt-4 border-t border-slate-100 pt-3">
-              <Span className="text-[11px] text-slate-400">Scheduled next</Span>
-            </div>
-          </div>
+          </Link>
         </div>
-
-        {/* System Telemetry */}
-        <div className="mt-8 rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <H3 className="text-sm font-bold text-slate-900">API Connection Status</H3>
-              <P variant="muted" className="text-xs text-slate-500">
-                Connected to Node.js 24 / Express backend service at{' '}
-                <Code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-[11px] text-slate-700">
-                  /api/v1
-                </Code>
-              </P>
-            </div>
-            <div className="flex items-center gap-2">
-              <Span className="h-2 w-2 rounded-full bg-emerald-500" />
-              <Span className="text-xs font-semibold text-emerald-700">Online & Synchronized</Span>
-            </div>
-          </div>
-        </div>
-      </main>
+      </DashboardContent>
     </div>
   );
 }

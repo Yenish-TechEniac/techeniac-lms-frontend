@@ -30,6 +30,7 @@ export interface UseUsersReturn {
   total: number;
   counts: UserDirectoryCounts;
   isLoading: boolean;
+  isFetching: boolean;
   error: string | null;
   fetchUsers: (filters?: UserQueryFilters) => Promise<void>;
   createUser: (data: CreateUserFormData) => Promise<ApiUser>;
@@ -72,6 +73,7 @@ export function useUsers(initialFilters: UserQueryFilters = DEFAULT_FILTERS): Us
   const {
     data,
     isLoading,
+    isFetching,
     error: queryError,
     refetch,
   } = useQuery({
@@ -192,6 +194,7 @@ export function useUsers(initialFilters: UserQueryFilters = DEFAULT_FILTERS): Us
     total,
     counts,
     isLoading,
+    isFetching,
     error,
     fetchUsers,
     createUser,

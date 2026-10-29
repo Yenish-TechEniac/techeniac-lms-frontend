@@ -6,13 +6,13 @@ import { Modal } from '@/components/patterns/Modal';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/Checkbox';
+import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Form } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { P, Span } from '@/components/ui/Typography';
 import { useAddBatchMembersMutation } from '@/hooks/useBatches';
 import { useUsers } from '@/hooks/useUsers';
-import { formatErrorMessage } from '@/lib/errors';
 import { type BatchStatus, isBatchLocked } from '@/lib/validation';
 
 export interface AddMemberModalProps {
@@ -113,7 +113,7 @@ export function AddMemberModal({
   const [role, setRole] = useState<'MENTEE' | 'MENTOR'>('MENTEE');
   const [search, setSearch] = useState('');
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<unknown>(null);
 
   const {
     users: candidates,
@@ -175,7 +175,7 @@ export function AddMemberModal({
       onSuccess();
       onClose();
     } catch (err: unknown) {
-      setSubmitError(formatErrorMessage(err, 'Failed to add members to batch.'));
+      setSubmitError(err);
     }
   };
 
@@ -242,7 +242,11 @@ export function AddMemberModal({
         ) : null}
 
         {submitError ? (
-          <Alert variant="error" title="Enrollment Failed" message={submitError} />
+          <ErrorMessage
+            error={submitError}
+            title="Enrollment Failed"
+            onDismiss={() => setSubmitError(null)}
+          />
         ) : null}
 
         {/* Role toggle */}

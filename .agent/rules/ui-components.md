@@ -2,6 +2,8 @@
 
 These rules are non-negotiable and apply to all agents and developers working on `techeniac-lms-frontend`.
 
+For the authoritative token values, colors, typography scales, and button sizes extracted from Figma, refer to [Design System Specifications](../../docs/DESIGN_SYSTEM.md).
+
 ## 1. Mandatory Component Reuse
 
 Direct usage of unstyled or ad-hoc raw HTML primitives is strictly prohibited in application pages and feature components:
@@ -32,6 +34,12 @@ Direct usage of unstyled or ad-hoc raw HTML primitives is strictly prohibited in
 - **Prohibited**: Raw `<input>` tags for text, email, password, or search.
 - **Mandatory**: Import `<Input>` from `@/components/ui/Input` and `<FieldError>` from `@/components/ui/FieldError`.
 - **Validation**: Wire `hasError={Boolean(error)}` and `errorId` for full ARIA accessibility (`aria-invalid`, `aria-describedby`).
+
+### Data Tables (`<TableContainer>`, `<Table>`, `<TableHeader>`, `<TableBody>`, `<TableRow>`, `<TableHead>`, `<TableCell>`)
+
+- **Prohibited**: Raw HTML `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>` tags.
+- **Mandatory**: Import table components from `@/components/ui/Table`.
+- **Styling**: Tables must reside within `<TableContainer>` to guarantee the unified `rounded-2xl border border-[#E1E6EC]` card structure, proper responsive scroll overflow, and hover row highlighting.
 
 ## 2. Architecture Confinement
 
