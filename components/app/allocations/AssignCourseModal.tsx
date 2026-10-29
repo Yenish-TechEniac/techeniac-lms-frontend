@@ -78,9 +78,10 @@ function AssignCourseModalDialog({
   );
   const isLoadingBatches = isMentor ? isLoadingMentorBatches : isLoadingAdminBatches;
   const { data: batchDetailData } = useBatchDetail(selectedBatchId);
+  const canTargetIndividualMentees = userRole === 'SUPER_ADMIN';
   const { users: allUsers, isLoading: isLoadingUsers } = useUsers(
     targetType === 'INDIVIDUAL_MENTEES' ? { role: 'MENTEE', status: 'ACTIVE', limit: 100 } : {},
-    { enabled: targetType === 'INDIVIDUAL_MENTEES' && userRole === 'SUPER_ADMIN' },
+    { enabled: targetType === 'INDIVIDUAL_MENTEES' && canTargetIndividualMentees },
   );
 
   const createMutation = useCreateAllocationsMutation();
@@ -530,7 +531,7 @@ function AssignCourseModalDialog({
                   </Span>
                 </Button>
 
-                {userRole === 'SUPER_ADMIN' ? (
+                {canTargetIndividualMentees ? (
                   <Button
                     type="button"
                     variant="outline"

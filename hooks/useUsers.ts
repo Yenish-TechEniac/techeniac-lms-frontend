@@ -57,13 +57,9 @@ const DEFAULT_FILTERS: UserQueryFilters = {
   limit: DEFAULT_USERS_PAGE_SIZE,
 };
 
-export interface UseUsersOptions {
-  enabled?: boolean | undefined;
-}
-
 export function useUsers(
   initialFilters: UserQueryFilters = DEFAULT_FILTERS,
-  options?: UseUsersOptions,
+  options?: { enabled?: boolean },
 ): UseUsersReturn {
   const queryClient = useQueryClient();
   const [overrideFilters, setOverrideFilters] = useState<UserQueryFilters | null>(null);
@@ -88,7 +84,7 @@ export function useUsers(
     queryFn: () => usersService.listUsers(activeFilters),
     staleTime: 30_000,
     placeholderData: keepPreviousData,
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    ...options,
   });
 
   const fetchUsers = useCallback(
