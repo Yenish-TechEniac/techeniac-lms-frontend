@@ -32,7 +32,9 @@ interface SubmitApiResponse {
  * Normalizes submissionData across raw API responses and legacy aliases
  * into the canonical camelCase structure (pdfUrl, zipUrl, linkUrl).
  */
-function normalizeSubmissionData(raw: Record<string, unknown> | null | undefined): SubmissionData {
+export function normalizeSubmissionData(
+  raw: Record<string, unknown> | null | undefined,
+): SubmissionData {
   if (!raw) return {};
   return {
     pdfUrl: ((raw.pdfUrl ?? raw.pdf_url ?? null) as string | null) || undefined,
