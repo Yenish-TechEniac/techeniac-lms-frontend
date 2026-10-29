@@ -36,12 +36,21 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: 'audit', label: 'Audit Log' },
 ];
 
+const EM_DASH = '—';
+
+function getActiveStatusBadgeClass(isActive: boolean): string {
+  return isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600';
+}
+
 export function User360Shell({ userId }: User360ShellProps) {
   const [activeTab, setActiveTab] = useState<TabKey>('profile');
   const [filters, setFilters] = useState<User360FilterState>({});
   const [isExporting, setIsExporting] = useState(false);
 
-  const { profile, isLoading, isError, error, downloadCsv } = useUser360(userId, filters);
+  const { profile, isLoading, isFetching, isError, error, downloadCsv } = useUser360(
+    userId,
+    filters,
+  );
 
   const handleExportCsv = async () => {
     try {
@@ -61,7 +70,41 @@ export function User360Shell({ userId }: User360ShellProps) {
     }));
   };
 
-  if (isLoading) {
+  const handleTabChange = (nextTab: TabKey) => {
+    if (nextTab !== 'audit' && filters.auditType) {
+      setFilters((prev) => {
+        const next = { ...prev };
+        delete next.auditType;
+        return next;
+      });
+    }
+    setActiveTab(nextTab);
+  };
+
+  const handleTabKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
+    let targetIndex = -1;
+    if (e.key === 'ArrowRight') {
+      targetIndex = (currentIndex + 1) % TABS.length;
+    } else if (e.key === 'ArrowLeft') {
+      targetIndex = (currentIndex - 1 + TABS.length) % TABS.length;
+    } else if (e.key === 'Home') {
+      targetIndex = 0;
+    } else if (e.key === 'End') {
+      targetIndex = TABS.length - 1;
+    }
+
+    if (targetIndex >= 0) {
+      e.preventDefault();
+      const nextTab = TABS[targetIndex];
+      if (nextTab) {
+        handleTabChange(nextTab.key);
+        const nextBtn = document.getElementById(`tab-${nextTab.key}`);
+        nextBtn?.focus();
+      }
+    }
+  };
+
+  if (isLoading && !profile) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="text-center">
@@ -72,7 +115,7 @@ export function User360Shell({ userId }: User360ShellProps) {
     );
   }
 
-  if (isError || !profile) {
+  if ((isError && !profile) || !profile) {
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center text-red-800">
         <H2 className="text-lg font-semibold text-red-800">Error Loading User 360 Profile</H2>
@@ -111,16 +154,16 @@ export function User360Shell({ userId }: User360ShellProps) {
                   user.role === 'SUPER_ADMIN'
                     ? 'bg-purple-100 text-purple-800'
                     : user.role === 'MENTOR'
-                      ? 'bg-emerald-100 text-emerald-800'
-                      : 'bg-blue-100 text-blue-800'
+                      ? 'bg-blue-100 text-blue-800'
+                      : 'bg-emerald-100 text-emerald-800'
                 }`}
               >
                 {user.role}
               </Span>
               <Span
-                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                  user.isActive ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-600'
-                }`}
+                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getActiveStatusBadgeClass(
+                  user.isActive,
+                )}`}
               >
                 {user.isActive ? 'Active' : 'Inactive'}
               </Span>
@@ -175,6 +218,7 @@ export function User360Shell({ userId }: User360ShellProps) {
               <Input
                 id="filter-start-date"
                 type="date"
+                max={filters.endDate || undefined}
                 className="mt-1 h-9 px-3 py-1.5 text-xs font-normal"
                 value={filters.startDate ?? ''}
                 onChange={(e) => handleFilterChange('startDate', e.target.value)}
@@ -188,6 +232,7 @@ export function User360Shell({ userId }: User360ShellProps) {
               <Input
                 id="filter-end-date"
                 type="date"
+                min={filters.startDate || undefined}
                 className="mt-1 h-9 px-3 py-1.5 text-xs font-normal"
                 value={filters.endDate ?? ''}
                 onChange={(e) => handleFilterChange('endDate', e.target.value)}
@@ -209,7 +254,7 @@ export function User360Shell({ userId }: User360ShellProps) {
                   onChange={(e) => handleFilterChange('auditType', e.target.value)}
                 >
                   <option value="">All Audit Types</option>
-                  <option value="GRADING">Grading (HIS-09)</option>
+                  <option value="GRADING">Grading</option>
                   <option value="USER_ROLE">Role Changes</option>
                   <option value="BATCH">Batch Membership</option>
                 </Select>
@@ -221,15 +266,25 @@ export function User360Shell({ userId }: User360ShellProps) {
 
       {/* Tabs Header */}
       <div className="border-b border-slate-200">
-        <nav className="-mb-px flex space-x-6 overflow-x-auto">
-          {TABS.map((tab) => {
+        <nav
+          role="tablist"
+          aria-label="User 360 Sections"
+          className="-mb-px flex space-x-6 overflow-x-auto"
+        >
+          {TABS.map((tab, index) => {
             const isActive = activeTab === tab.key;
             return (
               <button
                 key={tab.key}
+                id={`tab-${tab.key}`}
                 type="button"
-                onClick={() => setActiveTab(tab.key)}
-                className={`border-b-2 px-1 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
+                role="tab"
+                aria-selected={isActive}
+                aria-controls={`panel-${tab.key}`}
+                tabIndex={isActive ? 0 : -1}
+                onClick={() => handleTabChange(tab.key)}
+                onKeyDown={(e) => handleTabKeyDown(e, index)}
+                className={`border-b-2 px-1 py-3 text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none ${
                   isActive
                     ? 'border-blue-600 text-blue-600'
                     : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
@@ -243,7 +298,18 @@ export function User360Shell({ userId }: User360ShellProps) {
       </div>
 
       {/* Tab Panels */}
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div
+        id={`panel-${activeTab}`}
+        role="tabpanel"
+        aria-labelledby={`tab-${activeTab}`}
+        className="relative rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
+      >
+        {isFetching && (
+          <div className="absolute top-4 right-6 flex items-center gap-1.5 text-xs text-slate-400">
+            <div className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-r-transparent" />
+            <span>Updating...</span>
+          </div>
+        )}
         {/* 1. Profile Tab */}
         {activeTab === 'profile' && (
           <div className="space-y-4">
@@ -350,16 +416,14 @@ export function User360Shell({ userId }: User360ShellProps) {
                           {new Date(b.joinedAt).toLocaleDateString()}
                         </td>
                         <td className="px-4 py-3 text-slate-600">
-                          {b.leftAt ? new Date(b.leftAt).toLocaleDateString() : '&mdash;'}
+                          {b.leftAt ? new Date(b.leftAt).toLocaleDateString() : EM_DASH}
                         </td>
-                        <td className="px-4 py-3 text-slate-600">{b.reasonToLeave ?? '&mdash;'}</td>
+                        <td className="px-4 py-3 text-slate-600">{b.reasonToLeave ?? EM_DASH}</td>
                         <td className="px-4 py-3">
                           <Span
-                            className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                              b.isActive
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-slate-100 text-slate-600'
-                            }`}
+                            className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${getActiveStatusBadgeClass(
+                              b.isActive,
+                            )}`}
                           >
                             {b.isActive ? 'Active' : 'Left'}
                           </Span>
@@ -409,11 +473,9 @@ export function User360Shell({ userId }: User360ShellProps) {
                         </td>
                         <td className="px-4 py-3">
                           <Span
-                            className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                              m.isActive
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-slate-100 text-slate-600'
-                            }`}
+                            className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${getActiveStatusBadgeClass(
+                              m.isActive,
+                            )}`}
                           >
                             {m.isActive ? 'Active' : 'Ended'}
                           </Span>
@@ -439,7 +501,7 @@ export function User360Shell({ userId }: User360ShellProps) {
                 <P className="text-sm font-medium text-slate-500">
                   No course allocations recorded.
                 </P>
-                <P className="mt-1 text-xs text-slate-400">
+                <P className="mt-1 text-xs text-slate-500">
                   {user.role === 'MENTOR'
                     ? 'This user has only mentor history and was never enrolled in courses as a mentee.'
                     : 'No courses have been allocated yet.'}
@@ -502,7 +564,7 @@ export function User360Shell({ userId }: User360ShellProps) {
                 <P className="text-sm font-medium text-slate-500">
                   No submissions or grades recorded.
                 </P>
-                <P className="mt-1 text-xs text-slate-400">
+                <P className="mt-1 text-xs text-slate-500">
                   {user.role === 'MENTOR'
                     ? 'This user has only mentor history and has never submitted assignments as a mentee.'
                     : 'No assignments submitted yet.'}
@@ -541,14 +603,14 @@ export function User360Shell({ userId }: User360ShellProps) {
                           </Span>
                         </td>
                         <td className="px-4 py-3 font-medium text-slate-900">
-                          {s.marks !== null ? `${s.marks} (${s.gradeLabel ?? 'N/A'})` : '&mdash;'}
+                          {s.marks !== null ? `${s.marks} (${s.gradeLabel ?? 'N/A'})` : EM_DASH}
                         </td>
-                        <td className="px-4 py-3 text-slate-600">{s.graderName ?? '&mdash;'}</td>
+                        <td className="px-4 py-3 text-slate-600">{s.graderName ?? EM_DASH}</td>
                         <td
                           className="max-w-xs truncate px-4 py-3 text-slate-600"
                           title={s.feedback ?? ''}
                         >
-                          {s.feedback ?? '&mdash;'}
+                          {s.feedback ?? EM_DASH}
                         </td>
                         <td className="px-4 py-3 font-medium text-blue-700">{s.periodLabel}</td>
                       </tr>
@@ -570,7 +632,7 @@ export function User360Shell({ userId }: User360ShellProps) {
                 <P className="mt-1 text-2xl font-bold text-slate-900">
                   {tabs.performanceSummary.totalAllocations}
                 </P>
-                <Small className="text-[11px] text-slate-400">
+                <Small className="text-[11px] text-slate-500">
                   {tabs.performanceSummary.completedAllocations} completed
                 </Small>
               </div>
@@ -579,14 +641,14 @@ export function User360Shell({ userId }: User360ShellProps) {
                 <P className="mt-1 text-2xl font-bold text-blue-600">
                   {tabs.performanceSummary.averageProgressPercent.toFixed(1)}%
                 </P>
-                <Small className="text-[11px] text-slate-400">across allocations</Small>
+                <Small className="text-[11px] text-slate-500">across allocations</Small>
               </div>
               <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
                 <Span className="text-xs text-slate-500">Total Submissions</Span>
                 <P className="mt-1 text-2xl font-bold text-slate-900">
                   {tabs.performanceSummary.totalSubmissions}
                 </P>
-                <Small className="text-[11px] text-slate-400">
+                <Small className="text-[11px] text-slate-500">
                   {tabs.performanceSummary.gradedSubmissions} graded
                 </Small>
               </div>
@@ -595,9 +657,9 @@ export function User360Shell({ userId }: User360ShellProps) {
                 <P className="mt-1 text-2xl font-bold text-emerald-600">
                   {tabs.performanceSummary.averageMarks !== null
                     ? tabs.performanceSummary.averageMarks.toFixed(1)
-                    : '&mdash;'}
+                    : EM_DASH}
                 </P>
-                <Small className="text-[11px] text-slate-400">
+                <Small className="text-[11px] text-slate-500">
                   {tabs.performanceSummary.onTimeRatePercent.toFixed(0)}% on-time
                 </Small>
               </div>
@@ -669,7 +731,10 @@ export function User360Shell({ userId }: User360ShellProps) {
                         <td className="px-4 py-3 font-mono text-[11px] font-semibold text-slate-800">
                           {a.action}
                         </td>
-                        <td className="px-4 py-3 font-mono text-[11px] text-slate-600">
+                        <td
+                          className="max-w-xs truncate px-4 py-3 font-mono text-[11px] text-slate-600"
+                          title={JSON.stringify(a.details, null, 2)}
+                        >
                           {JSON.stringify(a.details)}
                         </td>
                         <td className="px-4 py-3 font-medium text-blue-700">{a.periodLabel}</td>

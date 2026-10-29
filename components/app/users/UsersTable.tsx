@@ -769,11 +769,9 @@ export function UsersTable() {
                             {initials}
                           </div>
                           <div>
-                            <Link href={`/admin/users/${u.id}`} className="hover:underline">
-                              <Span className="block font-semibold text-slate-900">
-                                {u.name || '—'}
-                              </Span>
-                            </Link>
+                            <Span className="block font-semibold text-slate-900">
+                              {u.name || '—'}
+                            </Span>
                             {u.mustChangePassword ? (
                               <div className="mt-1 flex items-center gap-2">
                                 <Span className="text-[11px] font-semibold text-amber-800">

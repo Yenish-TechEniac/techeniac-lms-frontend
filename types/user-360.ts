@@ -1,16 +1,9 @@
-export type UserRoleType = 'SUPER_ADMIN' | 'MENTOR' | 'MENTEE';
+import type { UserRole } from '@/lib/validation';
+import type { ApiUser } from '@/services/users.service';
 
-export interface User360SafeUser {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRoleType;
-  isActive: boolean;
-  mustChangePassword: boolean;
-  tokenVersion: number;
-  lastLoginAt: string | null;
-  createdAt: string;
-  updatedAt: string;
+export type UserRoleType = UserRole;
+
+export interface User360SafeUser extends ApiUser {
   deletedAt: string | null;
 }
 
@@ -124,9 +117,7 @@ export interface User360Profile {
 
 export interface User360FilterState {
   rolePeriod?: string | undefined;
-  batchId?: string | undefined;
   startDate?: string | undefined;
   endDate?: string | undefined;
   auditType?: string | undefined;
-  tab?: string | undefined;
 }
