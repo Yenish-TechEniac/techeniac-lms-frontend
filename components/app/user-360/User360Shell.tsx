@@ -4,6 +4,10 @@ import Link from 'next/link';
 import React, { useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { Select } from '@/components/ui/Select';
+import { H1, H2, H3, P, Small, Span } from '@/components/ui/Typography';
 import { useUser360 } from '@/hooks/useUser360';
 import type { User360FilterState } from '@/types/user-360';
 
@@ -62,7 +66,7 @@ export function User360Shell({ userId }: User360ShellProps) {
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent align-[-0.125em]" />
-          <p className="mt-3 text-sm text-slate-500">Loading User 360 profile...</p>
+          <P className="mt-3 text-sm text-slate-500">Loading User 360 profile...</P>
         </div>
       </div>
     );
@@ -71,8 +75,8 @@ export function User360Shell({ userId }: User360ShellProps) {
   if (isError || !profile) {
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center text-red-800">
-        <h2 className="text-lg font-semibold">Error Loading User 360 Profile</h2>
-        <p className="mt-1 text-sm">{error ?? 'User not found or access denied.'}</p>
+        <H2 className="text-lg font-semibold text-red-800">Error Loading User 360 Profile</H2>
+        <P className="mt-1 text-sm text-red-700">{error ?? 'User not found or access denied.'}</P>
         <div className="mt-4">
           <Link href="/admin/users">
             <Button variant="outline" size="sm">
@@ -101,8 +105,8 @@ export function User360Shell({ userId }: User360ShellProps) {
               </Link>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900">{user.name}</h1>
-              <span
+              <H1 className="text-2xl font-bold tracking-tight text-slate-900">{user.name}</H1>
+              <Span
                 className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                   user.role === 'SUPER_ADMIN'
                     ? 'bg-purple-100 text-purple-800'
@@ -112,16 +116,16 @@ export function User360Shell({ userId }: User360ShellProps) {
                 }`}
               >
                 {user.role}
-              </span>
-              <span
+              </Span>
+              <Span
                 className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                   user.isActive ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-600'
                 }`}
               >
                 {user.isActive ? 'Active' : 'Inactive'}
-              </span>
+              </Span>
             </div>
-            <p className="mt-1 text-sm text-slate-500">{user.email}</p>
+            <P className="mt-1 text-sm text-slate-500">{user.email}</P>
           </div>
 
           <div className="flex items-center gap-3">
@@ -142,15 +146,15 @@ export function User360Shell({ userId }: User360ShellProps) {
         <div className="mt-6 border-t border-slate-100 pt-4">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
             <div>
-              <label
+              <Label
                 htmlFor="filter-role-period"
                 className="block text-xs font-medium text-slate-600"
               >
                 Filter by Role Period
-              </label>
-              <select
+              </Label>
+              <Select
                 id="filter-role-period"
-                className="mt-1 block w-full rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+                className="mt-1 h-9 px-3 py-1.5 text-xs font-normal"
                 value={filters.rolePeriod ?? ''}
                 onChange={(e) => handleFilterChange('rolePeriod', e.target.value)}
               >
@@ -158,33 +162,33 @@ export function User360Shell({ userId }: User360ShellProps) {
                 <option value="MENTEE">As Mentee</option>
                 <option value="MENTOR">As Mentor</option>
                 <option value="SUPER_ADMIN">As Super Admin</option>
-              </select>
+              </Select>
             </div>
 
             <div>
-              <label
+              <Label
                 htmlFor="filter-start-date"
                 className="block text-xs font-medium text-slate-600"
               >
                 From Date
-              </label>
-              <input
+              </Label>
+              <Input
                 id="filter-start-date"
                 type="date"
-                className="mt-1 block w-full rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+                className="mt-1 h-9 px-3 py-1.5 text-xs font-normal"
                 value={filters.startDate ?? ''}
                 onChange={(e) => handleFilterChange('startDate', e.target.value)}
               />
             </div>
 
             <div>
-              <label htmlFor="filter-end-date" className="block text-xs font-medium text-slate-600">
+              <Label htmlFor="filter-end-date" className="block text-xs font-medium text-slate-600">
                 To Date
-              </label>
-              <input
+              </Label>
+              <Input
                 id="filter-end-date"
                 type="date"
-                className="mt-1 block w-full rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+                className="mt-1 h-9 px-3 py-1.5 text-xs font-normal"
                 value={filters.endDate ?? ''}
                 onChange={(e) => handleFilterChange('endDate', e.target.value)}
               />
@@ -192,15 +196,15 @@ export function User360Shell({ userId }: User360ShellProps) {
 
             {activeTab === 'audit' && (
               <div>
-                <label
+                <Label
                   htmlFor="filter-audit-type"
                   className="block text-xs font-medium text-slate-600"
                 >
                   Audit Type
-                </label>
-                <select
+                </Label>
+                <Select
                   id="filter-audit-type"
-                  className="mt-1 block w-full rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+                  className="mt-1 h-9 px-3 py-1.5 text-xs font-normal"
                   value={filters.auditType ?? ''}
                   onChange={(e) => handleFilterChange('auditType', e.target.value)}
                 >
@@ -208,7 +212,7 @@ export function User360Shell({ userId }: User360ShellProps) {
                   <option value="GRADING">Grading (HIS-09)</option>
                   <option value="USER_ROLE">Role Changes</option>
                   <option value="BATCH">Batch Membership</option>
-                </select>
+                </Select>
               </div>
             )}
           </div>
@@ -243,35 +247,35 @@ export function User360Shell({ userId }: User360ShellProps) {
         {/* 1. Profile Tab */}
         {activeTab === 'profile' && (
           <div className="space-y-4">
-            <h2 className="text-base font-semibold text-slate-900">User Identity & Profile</h2>
+            <H2 className="text-base font-semibold text-slate-900">User Identity & Profile</H2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
               <div className="rounded-lg bg-slate-50 p-4">
-                <span className="text-xs text-slate-500">User ID</span>
-                <p className="mt-1 font-mono text-xs font-medium text-slate-800">{user.id}</p>
+                <Span className="text-xs text-slate-500">User ID</Span>
+                <P className="mt-1 font-mono text-xs font-medium text-slate-800">{user.id}</P>
               </div>
               <div className="rounded-lg bg-slate-50 p-4">
-                <span className="text-xs text-slate-500">Full Name</span>
-                <p className="mt-1 text-sm font-semibold text-slate-900">{user.name}</p>
+                <Span className="text-xs text-slate-500">Full Name</Span>
+                <P className="mt-1 text-sm font-semibold text-slate-900">{user.name}</P>
               </div>
               <div className="rounded-lg bg-slate-50 p-4">
-                <span className="text-xs text-slate-500">Email Address</span>
-                <p className="mt-1 text-sm font-medium text-slate-800">{user.email}</p>
+                <Span className="text-xs text-slate-500">Email Address</Span>
+                <P className="mt-1 text-sm font-medium text-slate-800">{user.email}</P>
               </div>
               <div className="rounded-lg bg-slate-50 p-4">
-                <span className="text-xs text-slate-500">Current Role</span>
-                <p className="mt-1 text-sm font-semibold text-slate-900">{user.role}</p>
+                <Span className="text-xs text-slate-500">Current Role</Span>
+                <P className="mt-1 text-sm font-semibold text-slate-900">{user.role}</P>
               </div>
               <div className="rounded-lg bg-slate-50 p-4">
-                <span className="text-xs text-slate-500">Account Created</span>
-                <p className="mt-1 text-sm font-medium text-slate-800">
+                <Span className="text-xs text-slate-500">Account Created</Span>
+                <P className="mt-1 text-sm font-medium text-slate-800">
                   {new Date(user.createdAt).toLocaleString()}
-                </p>
+                </P>
               </div>
               <div className="rounded-lg bg-slate-50 p-4">
-                <span className="text-xs text-slate-500">Last Login</span>
-                <p className="mt-1 text-sm font-medium text-slate-800">
+                <Span className="text-xs text-slate-500">Last Login</Span>
+                <P className="mt-1 text-sm font-medium text-slate-800">
                   {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never'}
-                </p>
+                </P>
               </div>
             </div>
           </div>
@@ -280,11 +284,11 @@ export function User360Shell({ userId }: User360ShellProps) {
         {/* 2. Role History Tab */}
         {activeTab === 'role-history' && (
           <div className="space-y-4">
-            <h2 className="text-base font-semibold text-slate-900">Role History Timeline</h2>
+            <H2 className="text-base font-semibold text-slate-900">Role History Timeline</H2>
             {tabs.roleHistory.length === 0 ? (
-              <p className="py-8 text-center text-sm text-slate-500">
+              <P className="py-8 text-center text-sm text-slate-500">
                 No role history records found.
-              </p>
+              </P>
             ) : (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-slate-200 text-left text-xs">
@@ -318,9 +322,9 @@ export function User360Shell({ userId }: User360ShellProps) {
         {/* 3. Batch History Tab */}
         {activeTab === 'batch-history' && (
           <div className="space-y-4">
-            <h2 className="text-base font-semibold text-slate-900">Batch Participation History</h2>
+            <H2 className="text-base font-semibold text-slate-900">Batch Participation History</H2>
             {tabs.batchHistory.length === 0 ? (
-              <p className="py-8 text-center text-sm text-slate-500">No batch history found.</p>
+              <P className="py-8 text-center text-sm text-slate-500">No batch history found.</P>
             ) : (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-slate-200 text-left text-xs">
@@ -350,7 +354,7 @@ export function User360Shell({ userId }: User360ShellProps) {
                         </td>
                         <td className="px-4 py-3 text-slate-600">{b.reasonToLeave ?? '&mdash;'}</td>
                         <td className="px-4 py-3">
-                          <span
+                          <Span
                             className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${
                               b.isActive
                                 ? 'bg-green-100 text-green-800'
@@ -358,7 +362,7 @@ export function User360Shell({ userId }: User360ShellProps) {
                             }`}
                           >
                             {b.isActive ? 'Active' : 'Left'}
-                          </span>
+                          </Span>
                         </td>
                         <td className="px-4 py-3 font-medium text-blue-700">{b.periodLabel}</td>
                       </tr>
@@ -373,11 +377,11 @@ export function User360Shell({ userId }: User360ShellProps) {
         {/* 4. Mentor Mapping History Tab */}
         {activeTab === 'mentor-mapping-history' && (
           <div className="space-y-4">
-            <h2 className="text-base font-semibold text-slate-900">
+            <H2 className="text-base font-semibold text-slate-900">
               Mentor & Mentee Mapping History
-            </h2>
+            </H2>
             {tabs.mentorMappingHistory.length === 0 ? (
-              <p className="py-8 text-center text-sm text-slate-500">No mentor mappings found.</p>
+              <P className="py-8 text-center text-sm text-slate-500">No mentor mappings found.</P>
             ) : (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-slate-200 text-left text-xs">
@@ -397,14 +401,14 @@ export function User360Shell({ userId }: User360ShellProps) {
                         <td className="px-4 py-3 font-semibold text-slate-900">{m.batchCode}</td>
                         <td className="px-4 py-3 text-slate-700">{m.mappedRole}</td>
                         <td className="px-4 py-3 text-slate-800">
-                          {m.peerName} <span className="text-slate-500">({m.peerEmail})</span>
+                          {m.peerName} <Span className="text-slate-500">({m.peerEmail})</Span>
                         </td>
                         <td className="px-4 py-3 text-slate-600">
                           {new Date(m.startDate).toLocaleDateString()} &ndash;{' '}
                           {m.endDate ? new Date(m.endDate).toLocaleDateString() : 'Active'}
                         </td>
                         <td className="px-4 py-3">
-                          <span
+                          <Span
                             className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${
                               m.isActive
                                 ? 'bg-green-100 text-green-800'
@@ -412,7 +416,7 @@ export function User360Shell({ userId }: User360ShellProps) {
                             }`}
                           >
                             {m.isActive ? 'Active' : 'Ended'}
-                          </span>
+                          </Span>
                         </td>
                         <td className="px-4 py-3 font-medium text-blue-700">{m.periodLabel}</td>
                       </tr>
@@ -427,19 +431,19 @@ export function User360Shell({ userId }: User360ShellProps) {
         {/* 5. Course History Tab */}
         {activeTab === 'course-history' && (
           <div className="space-y-4">
-            <h2 className="text-base font-semibold text-slate-900">
+            <H2 className="text-base font-semibold text-slate-900">
               Allocated Courses & Curriculum
-            </h2>
+            </H2>
             {tabs.courseHistory.length === 0 ? (
               <div className="rounded-lg border border-dashed border-slate-200 py-12 text-center">
-                <p className="text-sm font-medium text-slate-500">
+                <P className="text-sm font-medium text-slate-500">
                   No course allocations recorded.
-                </p>
-                <p className="mt-1 text-xs text-slate-400">
+                </P>
+                <P className="mt-1 text-xs text-slate-400">
                   {user.role === 'MENTOR'
                     ? 'This user has only mentor history and was never enrolled in courses as a mentee.'
                     : 'No courses have been allocated yet.'}
-                </p>
+                </P>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -460,7 +464,7 @@ export function User360Shell({ userId }: User360ShellProps) {
                         <td className="px-4 py-3 font-semibold text-slate-900">{c.courseTitle}</td>
                         <td className="px-4 py-3 text-slate-600">{c.batchCode ?? 'N/A'}</td>
                         <td className="px-4 py-3">
-                          <span
+                          <Span
                             className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${
                               c.status === 'COMPLETED'
                                 ? 'bg-emerald-100 text-emerald-800'
@@ -468,7 +472,7 @@ export function User360Shell({ userId }: User360ShellProps) {
                             }`}
                           >
                             {c.status}
-                          </span>
+                          </Span>
                         </td>
                         <td className="px-4 py-3 font-semibold text-slate-900">
                           {c.progressPercent}%
@@ -490,19 +494,19 @@ export function User360Shell({ userId }: User360ShellProps) {
         {/* 6. Assignment & Grade History Tab */}
         {activeTab === 'assignment-grade-history' && (
           <div className="space-y-4">
-            <h2 className="text-base font-semibold text-slate-900">
+            <H2 className="text-base font-semibold text-slate-900">
               Assignments, Submissions & Grading
-            </h2>
+            </H2>
             {tabs.assignmentGradeHistory.length === 0 ? (
               <div className="rounded-lg border border-dashed border-slate-200 py-12 text-center">
-                <p className="text-sm font-medium text-slate-500">
+                <P className="text-sm font-medium text-slate-500">
                   No submissions or grades recorded.
-                </p>
-                <p className="mt-1 text-xs text-slate-400">
+                </P>
+                <P className="mt-1 text-xs text-slate-400">
                   {user.role === 'MENTOR'
                     ? 'This user has only mentor history and has never submitted assignments as a mentee.'
                     : 'No assignments submitted yet.'}
-                </p>
+                </P>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -526,7 +530,7 @@ export function User360Shell({ userId }: User360ShellProps) {
                         </td>
                         <td className="px-4 py-3 text-slate-600">v{s.version}</td>
                         <td className="px-4 py-3">
-                          <span
+                          <Span
                             className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${
                               s.status === 'GRADED'
                                 ? 'bg-emerald-100 text-emerald-800'
@@ -534,7 +538,7 @@ export function User360Shell({ userId }: User360ShellProps) {
                             }`}
                           >
                             {s.status}
-                          </span>
+                          </Span>
                         </td>
                         <td className="px-4 py-3 font-medium text-slate-900">
                           {s.marks !== null ? `${s.marks} (${s.gradeLabel ?? 'N/A'})` : '&mdash;'}
@@ -559,52 +563,52 @@ export function User360Shell({ userId }: User360ShellProps) {
         {/* 7. Performance Summary Tab */}
         {activeTab === 'performance-summary' && (
           <div className="space-y-6">
-            <h2 className="text-base font-semibold text-slate-900">Learning Performance Summary</h2>
+            <H2 className="text-base font-semibold text-slate-900">Learning Performance Summary</H2>
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
               <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
-                <span className="text-xs text-slate-500">Allocated Courses</span>
-                <p className="mt-1 text-2xl font-bold text-slate-900">
+                <Span className="text-xs text-slate-500">Allocated Courses</Span>
+                <P className="mt-1 text-2xl font-bold text-slate-900">
                   {tabs.performanceSummary.totalAllocations}
-                </p>
-                <span className="text-[11px] text-slate-400">
+                </P>
+                <Small className="text-[11px] text-slate-400">
                   {tabs.performanceSummary.completedAllocations} completed
-                </span>
+                </Small>
               </div>
               <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
-                <span className="text-xs text-slate-500">Average Progress</span>
-                <p className="mt-1 text-2xl font-bold text-blue-600">
+                <Span className="text-xs text-slate-500">Average Progress</Span>
+                <P className="mt-1 text-2xl font-bold text-blue-600">
                   {tabs.performanceSummary.averageProgressPercent.toFixed(1)}%
-                </p>
-                <span className="text-[11px] text-slate-400">across allocations</span>
+                </P>
+                <Small className="text-[11px] text-slate-400">across allocations</Small>
               </div>
               <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
-                <span className="text-xs text-slate-500">Total Submissions</span>
-                <p className="mt-1 text-2xl font-bold text-slate-900">
+                <Span className="text-xs text-slate-500">Total Submissions</Span>
+                <P className="mt-1 text-2xl font-bold text-slate-900">
                   {tabs.performanceSummary.totalSubmissions}
-                </p>
-                <span className="text-[11px] text-slate-400">
+                </P>
+                <Small className="text-[11px] text-slate-400">
                   {tabs.performanceSummary.gradedSubmissions} graded
-                </span>
+                </Small>
               </div>
               <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
-                <span className="text-xs text-slate-500">Average Marks</span>
-                <p className="mt-1 text-2xl font-bold text-emerald-600">
+                <Span className="text-xs text-slate-500">Average Marks</Span>
+                <P className="mt-1 text-2xl font-bold text-emerald-600">
                   {tabs.performanceSummary.averageMarks !== null
                     ? tabs.performanceSummary.averageMarks.toFixed(1)
                     : '&mdash;'}
-                </p>
-                <span className="text-[11px] text-slate-400">
+                </P>
+                <Small className="text-[11px] text-slate-400">
                   {tabs.performanceSummary.onTimeRatePercent.toFixed(0)}% on-time
-                </span>
+                </Small>
               </div>
             </div>
 
             {/* Grade Distribution */}
             <div>
-              <h3 className="text-sm font-semibold text-slate-800">Grade Distribution</h3>
+              <H3 className="text-sm font-semibold text-slate-800">Grade Distribution</H3>
               <div className="mt-2 flex flex-wrap gap-3">
                 {Object.keys(tabs.performanceSummary.gradeDistribution).length === 0 ? (
-                  <p className="text-xs text-slate-500">No grades recorded.</p>
+                  <P className="text-xs text-slate-500">No grades recorded.</P>
                 ) : (
                   Object.entries(tabs.performanceSummary.gradeDistribution).map(
                     ([grade, count]) => (
@@ -612,8 +616,8 @@ export function User360Shell({ userId }: User360ShellProps) {
                         key={grade}
                         className="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs shadow-sm"
                       >
-                        <span className="font-bold text-slate-900">Grade {grade}:</span>
-                        <span className="font-semibold text-blue-600">{count}</span>
+                        <Span className="font-bold text-slate-900">Grade {grade}:</Span>
+                        <Span className="font-semibold text-blue-600">{count}</Span>
                       </div>
                     ),
                   )
@@ -626,11 +630,11 @@ export function User360Shell({ userId }: User360ShellProps) {
         {/* 8. Audit Tab */}
         {activeTab === 'audit' && (
           <div className="space-y-4">
-            <h2 className="text-base font-semibold text-slate-900">User Audit Log Trail</h2>
+            <H2 className="text-base font-semibold text-slate-900">User Audit Log Trail</H2>
             {tabs.audit.length === 0 ? (
-              <p className="py-8 text-center text-sm text-slate-500">
+              <P className="py-8 text-center text-sm text-slate-500">
                 No audit events match current filters.
-              </p>
+              </P>
             ) : (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-slate-200 text-left text-xs">
@@ -650,7 +654,7 @@ export function User360Shell({ userId }: User360ShellProps) {
                           {new Date(a.timestamp).toLocaleString()}
                         </td>
                         <td className="px-4 py-3">
-                          <span
+                          <Span
                             className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${
                               a.type === 'GRADING'
                                 ? 'bg-purple-100 text-purple-800'
@@ -660,7 +664,7 @@ export function User360Shell({ userId }: User360ShellProps) {
                             }`}
                           >
                             {a.type}
-                          </span>
+                          </Span>
                         </td>
                         <td className="px-4 py-3 font-mono text-[11px] font-semibold text-slate-800">
                           {a.action}

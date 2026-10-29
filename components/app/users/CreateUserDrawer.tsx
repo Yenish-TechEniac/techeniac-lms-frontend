@@ -7,6 +7,7 @@ import { FieldError } from '@/components/ui/FieldError';
 import { Form } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
+import { Select } from '@/components/ui/Select';
 import { H2, P, Span } from '@/components/ui/Typography';
 import { useDialogAccessibility } from '@/hooks/useDialogAccessibility';
 import { type CreateUserFormData, createUserSchema, type UserRole } from '@/lib/validation';
@@ -165,17 +166,17 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
               <Label htmlFor="create-role" required>
                 Initial Role Assignment
               </Label>
-              <select
+              <Select
                 id="create-role"
                 value={role}
                 onChange={(e) => setRole(e.target.value as UserRole)}
                 disabled={isSubmitting}
-                className="h-12 w-full cursor-pointer rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none"
+                className="h-12 cursor-pointer"
               >
                 <option value="MENTEE">Mentee (Learner)</option>
                 <option value="MENTOR">Mentor (Instructor / Reviewer)</option>
                 <option value="SUPER_ADMIN">Super Admin (System Administrator)</option>
-              </select>
+              </Select>
             </div>
 
             {/* PRD Rule Notice */}
