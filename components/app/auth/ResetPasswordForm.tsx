@@ -9,7 +9,7 @@ import { FieldError } from '@/components/ui/FieldError';
 import { Form } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { H3, P } from '@/components/ui/Typography';
+import { H3, P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { usePasswordCriteria } from '@/hooks/usePasswordCriteria';
 import { useResetTokenVerification } from '@/hooks/useResetTokenVerification';
@@ -58,7 +58,6 @@ export function ResetPasswordForm() {
   // Fail-open: when verification is unable to determine validity (e.g. network/500/404/429),
   // fall back to 'valid' so the user is never blocked from submitting at the real authorization gate.
   const state: ResetState = resolveResetState(submissionState, isVerifying, status);
-
   const criteria = usePasswordCriteria(password);
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
@@ -97,7 +96,7 @@ export function ResetPasswordForm() {
   if (state === 'verifying') {
     return (
       <div className="space-y-4 py-8 text-center" role="status" aria-live="polite">
-        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-[#0044D3] border-t-transparent" />
         <P className="text-sm font-medium text-slate-500">Verifying password reset link...</P>
       </div>
     );
@@ -126,7 +125,14 @@ export function ResetPasswordForm() {
         </div>
 
         <div className="pt-2">
-          <Link href="/login" className={getButtonClassName('primary', 'lg', 'w-full')}>
+          <Link
+            href="/login"
+            className={getButtonClassName(
+              'primary',
+              'lg',
+              'h-12 w-full rounded-full bg-[#0044D3] text-sm font-bold shadow-md shadow-[#0044D3]/20 hover:bg-[#0036ab]',
+            )}
+          >
             Sign in
           </Link>
         </div>
@@ -160,15 +166,32 @@ export function ResetPasswordForm() {
         </div>
 
         <div className="space-y-3 pt-2">
-          <Link href="/forgot-password" className={getButtonClassName('primary', 'lg', 'w-full')}>
+          <Link
+            href="/forgot-password"
+            className={getButtonClassName(
+              'primary',
+              'lg',
+              'h-12 w-full rounded-full bg-[#0044D3] text-sm font-bold shadow-md shadow-[#0044D3]/20 hover:bg-[#0036ab]',
+            )}
+          >
             Request new link
           </Link>
 
           <Link
             href="/login"
-            className="inline-block text-sm font-semibold text-blue-600 transition-colors hover:text-blue-700"
+            className="group inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
           >
-            ← Return to sign in
+            <svg
+              className="h-4 w-4 shrink-0 transition-transform group-hover:-translate-x-0.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <Span className="leading-none">Return to sign in</Span>
           </Link>
         </div>
       </div>
@@ -177,20 +200,39 @@ export function ResetPasswordForm() {
 
   return (
     <Form
-      className="space-y-5"
+      className="space-y-4"
       onSubmit={(e) => {
         void handleSubmit(e);
       }}
     >
       {errors.general ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
           {errors.general}
         </div>
       ) : null}
 
       {/* New Password */}
       <div className="space-y-1.5">
-        <Label htmlFor="newPassword">New Password</Label>
+        <Label
+          htmlFor="newPassword"
+          className="flex items-center gap-2 text-sm font-semibold text-[#111827]"
+        >
+          <svg
+            className="h-4 w-4 text-[#0044D3]"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.8"
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+            />
+          </svg>
+          New Password
+        </Label>
         <div className="relative">
           <Input
             id="newPassword"
@@ -201,11 +243,12 @@ export function ResetPasswordForm() {
             autoComplete="new-password"
             hasError={Boolean(errors.password)}
             disabled={isSubmitting}
-            className="pr-12"
+            className="rounded-2xl border-slate-200/90 bg-slate-50 pr-12 text-base focus:bg-white"
           />
           <PasswordVisibilityToggle
             visible={showPassword}
             onToggle={() => setShowPassword((prev) => !prev)}
+            className="text-[#0044D3] hover:bg-blue-50 hover:text-[#0036ab]"
           />
         </div>
         <FieldError id="newPassword-error" error={errors.password} />
@@ -216,7 +259,26 @@ export function ResetPasswordForm() {
 
       {/* Confirm Password */}
       <div className="space-y-1.5">
-        <Label htmlFor="confirmPassword">Confirm Password</Label>
+        <Label
+          htmlFor="confirmPassword"
+          className="flex items-center gap-2 text-sm font-semibold text-[#111827]"
+        >
+          <svg
+            className="h-4 w-4 text-[#0044D3]"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.8"
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+            />
+          </svg>
+          Confirm New Password
+        </Label>
         <div className="relative">
           <Input
             id="confirmPassword"
@@ -227,33 +289,46 @@ export function ResetPasswordForm() {
             autoComplete="new-password"
             hasError={Boolean(errors.confirmPassword)}
             disabled={isSubmitting}
-            className="pr-12"
+            className="rounded-2xl border-slate-200/90 bg-slate-50 pr-12 text-base focus:bg-white"
           />
           <PasswordVisibilityToggle
             visible={showConfirmPassword}
             onToggle={() => setShowConfirmPassword((prev) => !prev)}
+            className="text-[#0044D3] hover:bg-blue-50 hover:text-[#0036ab]"
           />
         </div>
         <FieldError id="confirmPassword-error" error={errors.confirmPassword} />
       </div>
 
-      <Button
-        type="submit"
-        variant="primary"
-        size="lg"
-        disabled={isSubmitting}
-        isLoading={isSubmitting}
-        className="w-full"
-      >
-        {isSubmitting ? 'Updating password...' : 'Update password'}
-      </Button>
+      <div className="pt-2">
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          disabled={isSubmitting}
+          isLoading={isSubmitting}
+          className="h-12 w-full rounded-full bg-[#0044D3] text-base font-medium shadow-md shadow-[#0044D3]/20 hover:bg-[#0036AB]"
+        >
+          {isSubmitting ? 'Updating...' : 'Reset Password'}
+        </Button>
+      </div>
 
       <div className="pt-2 text-center">
         <Link
           href="/login"
-          className="text-sm font-semibold text-blue-600 transition-colors hover:text-blue-700"
+          className="group inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
         >
-          Cancel and return to sign in
+          <svg
+            className="h-4 w-4 shrink-0 transition-transform group-hover:-translate-x-0.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth="2"
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <Span className="leading-none">Cancel and return to sign in</Span>
         </Link>
       </div>
     </Form>

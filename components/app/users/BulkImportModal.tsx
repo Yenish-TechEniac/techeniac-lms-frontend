@@ -5,6 +5,14 @@ import React, { useState } from 'react';
 import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
 import { Label } from '@/components/ui/Label';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/Table';
 import { Code, P, Span } from '@/components/ui/Typography';
 import { type CsvUserRow, csvUserRowSchema } from '@/lib/validation';
 
@@ -299,31 +307,39 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
                 </P>
               </div>
 
-              <div className="max-h-52 overflow-hidden overflow-y-auto rounded-xl border border-red-200">
-                <table className="w-full border-collapse text-left text-xs">
-                  <thead className="sticky top-0 bg-red-100/70 text-red-900">
-                    <tr>
-                      <th className="p-2.5">Line</th>
-                      <th className="p-2.5">Name</th>
-                      <th className="p-2.5">Email</th>
-                      <th className="p-2.5">Role</th>
-                      <th className="p-2.5">Failure Reason</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-red-100 bg-white">
+              <div className="max-h-52 overflow-hidden overflow-y-auto rounded-2xl border border-red-200">
+                <Table className="w-full text-xs">
+                  <TableHeader className="sticky top-0 bg-red-100/70 text-red-900">
+                    <TableRow>
+                      <TableHead className="p-2.5 text-xs">Line</TableHead>
+                      <TableHead className="p-2.5 text-xs">Name</TableHead>
+                      <TableHead className="p-2.5 text-xs">Email</TableHead>
+                      <TableHead className="p-2.5 text-xs">Role</TableHead>
+                      <TableHead className="p-2.5 text-xs">Failure Reason</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody className="divide-y divide-red-100 bg-white">
                     {importResult.failures.map((f, idx) => (
-                      <tr key={`${f.row.email}-${idx}`} className="bg-red-50/30">
-                        <td className="p-2.5 font-mono text-slate-500">
+                      <TableRow key={`${f.row.email}-${idx}`} className="bg-red-50/30">
+                        <TableCell className="p-2.5 font-mono text-xs text-slate-500">
                           {f.row.rowNumber ? `Line ${f.row.rowNumber}` : `—`}
-                        </td>
-                        <td className="p-2.5 font-medium text-slate-900">{f.row.name}</td>
-                        <td className="p-2.5 font-mono text-slate-600">{f.row.email}</td>
-                        <td className="p-2.5 font-mono text-slate-700">{f.row.role}</td>
-                        <td className="p-2.5 font-medium text-red-600">{f.error}</td>
-                      </tr>
+                        </TableCell>
+                        <TableCell className="p-2.5 text-xs font-medium text-slate-900">
+                          {f.row.name}
+                        </TableCell>
+                        <TableCell className="p-2.5 font-mono text-xs text-slate-600">
+                          {f.row.email}
+                        </TableCell>
+                        <TableCell className="p-2.5 font-mono text-xs text-slate-700">
+                          {f.row.role}
+                        </TableCell>
+                        <TableCell className="p-2.5 text-xs font-medium text-red-600">
+                          {f.error}
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             </div>
           )}
@@ -342,7 +358,7 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
               <Button type="button" variant="outline" size="sm" onClick={handleDownloadSample}>
                 Download Sample CSV
               </Button>
-              <Label className="cursor-pointer rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-700">
+              <Label className="cursor-pointer rounded-full bg-[#0044D3] px-5 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-[#0039B3]">
                 Choose File
                 <input
                   type="file"
@@ -388,29 +404,38 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
                   {validCount} of {parsedRows.length} ready to import
                 </Span>
               </div>
-              <div className="max-h-56 overflow-hidden overflow-y-auto rounded-xl border border-slate-200">
-                <table className="w-full border-collapse text-left text-xs">
-                  <thead className="sticky top-0 bg-slate-100 text-slate-700">
-                    <tr>
-                      <th className="p-2.5">Row</th>
-                      <th className="p-2.5">Name</th>
-                      <th className="p-2.5">Email</th>
-                      <th className="p-2.5">Role</th>
-                      <th className="p-2.5">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
+              <div className="max-h-56 overflow-hidden overflow-y-auto rounded-2xl border border-slate-200">
+                <Table className="w-full text-xs">
+                  <TableHeader className="sticky top-0 bg-slate-100 text-slate-700">
+                    <TableRow>
+                      <TableHead className="p-2.5 text-xs">Row</TableHead>
+                      <TableHead className="p-2.5 text-xs">Name</TableHead>
+                      <TableHead className="p-2.5 text-xs">Email</TableHead>
+                      <TableHead className="p-2.5 text-xs">Role</TableHead>
+                      <TableHead className="p-2.5 text-xs">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody className="divide-y divide-slate-100">
                     {parsedRows.map((row) => (
-                      <tr key={row.rowNumber} className={row.isValid ? 'bg-white' : 'bg-red-50/50'}>
-                        <td className="p-2.5 font-mono text-slate-500">{row.rowNumber}</td>
-                        <td className="p-2.5 font-medium text-slate-900">{row.data.name || '—'}</td>
-                        <td className="p-2.5 font-mono text-slate-600">{row.data.email || '—'}</td>
-                        <td className="p-2.5">
+                      <TableRow
+                        key={row.rowNumber}
+                        className={row.isValid ? 'bg-white' : 'bg-red-50/50'}
+                      >
+                        <TableCell className="p-2.5 font-mono text-xs text-slate-500">
+                          {row.rowNumber}
+                        </TableCell>
+                        <TableCell className="p-2.5 text-xs font-medium text-slate-900">
+                          {row.data.name || '—'}
+                        </TableCell>
+                        <TableCell className="p-2.5 font-mono text-xs text-slate-600">
+                          {row.data.email || '—'}
+                        </TableCell>
+                        <TableCell className="p-2.5">
                           <Span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-800">
                             {row.data.role || '—'}
                           </Span>
-                        </td>
-                        <td className="p-2.5">
+                        </TableCell>
+                        <TableCell className="p-2.5">
                           {row.isValid ? (
                             <Span className="font-semibold text-emerald-600">Ready</Span>
                           ) : (
@@ -421,11 +446,11 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
                               {row.errors[0]}
                             </Span>
                           )}
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             </div>
           ) : isProcessing ? (
