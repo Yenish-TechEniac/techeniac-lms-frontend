@@ -20,8 +20,7 @@ export default function MentorSubmissionsPage() {
             Submission Queue & Reviews
           </H1>
           <P className="mt-1 text-sm text-slate-500">
-            Review submitted coursework, give marks and feedback, or request revisions (FR-10.1 -
-            FR-10.7).
+            Review submitted coursework, give marks and feedback, or request revisions.
           </P>
         </div>
 

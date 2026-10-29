@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { gradingService } from '@/services/grading.service';
 import type {
@@ -26,6 +26,7 @@ export function useSubmissionQueue(query?: SubmissionQueueQuery) {
   } = useQuery<PaginatedSubmissionQueueResponse, Error>({
     queryKey: GRADING_QUERY_KEYS.queue(query),
     queryFn: ({ signal }) => gradingService.getSubmissionQueue(query, signal),
+    placeholderData: keepPreviousData,
   });
 
   return {
@@ -50,7 +51,12 @@ export function useReviewDetails(submissionId: string | null, enabled = true) {
     refetch,
   } = useQuery<SubmissionReviewDetails, Error>({
     queryKey: GRADING_QUERY_KEYS.review(submissionId || ''),
-    queryFn: ({ signal }) => gradingService.getReviewDetails(submissionId!, signal),
+    queryFn: ({ signal }) => {
+      if (!submissionId) {
+        return Promise.reject(new Error('No submission selected'));
+      }
+      return gradingService.getReviewDetails(submissionId, signal);
+    },
     enabled: Boolean(submissionId) && enabled,
   });
 

@@ -351,7 +351,6 @@ export default function MentorPage() {
               <Span className="text-[11px] font-semibold text-blue-700 group-hover:underline">
                 Open Submission Queue &rarr;
               </Span>
-              <Span className="text-[10px] font-medium text-blue-600">FR-10.1 - 10.7</Span>
             </div>
           </Link>
 

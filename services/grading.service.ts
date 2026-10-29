@@ -8,6 +8,7 @@ import type {
 } from '@/types/grading';
 
 import { apiClient, type RequestOptions } from './api.client';
+import { normalizeSubmissionData } from './submissions.service';
 
 interface QueueApiResponse {
   data: SubmissionQueueItem[];
@@ -68,7 +69,12 @@ export const gradingService = {
     }
 
     const res = await apiClient<ReviewApiResponse>(`/submissions/${submissionId}/review`, options);
-    return res.data;
+    return {
+      ...res.data,
+      submissionData: normalizeSubmissionData(
+        res.data.submissionData as unknown as Record<string, unknown> | null | undefined,
+      ),
+    };
   },
 
   async gradeSubmission(

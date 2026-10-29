@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/Button';
 import { H2, Muted, P, Span } from '@/components/ui/Typography';
 import { useSubmissionQueue } from '@/hooks/useGrading';
 import { formatDateIST } from '@/lib/date';
-import { AssignmentDerivedStatus } from '@/types/submissions';
 
 export function LatestSubmissionsWidget() {
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null);
@@ -25,9 +24,9 @@ export function LatestSubmissionsWidget() {
       {/* Header */}
       <div className="flex items-center justify-between border-b border-slate-100 p-6">
         <div>
-          <H2 className="text-base font-bold text-slate-900">Latest Submissions</H2>
+          <H2 className="text-base font-bold text-slate-900">Submissions Awaiting Review</H2>
           <Muted className="text-xs">
-            Most recent assignment activity across your mapped mentees (FR-10.1)
+            Pending submissions awaiting review across your mapped mentees
           </Muted>
         </div>
         <Link
@@ -75,10 +74,7 @@ export function LatestSubmissionsWidget() {
 
               <div className="flex flex-shrink-0 items-center gap-3">
                 <div className="text-right">
-                  <SubmissionStatusBadge
-                    status={sub.status as unknown as AssignmentDerivedStatus}
-                    isLate={sub.isLate}
-                  />
+                  <SubmissionStatusBadge status={sub.status} isLate={sub.isLate} />
                   <Muted className="mt-0.5 block font-mono text-[10px]">
                     {formatDateIST(sub.submittedAt)}
                   </Muted>
@@ -89,7 +85,7 @@ export function LatestSubmissionsWidget() {
                   variant="outline"
                   size="sm"
                   onClick={() => setSelectedSubmissionId(sub.id)}
-                  className="h-7 border-slate-200 px-2.5 text-xs text-slate-700 hover:bg-slate-100"
+                  className="border-slate-200 px-2.5 text-xs text-slate-700 hover:bg-slate-100"
                 >
                   Review
                 </Button>
