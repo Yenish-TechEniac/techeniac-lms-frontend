@@ -48,6 +48,7 @@ function MenteeAssignmentsContent() {
       <PortalSessionState
         sessionError={sessionError}
         loadingMessage="Loading student assignments..."
+        variant="mentee"
       />
     );
   }
@@ -132,7 +133,11 @@ export default function MenteeAssignmentsPage() {
   return (
     <Suspense
       fallback={
-        <PortalSessionState sessionError={null} loadingMessage="Loading student assignments..." />
+        <PortalSessionState
+          sessionError={null}
+          loadingMessage="Loading student assignments..."
+          variant="mentee"
+        />
       }
     >
       <MenteeAssignmentsContent />

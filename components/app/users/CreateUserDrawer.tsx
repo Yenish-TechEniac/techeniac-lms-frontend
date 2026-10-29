@@ -102,16 +102,6 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
           <div className="flex items-center gap-3">
             <Button
               type="button"
-              variant="outline"
-              size="sm"
-              disabled={isSubmitting}
-              onClick={() => void handleSubmit()}
-              className="rounded-full border-[#0044D3] text-sm font-semibold text-[#0044D3] hover:bg-blue-50"
-            >
-              Save Changes
-            </Button>
-            <Button
-              type="button"
               variant="ghost"
               size="sm"
               onClick={handleResetAndClose}

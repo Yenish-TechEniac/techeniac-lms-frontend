@@ -62,36 +62,23 @@ This document defines the official design tokens, typography scale, color palett
 - **Supported Weights**:
   - `Regular` (`font-weight: 400`)
   - `Medium` (`font-weight: 500` - Button labels & interactive badges)
-  - `Bold` (`font-weight: 700`)
+  - `Semibold` (`font-weight: 600` - Headings & buttons)
+  - `Bold` (`font-weight: 700` - Display titles & metric badges)
 
-### 3.1 Regular Typography Scale (`font-weight: 400`)
+### 3.1 Typography Scale (Implemented in `Typography.tsx`)
 
-| Style Level         | Font Size         | Line Height       | Ratio | Recommended HTML Tag | Tailwind Class Equivalent                | Typical Use Case                         |
-| :------------------ | :---------------- | :---------------- | :---- | :------------------- | :--------------------------------------- | :--------------------------------------- |
-| **Display Hero**    | `72px` (4.5rem)   | `80px` (5.0rem)   | 111%  | `<h1>` (hero)        | `text-[72px] leading-[80px] font-normal` | Marketing hero headers, large banners    |
-| **Heading 1**       | `56px` (3.5rem)   | `64px` (4.0rem)   | 114%  | `<h1>`               | `text-[56px] leading-[64px] font-normal` | Main page titles                         |
-| **Heading 2**       | `48px` (3.0rem)   | `56px` (3.5rem)   | 117%  | `<h2>`               | `text-[48px] leading-[56px] font-normal` | Major section headers                    |
-| **Heading 3**       | `40px` (2.5rem)   | `48px` (3.0rem)   | 120%  | `<h3>`               | `text-[40px] leading-[48px] font-normal` | Subsection headers                       |
-| **Heading 4**       | `30px` (1.875rem) | `40px` (2.5rem)   | 133%  | `<h4>`               | `text-[30px] leading-[40px] font-normal` | Modal titles, card headers               |
-| **Subheading**      | `20px` (1.25rem)  | `28px` (1.75rem)  | 140%  | `<h5>` / `<p>`       | `text-[20px] leading-[28px] font-normal` | Lead paragraphs, featured blurbs         |
-| **Body Large**      | `16px` (1.0rem)   | `24px` (1.5rem)   | 150%  | `<p>`                | `text-base leading-6 font-normal`        | Primary body text, article content       |
-| **Body Default**    | `14px` (0.875rem) | `22px` (1.375rem) | 157%  | `<p>` / `<span>`     | `text-sm leading-[22px] font-normal`     | Form inputs, table cells, secondary text |
-| **Caption / Small** | `12px` (0.75rem)  | `20px` (1.25rem)  | 167%  | `<small>` / `<span>` | `text-xs leading-5 font-normal`          | Helper text, error messages, metadata    |
-
-### 3.2 Bold Typography Scale (`font-weight: 700`)
-
-| Style Level         | Font Size         | Line Height       | Ratio | Recommended HTML Tag | Tailwind Class Equivalent              | Typical Use Case                      |
-| :------------------ | :---------------- | :---------------- | :---- | :------------------- | :------------------------------------- | :------------------------------------ |
-| **Display Hero**    | `72px` (4.5rem)   | `80px` (5.0rem)   | 111%  | `<h1>`               | `text-[72px] leading-[80px] font-bold` | High-impact headlines                 |
-| **Heading 1**       | `56px` (3.5rem)   | `64px` (4.0rem)   | 114%  | `<h1>`               | `text-[56px] leading-[64px] font-bold` | Primary dashboard views               |
-| **Heading 2**       | `48px` (3.0rem)   | `56px` (3.5rem)   | 117%  | `<h2>`               | `text-[48px] leading-[56px] font-bold` | Main content groupings                |
-| **Heading 3**       | `40px` (2.5rem)   | `48px` (3.0rem)   | 120%  | `<h3>`               | `text-[40px] leading-[48px] font-bold` | Metric overviews, large card titles   |
-| **Heading 4**       | `32px` (2.0rem)   | `40px` (2.5rem)   | 125%  | `<h4>`               | `text-2xl leading-10 font-bold`        | Dialog headers, section titles        |
-| **Heading 5**       | `24px` (1.5rem)   | `32px` (2.0rem)   | 133%  | `<h5>`               | `text-xl leading-8 font-bold`          | Card titles, drawer headers           |
-| **Subheading**      | `20px` (1.25rem)  | `28px` (1.75rem)  | 140%  | `<h6>`               | `text-lg leading-7 font-bold`          | Subsection titles, list headers       |
-| **Body Bold**       | `16px` (1.0rem)   | `24px` (1.5rem)   | 150%  | `<strong>` / `<p>`   | `text-base leading-6 font-bold`        | Emphasized text, table column headers |
-| **Body Small Bold** | `14px` (0.875rem) | `22px` (1.375rem) | 157%  | `<span>`             | `text-sm leading-[22px] font-bold`     | Swatch labels, badge text             |
-| **Caption Bold**    | `12px` (0.75rem)  | `20px` (1.25rem)  | 167%  | `<small>`            | `text-xs leading-5 font-bold`          | Micro-badges, status indicators       |
+| Variant     | Recommended Element | Tailwind Class Specification                                                | Font Size / Leading | Typical Use Case                  |
+| :---------- | :------------------ | :-------------------------------------------------------------------------- | :------------------ | :-------------------------------- |
+| **`h1`**    | `<h1>`              | `text-3xl font-bold tracking-tight text-foreground sm:text-4xl`             | `30px` (sm: `36px`) | Primary page headers, view titles |
+| **`h2`**    | `<h2>`              | `text-2xl font-semibold tracking-tight text-foreground`                     | `24px`              | Section titles, modal headers     |
+| **`h3`**    | `<h3>`              | `text-xl font-semibold tracking-tight text-foreground`                      | `20px`              | Card headers, panel titles        |
+| **`h4`**    | `<h4>`              | `text-lg font-semibold tracking-tight text-foreground`                      | `18px`              | Subsection headers, group labels  |
+| **`p`**     | `<p>`               | `text-base leading-7 text-foreground`                                       | `16px`              | Standard body copy                |
+| **`lead`**  | `<p>`               | `text-lg leading-8 text-zinc-600 dark:text-zinc-400`                        | `18px`              | Lead/intro paragraphs             |
+| **`large`** | `<div>`             | `text-lg font-semibold text-foreground`                                     | `18px`              | Emphasized body text              |
+| **`small`** | `<small>`           | `text-sm font-medium leading-none text-foreground`                          | `14px`              | Metadata, microcopy               |
+| **`muted`** | `<p>`               | `text-sm text-zinc-600 dark:text-zinc-400`                                  | `14px`              | Secondary/hint text               |
+| **`code`**  | `<code>`            | `font-mono text-[0.9em] font-semibold bg-black/[.06] rounded px-1.5 py-0.5` | `~13px`             | Inline code tokens                |
 
 ---
 
@@ -135,5 +122,54 @@ Buttons in the Techeniac LMS design system have a consistent pill shape with a `
 1. **Mandatory Token Usage**: Always use standard color tokens (`#0044D3` for brand actions, `#111827` / `#323232` for primary text, `#F6F8FC` for surface tints). Never introduce arbitrary ad-hoc hex values.
 2. **Pill-Shaped Buttons**: When implementing buttons or interactive chips adhering to this system, ensure `rounded-full` (`rounded-[32px]`) is respected.
 3. **Typography Primitives**: Use `<Typography>` or semantic exports (`H1`, `H2`, `H3`, `H4`, `P`, `Span`) from `@/components/ui/Typography`.
-4. **Button Primitive**: Use `<Button>` from `@/components/ui/Button` configured with matching variant (`primary`, `outline`) and size (`sm`, `md`, `lg`, `xl`).
+4. **Button Primitive**: Use `<Button>` from `@/components/ui/Button` configured with matching variant (`primary`, `secondary`, `outline`, `ghost`, `danger`) and supported size (`sm`, `md`, `lg`).
 5. **No Style Drift in Chat/Prompts**: Any subsequent prompt or feature implementation should reference this document directly to maintain 100% design fidelity.
+
+---
+
+## 6. Table Pattern Specification (`components/ui/Table.tsx`)
+
+The Table primitive provides accessible, structured tabular presentations for dashboards, user directories, and batch rosters.
+
+- **Header (`TableHeader` & `TableHead`)**:
+  - Background: Soft neutral surface `#F6F8FC`
+  - Text: Secondary neutral `#667085`, `text-xs sm:text-sm font-semibold`
+  - Border: `border-b border-[#E1E6EC]`
+  - Accessibility: `TableHead` defaults to `scope="col"`.
+- **Row (`TableRow`)**:
+  - Padding / Separator: `border-b border-[#E1E6EC]`
+  - Hover: Subtle surface tint `hover:bg-[#F6F8FC]/50` transition.
+- **Cell (`TableCell`)**:
+  - Horizontal & Vertical Padding: `px-6 py-4`
+  - Typography: Default text `#111827`, aligned with primary neutral tokens.
+
+---
+
+## 7. Skeleton Loading Pattern (`components/ui/Skeleton.tsx`)
+
+Used for accessible, non-jarring loading placeholders.
+
+- **Component**: `<Skeleton />` (built with `React.forwardRef` and `aria-hidden="true"`).
+- **Visual Style**: Pulse animation `animate-pulse rounded-xl bg-slate-200/80`.
+- **Behavioral Rule**: Mount skeleton shapes only during initial cold data fetching (`isInitialLoading`). For background refetches (search, filter, pagination, mutations), preserve existing rows and dim via `opacity-60 transition-opacity` to prevent layout shift and maintain `keepPreviousData`.
+
+---
+
+## 8. Pagination Controls Pattern (`components/patterns/PaginationControls.tsx`)
+
+Used across data tables and lists to paginate result sets predictably.
+
+- **Component**: `<PaginationControls />`
+- **Page Number Cutoff**: Renders full page numbers without ellipsis when `totalPages <= 6`. When `totalPages > 6`, dynamic ellipsis is placed around the active page window.
+- **Active Page Pill**: Pill button (`rounded-full bg-[#0044D3] text-white`).
+- **Inactive / Arrow Buttons**: Accessible `<Button size="sm" variant="ghost">` or outline pills with `aria-label` tags for screen readers.
+- **Page Size Selector**: Dropdown supporting page limits `[10, 20, 50, 100]` with total item counters (`Showing X to Y of Z entries`).
+
+---
+
+## 9. Sidebar Navigation & Layout Grid (`context/SidebarContext.tsx`, `components/layout/Header.tsx`)
+
+- **Rail State (Desktop `md:flex`)**: Compact 80px (`w-20`) collapsed navigation rail fixed to the left, displaying primary navigation icons with hover tooltips.
+- **Expanded Drawer State**: 288px (`w-72`) overlay drawer displaying full navigation labels, category groupings, and product branding.
+- **Centralized Layout Offset**: `useSidebar().contentMarginClass` dynamically provides `md:ml-20` (collapsed) or `md:ml-72` (expanded) to `Header`, `DashboardContent`, and `PortalSessionState`.
+- **Mobile Responsive Navigation (`< md`)**: Hamburger menu button in `Header` toggles the drawer over a backdrop overlay (`bg-slate-900/30 backdrop-blur-2xs`) without horizontal content shifting.

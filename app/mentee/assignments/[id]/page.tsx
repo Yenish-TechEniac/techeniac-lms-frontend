@@ -32,6 +32,7 @@ function MenteeAssignmentDetailContent({ params }: Readonly<PageProps>) {
       <PortalSessionState
         sessionError={sessionError}
         loadingMessage="Loading assignment workspace..."
+        variant="mentee"
       />
     );
   }
@@ -209,7 +210,11 @@ export default function MenteeAssignmentDetailPage({ params }: Readonly<PageProp
   return (
     <Suspense
       fallback={
-        <PortalSessionState sessionError={null} loadingMessage="Loading assignment workspace..." />
+        <PortalSessionState
+          sessionError={null}
+          loadingMessage="Loading assignment workspace..."
+          variant="mentee"
+        />
       }
     >
       <MenteeAssignmentDetailContent params={params} />
