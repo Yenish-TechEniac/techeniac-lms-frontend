@@ -81,6 +81,7 @@ export function useGradeSubmissionMutation() {
       gradingService.gradeSubmission(submissionId, payload),
     onSuccess: (data) => {
       void queryClient.invalidateQueries({ queryKey: ['submission-queue'] });
+      void queryClient.invalidateQueries({ queryKey: ['performance'] });
       queryClient.setQueryData(GRADING_QUERY_KEYS.review(data.id), data);
     },
   });
@@ -98,6 +99,7 @@ export function useRequestResubmissionMutation() {
       gradingService.requestResubmission(submissionId, payload),
     onSuccess: (data) => {
       void queryClient.invalidateQueries({ queryKey: ['submission-queue'] });
+      void queryClient.invalidateQueries({ queryKey: ['performance'] });
       queryClient.setQueryData(GRADING_QUERY_KEYS.review(data.id), data);
     },
   });

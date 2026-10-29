@@ -244,3 +244,70 @@ export async function apiClient<T>(endpoint: string, options: RequestOptions = {
   const data = await safeParseJson(response);
   return data as T;
 }
+
+export async function apiBlobClient(endpoint: string, options: RequestOptions = {}): Promise<Blob> {
+  const {
+    params,
+    headers,
+    timeoutMs = DEFAULT_TIMEOUT_MS,
+    signal: userSignal,
+    ...customConfig
+  } = options;
+
+  const url = buildRequestUrl(endpoint, params);
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, timeoutMs);
+
+  if (userSignal) {
+    userSignal.addEventListener('abort', () => {
+      controller.abort();
+    });
+  }
+
+  const defaultHeaders: HeadersInit = {
+    Accept: '*/*',
+  };
+
+  const config: RequestInit = {
+    method: 'GET',
+    credentials: 'include',
+    headers: {
+      ...defaultHeaders,
+      ...headers,
+    },
+    signal: controller.signal,
+    ...customConfig,
+  };
+
+  let response: Response;
+  try {
+    response = await fetch(url, config);
+  } catch (fetchError) {
+    handleFetchError(fetchError, controller, userSignal);
+  } finally {
+    clearTimeout(timeoutId);
+  }
+
+  if (response.status === 401 && !options._isRetry && !isAuthBypassEndpoint(endpoint)) {
+    refreshPromise ??= requestTokenRefresh().finally(() => {
+      refreshPromise = null;
+    });
+    const refreshed = await refreshPromise;
+    if (refreshed) {
+      return apiBlobClient(endpoint, {
+        ...options,
+        _isRetry: true,
+      });
+    }
+  }
+
+  if (!response.ok) {
+    const data = await safeParseJson(response);
+    throw parseErrorPayload(response, data);
+  }
+
+  return response.blob();
+}
