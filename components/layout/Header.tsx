@@ -8,11 +8,13 @@ import { Button } from '@/components/ui/Button';
 import { Span } from '@/components/ui/Typography';
 import { useSidebar } from '@/context/SidebarContext';
 import { useAuth } from '@/hooks/useAuth';
+import { formatRoleLabel } from '@/lib/roles';
 
 export interface HeaderNavItem {
   readonly label: string;
   readonly href: string;
   readonly active?: boolean;
+  readonly icon?: string;
 }
 
 export interface HeaderProps {
@@ -34,20 +36,12 @@ function getUserInitials(name?: string): string {
 }
 
 function formatRole(role?: string): string {
-  switch (role) {
-    case 'SUPER_ADMIN':
-      return 'Administrator';
-    case 'MENTOR':
-      return 'Mentor';
-    case 'MENTEE':
-      return 'Mentee';
-    default:
-      return role ?? 'Member';
-  }
+  return formatRoleLabel(role);
 }
 
-function getNavIcon(label: string) {
-  const normalized = label.toLowerCase();
+function getNavIcon(itemOrLabel: HeaderNavItem | string) {
+  const key = typeof itemOrLabel === 'string' ? itemOrLabel : itemOrLabel.icon || itemOrLabel.label;
+  const normalized = key.toLowerCase();
   if (
     normalized.includes('overview') ||
     normalized.includes('dashboard') ||
@@ -202,7 +196,7 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
   const [logoutError, setLogoutError] = useState<string | null>(null);
 
   // Side Drawer State managed by SidebarContext
-  const { isDrawerOpen, setIsDrawerOpen } = useSidebar();
+  const { isDrawerOpen, setIsDrawerOpen, contentMarginClass } = useSidebar();
 
   // Profile Popover State
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -261,13 +255,30 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
   return (
     <>
       <header
-        className={`sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-md transition-all duration-300 ${
-          isDrawerOpen ? 'md:ml-72' : 'md:ml-20'
-        }`}
+        className={`sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-md transition-all duration-300 ${contentMarginClass}`}
       >
         <div className="flex h-16 w-full items-center justify-between px-6 sm:px-8 lg:px-10">
-          {/* Left Corner: Logo + Product Name (Hidden on desktop as sidebar displays it) */}
+          {/* Left Corner: Logo + Product Name + Mobile Menu Toggle (< md) */}
           <div className="flex items-center gap-3 md:hidden">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsDrawerOpen(true)}
+              className="flex h-10 w-10 items-center justify-center rounded-xl p-0 text-slate-700 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-[#0044D3]"
+              aria-label="Open navigation menu"
+            >
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </Button>
             <Link href={homeUrl} className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0044D3] text-sm font-bold text-white shadow-sm">
                 TL
@@ -416,7 +427,7 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
           <nav className="flex flex-col items-center space-y-3" aria-label="Quick Navigation">
             {nav.map((item) => {
               const isActive = Boolean(item.active);
-              const icon = getNavIcon(item.label);
+              const icon = getNavIcon(item);
 
               if (item.href !== '#') {
                 return (
@@ -506,7 +517,7 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
           <nav className="flex flex-col space-y-2" aria-label="Portal Navigation Links">
             {nav.map((item) => {
               const isActive = Boolean(item.active);
-              const icon = getNavIcon(item.label);
+              const icon = getNavIcon(item);
 
               if (item.href !== '#') {
                 return (

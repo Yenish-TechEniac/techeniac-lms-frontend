@@ -10,13 +10,11 @@ export interface DashboardContentProps {
 }
 
 export function DashboardContent({ children, className = '' }: DashboardContentProps) {
-  const { isDrawerOpen } = useSidebar();
+  const { contentMarginClass } = useSidebar();
 
   return (
     <main
-      className={`min-w-0 flex-1 px-6 py-8 transition-all duration-300 sm:px-8 lg:px-10 ${
-        isDrawerOpen ? 'md:ml-72' : 'md:ml-20'
-      } ${className}`}
+      className={`min-w-0 flex-1 px-6 py-8 transition-all duration-300 sm:px-8 lg:px-10 ${contentMarginClass} ${className}`}
     >
       {children}
     </main>

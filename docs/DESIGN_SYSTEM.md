@@ -122,12 +122,11 @@ Buttons in the Techeniac LMS design system have a consistent pill shape with a `
 
 ### 4.2 Button Size Matrix
 
-| Size Variant         | Target Height | Target Width (Figma) | Horizontal Padding | Vertical Padding | Flex Gap | Font Size | Line Height | Font Weight  | Tailwind Specification                                              |
-| :------------------- | :------------ | :------------------- | :----------------- | :--------------- | :------- | :-------- | :---------- | :----------- | :------------------------------------------------------------------ |
-| **XL (Extra Large)** | `56px`        | `133px`              | `40px`             | `18px`           | `16px`   | `16px`    | `20px`      | 500 (Medium) | `h-14 px-10 gap-4 text-base leading-5 font-medium rounded-full`     |
-| **LG (Large)**       | `48px`        | `117px`              | `32px`             | `16px`           | `16px`   | `16px`    | `20px`      | 500 (Medium) | `h-12 px-8 gap-4 text-base leading-5 font-medium rounded-full`      |
-| **MD (Medium)**      | `40px`        | `94px` / `96px`      | `24px`             | `12px`           | `10px`   | `14px`    | `18px`      | 500 (Medium) | `h-10 px-6 gap-2.5 text-sm leading-[18px] font-medium rounded-full` |
-| **SM (Small)**       | `32px`        | `72px`               | `16px`             | `8px`            | `16px`   | `12px`    | `15px`      | 500 (Medium) | `h-8 px-4 gap-4 text-xs leading-[15px] font-medium rounded-full`    |
+| Size Variant    | Target Height | Horizontal Padding | Font Size | Font Weight | Tailwind Specification (Implemented in `Button.tsx`) |
+| :-------------- | :------------ | :----------------- | :-------- | :---------- | :--------------------------------------------------- |
+| **LG (Large)**  | `48px`        | `28px`             | `16px`    | 600 (Semi)  | `h-12 px-7 text-base rounded-full`                   |
+| **MD (Medium)** | `44px`        | `20px`             | `14px`    | 600 (Semi)  | `h-11 px-5 text-sm rounded-full`                     |
+| **SM (Small)**  | `36px`        | `16px`             | `12px`    | 600 (Semi)  | `h-9 px-4 text-xs rounded-full`                      |
 
 ---
 

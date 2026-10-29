@@ -110,8 +110,13 @@ export interface TableHeadProps extends React.ThHTMLAttributes<HTMLTableCellElem
 }
 
 export const TableHead = React.forwardRef<HTMLTableCellElement, TableHeadProps>(
-  ({ className, children, ...props }, ref) => (
-    <th ref={ref} className={cn('px-6 py-4 font-semibold text-[#667085]', className)} {...props}>
+  ({ className, scope = 'col', children, ...props }, ref) => (
+    <th
+      ref={ref}
+      scope={scope}
+      className={cn('px-6 py-4 font-semibold text-[#667085]', className)}
+      {...props}
+    >
       {children}
     </th>
   ),

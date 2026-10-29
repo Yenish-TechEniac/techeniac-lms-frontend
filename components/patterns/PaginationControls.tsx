@@ -18,7 +18,7 @@ export interface PaginationControlsProps {
 }
 
 function getPageNumbers(currentPage: number, totalPages: number): (number | 'ellipsis')[] {
-  if (totalPages <= 5) {
+  if (totalPages <= 6) {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }
   if (currentPage <= 3) {

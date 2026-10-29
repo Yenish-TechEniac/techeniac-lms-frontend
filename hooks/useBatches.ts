@@ -276,6 +276,7 @@ export function useAllBatchMembers(activeBatchIds?: string[]) {
   });
 
   const isDetailsLoading = batchDetailsQueries.some((q) => q.isLoading);
+  const isDetailsError = batchDetailsQueries.some((q) => q.isError);
 
   return useMemo(() => {
     const bMap = new Map<string, string>();
@@ -304,8 +305,15 @@ export function useAllBatchMembers(activeBatchIds?: string[]) {
       userBatchMap: bMap,
       userMentorMap: mMap,
       isLoading: (shouldFetchSummaries && isBatchesLoading) || isDetailsLoading,
+      isError: isDetailsError,
     };
-  }, [batchDetailsQueries, isBatchesLoading, isDetailsLoading, shouldFetchSummaries]);
+  }, [
+    batchDetailsQueries,
+    isBatchesLoading,
+    isDetailsLoading,
+    isDetailsError,
+    shouldFetchSummaries,
+  ]);
 }
 
 export type { ApiBatchDetailData, ApiBatchListResponse, ApiBatchSummary, BatchQueryFilters };

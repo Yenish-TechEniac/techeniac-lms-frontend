@@ -717,6 +717,11 @@ export function UsersTable() {
               className="h-11 text-xs font-semibold"
             >
               <option value="ALL">All Mentors</option>
+              {selectedMentor !== 'ALL' && !mentors.some((m) => m.id === selectedMentor) && (
+                <option value={selectedMentor} disabled>
+                  Selected Mentor
+                </option>
+              )}
               {mentors.map((m) => (
                 <option key={m.id} value={m.id}>
                   {m.name}
@@ -769,48 +774,23 @@ export function UsersTable() {
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {(isLoading || isFetching || isRosterLoading) && !isInitialLoading ? (
-              // 5 Realistic Skeleton Rows while Querying/Searching/Filtering
-              Array.from({ length: 5 }).map((_, i) => (
-                <TableRow key={`skeleton-row-${i}`}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Skeleton className="h-10 w-10 rounded-full" />
-                      <div className="space-y-1.5">
-                        <Skeleton className="h-4 w-32 rounded-md" />
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-40 rounded-md" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-6 w-20 rounded-lg" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-24 rounded-md" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-28 rounded-md" />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Skeleton className="h-8 w-8 rounded-lg" />
-                      <Skeleton className="h-8 w-20 rounded-lg" />
-                      <Skeleton className="h-6 w-11 rounded-full" />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : isInitialLoading ? (
+          <TableBody
+            className={
+              (isFetching || isRosterLoading) && !isInitialLoading
+                ? 'opacity-60 transition-opacity'
+                : undefined
+            }
+          >
+            {isInitialLoading ? (
               // Initial Loading Skeleton Rows
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={`initial-skel-${i}`}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Skeleton className="h-10 w-10 rounded-full" />
-                      <Skeleton className="h-4 w-32 rounded-md" />
+                      <div className="space-y-1.5">
+                        <Skeleton className="h-4 w-32 rounded-md" />
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>

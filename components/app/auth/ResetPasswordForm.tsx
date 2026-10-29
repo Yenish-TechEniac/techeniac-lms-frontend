@@ -55,6 +55,8 @@ export function ResetPasswordForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Fail-open: when verification is unable to determine validity (e.g. network/500/404/429),
+  // fall back to 'valid' so the user is never blocked from submitting at the real authorization gate.
   const state: ResetState = resolveResetState(submissionState, isVerifying, status);
   const criteria = usePasswordCriteria(password);
 

@@ -74,7 +74,8 @@ function EditUserModalContent({
             Cancel
           </Button>
           <Button
-            type="button"
+            type="submit"
+            form="edit-user-form"
             variant="primary"
             size="sm"
             isLoading={isSubmitting}

@@ -195,7 +195,7 @@ export function PortalSessionState({
   variant = 'admin',
 }: Readonly<PortalSessionStateProps>) {
   const { refreshUser } = useAuth();
-  const { isDrawerOpen } = useSidebar();
+  const { contentMarginClass } = useSidebar();
 
   if (sessionError) {
     return (
@@ -226,9 +226,7 @@ export function PortalSessionState({
     >
       {/* Top Navbar Skeleton (Synchronized with Header) */}
       <div
-        className={`sticky top-0 z-30 border-b border-[#E1E6EC] bg-white/95 backdrop-blur-md transition-all duration-300 ${
-          isDrawerOpen ? 'md:ml-72' : 'md:ml-20'
-        }`}
+        className={`sticky top-0 z-30 border-b border-[#E1E6EC] bg-white/95 backdrop-blur-md transition-all duration-300 ${contentMarginClass}`}
       >
         <div className="flex h-16 w-full items-center justify-between px-6 sm:px-8 lg:px-10">
           <div className="flex items-center gap-3 md:hidden">
