@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-import { AuditLogTable } from '@/components/app/audit/AuditLogTable';
+import { AuditLogTable } from '@/components/app/audit';
 import { ADMIN_AUDIT_LOGS_NAV } from '@/components/app/navigation/portal-nav.config';
 import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';

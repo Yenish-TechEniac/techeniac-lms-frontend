@@ -13,16 +13,29 @@ export const auditTypeEnum = z.enum([
 
 export type AuditType = z.infer<typeof auditTypeEnum>;
 
-export const auditLogFilterSchema = z.object({
-  type: auditTypeEnum.optional(),
-  actorId: z.string().uuid().optional(),
-  entity: z.string().max(100).optional(),
-  action: z.string().max(100).optional(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
-  page: z.coerce.number().min(1).default(1),
-  limit: z.coerce.number().min(1).max(100).default(20),
-});
+export const auditLogFilterSchema = z
+  .object({
+    type: z.union([auditTypeEnum, z.literal('ALL')]).optional(),
+    actorId: z.string().uuid().optional(),
+    entity: z.string().max(100).optional(),
+    action: z.string().max(100).optional(),
+    startDate: z.string().optional(),
+    endDate: z.string().optional(),
+    page: z.coerce.number().min(1).default(1),
+    limit: z.coerce.number().min(1).max(100).default(20),
+  })
+  .refine(
+    (data) => {
+      if (data.startDate && data.endDate) {
+        return new Date(data.startDate) <= new Date(data.endDate);
+      }
+      return true;
+    },
+    {
+      message: 'From Date must be earlier than or equal to To Date',
+      path: ['endDate'],
+    },
+  );
 
 export type AuditLogFilter = z.infer<typeof auditLogFilterSchema>;
 
