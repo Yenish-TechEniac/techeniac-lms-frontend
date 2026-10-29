@@ -88,8 +88,8 @@ function ChangeRoleModalContent({
     reason.trim().length <= 500 &&
     !isSubmitting;
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setError(null);
 
     if (isLoadingImpact) {
@@ -137,12 +137,12 @@ function ChangeRoleModalContent({
               Cancel
             </Button>
             <Button
-              type="submit"
-              form="change-role-form"
+              type="button"
               variant="primary"
               size="md"
               isLoading={isSubmitting}
               disabled={!canSubmit}
+              onClick={() => void handleSubmit()}
             >
               Change Role
             </Button>

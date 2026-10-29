@@ -67,7 +67,7 @@ export function PaginationControls({
             size="sm"
             onClick={() => onPageChange(page - 1)}
             disabled={page <= 1}
-            className="h-8 w-8 rounded-lg border-[#E1E6EC] p-0 text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+            className="h-8 w-8 rounded-full border-[#E1E6EC] p-0 text-slate-500 hover:bg-slate-50 hover:text-slate-900"
             aria-label="Previous page"
           >
             <svg
@@ -111,7 +111,7 @@ export function PaginationControls({
             size="sm"
             onClick={() => onPageChange(page + 1)}
             disabled={page >= totalPages}
-            className="h-8 w-8 rounded-lg border-[#E1E6EC] p-0 text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+            className="h-8 w-8 rounded-full border-[#E1E6EC] p-0 text-slate-500 hover:bg-slate-50 hover:text-slate-900"
             aria-label="Next page"
           >
             <svg

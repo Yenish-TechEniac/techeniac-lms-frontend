@@ -457,7 +457,7 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
             variant="outline"
             size="sm"
             onClick={() => setIsDrawerOpen(true)}
-            className="flex h-10 w-10 items-center justify-center rounded-xl border-[#E1E6EC] p-0 text-[#667085] transition-colors hover:bg-[#F6F8FC] hover:text-[#111827]"
+            className="flex h-10 w-10 items-center justify-center rounded-full border-[#E1E6EC] p-0 text-[#667085] transition-colors hover:bg-[#F6F8FC] hover:text-[#111827]"
             title="Expand sidebar"
             aria-label="Expand sidebar"
           >
@@ -518,7 +518,7 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
                         setIsDrawerOpen(false);
                       }
                     }}
-                    className={`flex items-center gap-3.5 rounded-2xl px-4 py-3.5 text-base transition-all ${
+                    className={`flex items-center gap-3.5 rounded-full px-4 py-3.5 text-base transition-all ${
                       isActive
                         ? 'bg-blue-50/90 font-semibold text-[#0044D3] shadow-xs'
                         : 'font-medium text-[#667085] hover:bg-[#F6F8FC] hover:text-[#111827]'
@@ -534,7 +534,7 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
               return (
                 <div
                   key={item.label}
-                  className="flex cursor-not-allowed items-center gap-3.5 rounded-2xl px-4 py-3.5 text-base font-medium text-slate-300"
+                  className="flex cursor-not-allowed items-center gap-3.5 rounded-full px-4 py-3.5 text-base font-medium text-slate-300"
                 >
                   <Span className="text-slate-300">{icon}</Span>
                   <Span className="flex-1">{item.label}</Span>
@@ -552,7 +552,7 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
             variant="outline"
             size="sm"
             onClick={() => setIsDrawerOpen(false)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border-[#E1E6EC] p-0 text-[#667085] transition-colors hover:bg-[#F6F8FC] hover:text-[#111827]"
+            className="flex h-9 w-9 items-center justify-center rounded-full border-[#E1E6EC] p-0 text-[#667085] transition-colors hover:bg-[#F6F8FC] hover:text-[#111827]"
             title="Collapse sidebar"
             aria-label="Collapse sidebar"
           >

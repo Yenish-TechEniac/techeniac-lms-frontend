@@ -35,6 +35,12 @@ Direct usage of unstyled or ad-hoc raw HTML primitives is strictly prohibited in
 - **Mandatory**: Import `<Input>` from `@/components/ui/Input` and `<FieldError>` from `@/components/ui/FieldError`.
 - **Validation**: Wire `hasError={Boolean(error)}` and `errorId` for full ARIA accessibility (`aria-invalid`, `aria-describedby`).
 
+### Data Tables (`<TableContainer>`, `<Table>`, `<TableHeader>`, `<TableBody>`, `<TableRow>`, `<TableHead>`, `<TableCell>`)
+
+- **Prohibited**: Raw HTML `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>` tags.
+- **Mandatory**: Import table components from `@/components/ui/Table`.
+- **Styling**: Tables must reside within `<TableContainer>` to guarantee the unified `rounded-2xl border border-[#E1E6EC]` card structure, proper responsive scroll overflow, and hover row highlighting.
+
 ## 2. Architecture Confinement
 
 - Components in `components/ui/**` are atomic primitives and must NEVER import from `components/app/**`, `hooks/**`, or `services/**`.

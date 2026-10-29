@@ -8,7 +8,6 @@ import { BulkImportModal, type CsvUserRowWithLine } from '@/components/app/users
 import { ChangeRoleModal } from '@/components/app/users/ChangeRoleModal';
 import { CreateUserDrawer } from '@/components/app/users/CreateUserDrawer';
 import { EditUserModal } from '@/components/app/users/EditUserModal';
-import { Modal } from '@/components/patterns/Modal';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -23,7 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
-import { H1, P, Span, Typography } from '@/components/ui/Typography';
+import { H1, P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { useAllBatchMembers } from '@/hooks/useBatches';
 import { DEFAULT_USERS_PAGE_SIZE, type UserQueryFilters, useUsers } from '@/hooks/useUsers';
@@ -58,16 +57,21 @@ interface ToggleSwitchProps {
 
 function ToggleSwitch({ checked, disabled, onChange, title, ariaLabel }: ToggleSwitchProps) {
   return (
-    <button
+    <Button
       type="button"
       role="switch"
+      variant="ghost"
+      size="sm"
       aria-checked={checked}
       aria-label={ariaLabel}
       title={title}
       disabled={disabled}
-      onClick={onChange}
-      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:ring-offset-2 ${
-        checked ? 'bg-[#0044D3]' : 'bg-slate-300'
+      onClick={(e) => {
+        e.stopPropagation();
+        onChange();
+      }}
+      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center justify-start gap-0 rounded-full border-2 border-transparent p-0 transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:ring-offset-2 ${
+        checked ? 'bg-[#0044D3] hover:bg-[#0039B3]' : 'bg-slate-300 hover:bg-slate-400'
       } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
     >
       <span
@@ -76,72 +80,7 @@ function ToggleSwitch({ checked, disabled, onChange, title, ariaLabel }: ToggleS
           checked ? 'translate-x-5' : 'translate-x-0'
         }`}
       />
-    </button>
-  );
-}
-
-interface ConfirmStatusModalProps {
-  user: UserItem | null;
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => Promise<void>;
-  isSubmitting: boolean;
-}
-
-function ConfirmStatusModal({
-  user,
-  isOpen,
-  onClose,
-  onConfirm,
-  isSubmitting,
-}: ConfirmStatusModalProps) {
-  if (!isOpen || !user) return null;
-
-  const isDeactivating = user.status === 'ACTIVE';
-
-  return (
-    <Modal
-      isOpen={true}
-      onClose={onClose}
-      title={
-        <Span className="inline-flex items-center gap-2">
-          <Span className="text-xl">{isDeactivating ? '⚠️' : '🔄'}</Span>
-          <Span>{isDeactivating ? 'Deactivate Account' : 'Activate Account'}</Span>
-        </Span>
-      }
-      size="sm"
-      footer={
-        <>
-          <Button variant="outline" size="sm" onClick={onClose} disabled={isSubmitting}>
-            Cancel
-          </Button>
-          <Button
-            variant={isDeactivating ? 'danger' : 'primary'}
-            size="sm"
-            onClick={() => void onConfirm()}
-            isLoading={isSubmitting}
-          >
-            {isDeactivating ? 'Yes, Deactivate' : 'Yes, Activate'}
-          </Button>
-        </>
-      }
-    >
-      <Typography as="p" className="text-sm text-slate-600">
-        {isDeactivating ? (
-          <>
-            Are you sure you want to deactivate{' '}
-            <strong className="text-slate-900">{user.name}</strong> ({user.email})? They will
-            immediately lose platform access until reactivated.
-          </>
-        ) : (
-          <>
-            Are you sure you want to reactivate{' '}
-            <strong className="text-slate-900">{user.name}</strong> ({user.email})? They will regain
-            platform access.
-          </>
-        )}
-      </Typography>
-    </Modal>
+    </Button>
   );
 }
 
@@ -314,8 +253,6 @@ export function UsersTable() {
   const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
   const [userToChangeRole, setUserToChangeRole] = useState<UserItem | null>(null);
   const [userToEdit, setUserToEdit] = useState<UserItem | null>(null);
-  const [userToConfirmStatus, setUserToConfirmStatus] = useState<UserItem | null>(null);
-  const [isStatusSubmitting, setIsStatusSubmitting] = useState(false);
 
   // In-flight row actions tracking
   const [inFlightAction, setInFlightAction] = useState<Record<string, 'resend' | 'status'>>({});
@@ -514,8 +451,9 @@ export function UsersTable() {
     return result;
   };
 
-  const handleRequestToggleStatus = (user: UserItem) => {
-    if (user.status === 'ACTIVE') {
+  const handleToggleStatus = async (user: UserItem) => {
+    const nextActivate = user.status !== 'ACTIVE';
+    if (!nextActivate) {
       if (currentUser && user.id === currentUser.id) {
         showToast('You cannot deactivate your own administrative account.', 'error');
         return;
@@ -525,14 +463,6 @@ export function UsersTable() {
         return;
       }
     }
-    setUserToConfirmStatus(user);
-  };
-
-  const handleConfirmToggleStatus = async () => {
-    if (!userToConfirmStatus) return;
-    const user = userToConfirmStatus;
-    const nextActivate = user.status !== 'ACTIVE';
-    setIsStatusSubmitting(true);
     setInFlightAction((prev) => ({ ...prev, [user.id]: 'status' }));
     try {
       await toggleStatus(user.id, nextActivate);
@@ -540,12 +470,10 @@ export function UsersTable() {
         `User ${user.name} ${nextActivate ? 'activated' : 'deactivated'} successfully.`,
         'success',
       );
-      setUserToConfirmStatus(null);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to toggle status';
       showToast(msg, 'error');
     } finally {
-      setIsStatusSubmitting(false);
       setInFlightAction((prev) => {
         const next = { ...prev };
         delete next[user.id];
@@ -592,7 +520,7 @@ export function UsersTable() {
               setPage(1);
               handleFilterUpdate({ status: 'ALL', page: 1 });
             }}
-            className={`h-9 gap-2 rounded-xl px-3.5 text-xs font-semibold transition-all ${
+            className={`h-9 gap-2 rounded-full px-4 text-xs font-semibold transition-all ${
               selectedStatus === 'ALL'
                 ? 'bg-[#0044D3] text-white shadow-xs hover:bg-[#0039B3]'
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -621,7 +549,7 @@ export function UsersTable() {
               setPage(1);
               handleFilterUpdate({ status: 'ACTIVE', page: 1 });
             }}
-            className={`h-9 gap-2 rounded-xl px-3.5 text-xs font-semibold transition-all ${
+            className={`h-9 gap-2 rounded-full px-4 text-xs font-semibold transition-all ${
               selectedStatus === 'ACTIVE'
                 ? 'bg-emerald-600 text-white shadow-xs hover:bg-emerald-700'
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -655,7 +583,7 @@ export function UsersTable() {
               setPage(1);
               handleFilterUpdate({ status: 'INACTIVE', page: 1 });
             }}
-            className={`h-9 gap-2 rounded-xl px-3.5 text-xs font-semibold transition-all ${
+            className={`h-9 gap-2 rounded-full px-4 text-xs font-semibold transition-all ${
               selectedStatus === 'INACTIVE'
                 ? 'bg-slate-800 text-white shadow-xs hover:bg-slate-900'
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -688,7 +616,7 @@ export function UsersTable() {
             variant="outline"
             size="sm"
             onClick={() => setIsBulkImportOpen(true)}
-            className="h-11 gap-2 rounded-xl border-[#E1E6EC] px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            className="h-11 gap-2 rounded-full border-[#E1E6EC] px-5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
           >
             <svg
               className="h-4 w-4"
@@ -710,7 +638,7 @@ export function UsersTable() {
             variant="primary"
             size="sm"
             onClick={() => setIsCreateOpen(true)}
-            className="h-11 gap-2 rounded-xl bg-[#0044D3] px-5 text-sm font-semibold text-white shadow-xs hover:bg-[#0039B3]"
+            className="h-11 gap-2 rounded-full bg-[#0044D3] px-6 text-sm font-semibold text-white shadow-xs hover:bg-[#0039B3]"
           >
             <Span className="text-base font-bold">+</Span>
             <Span>Create User</Span>
@@ -961,18 +889,27 @@ export function UsersTable() {
 
                 return (
                   <TableRow key={u.id}>
-                    {/* User Column (Avatar + Name + Status Badges) */}
+                    {/* User Column (Avatar + Name - Clickable button for future profile navigation) */}
                     <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-[#0044D3] shadow-xs">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          router.push(`/admin/users/${u.id}`);
+                        }}
+                        title={`View user profile for ${u.name}`}
+                        className="group flex h-auto items-center gap-3 rounded-2xl p-1.5 text-left transition-colors hover:bg-blue-50/60"
+                      >
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-[#0044D3] shadow-xs transition-colors group-hover:bg-[#0044D3] group-hover:text-white">
                           {initials}
                         </div>
-                        <div>
-                          <Span className="block text-base font-semibold text-slate-900">
+                        <div className="min-w-0">
+                          <Span className="block truncate text-base font-semibold text-slate-900 transition-colors group-hover:text-[#0044D3]">
                             {u.name || '—'}
                           </Span>
                           {u.mustChangePassword ? (
-                            <div className="mt-1 flex items-center gap-2">
+                            <div className="mt-0.5 flex items-center gap-2">
                               <Span className="text-xs font-semibold text-amber-700">
                                 Invite pending
                               </Span>
@@ -981,17 +918,18 @@ export function UsersTable() {
                                 variant="ghost"
                                 size="sm"
                                 disabled={inFlightAction[u.id] === 'resend'}
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   void handleResendInvite(u.id, u.name);
                                 }}
-                                className="h-6 px-2 text-xs font-semibold text-[#0044D3] hover:bg-blue-50 disabled:opacity-50"
+                                className="h-5 px-1.5 text-[11px] font-semibold text-[#0044D3] hover:bg-blue-100/70 disabled:opacity-50"
                               >
                                 {inFlightAction[u.id] === 'resend' ? 'Sending...' : 'Resend'}
                               </Button>
                             </div>
                           ) : null}
                         </div>
-                      </div>
+                      </Button>
                     </TableCell>
 
                     {/* Email Column */}
@@ -1087,7 +1025,7 @@ export function UsersTable() {
                           onClick={() => setUserToEdit(u)}
                           title="Edit user"
                           aria-label={`Edit ${u.name}`}
-                          className="h-9 w-9 rounded-lg p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                          className="h-9 w-9 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                         >
                           <svg
                             className="h-4 w-4"
@@ -1110,7 +1048,7 @@ export function UsersTable() {
                           variant="ghost"
                           size="sm"
                           onClick={() => setUserToChangeRole(u)}
-                          className="h-9 rounded-lg px-2.5 text-xs font-semibold text-[#0044D3] hover:bg-blue-50"
+                          className="h-9 rounded-full px-3 text-xs font-semibold text-[#0044D3] hover:bg-blue-50"
                         >
                           Change Role
                         </Button>
@@ -1122,7 +1060,7 @@ export function UsersTable() {
                             disabled={isDeactivateDisabled || isRowPending}
                             title={deactivateTooltip}
                             ariaLabel={`${u.status === 'ACTIVE' ? 'Deactivate' : 'Activate'} account for ${u.name}`}
-                            onChange={() => handleRequestToggleStatus(u)}
+                            onChange={() => void handleToggleStatus(u)}
                           />
                         </div>
                       </div>
@@ -1174,14 +1112,6 @@ export function UsersTable() {
         isOpen={isBulkImportOpen}
         onClose={() => setIsBulkImportOpen(false)}
         onImport={handleBulkImport}
-      />
-
-      <ConfirmStatusModal
-        user={userToConfirmStatus}
-        isOpen={Boolean(userToConfirmStatus)}
-        onClose={() => setUserToConfirmStatus(null)}
-        onConfirm={handleConfirmToggleStatus}
-        isSubmitting={isStatusSubmitting}
       />
 
       {toast ? (

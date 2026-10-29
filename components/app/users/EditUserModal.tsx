@@ -36,8 +36,8 @@ function EditUserModalContent({
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setError(null);
 
     const parsed = editUserSchema.pick({ name: true, email: true }).safeParse({
@@ -74,11 +74,11 @@ function EditUserModalContent({
             Cancel
           </Button>
           <Button
-            type="submit"
-            form="edit-user-form"
+            type="button"
             variant="primary"
             size="sm"
             isLoading={isSubmitting}
+            onClick={() => void handleSubmit()}
           >
             Save Changes
           </Button>
