@@ -48,7 +48,7 @@ export const TableHeader = React.forwardRef<HTMLTableSectionElement, TableHeader
     <thead
       ref={ref}
       className={cn(
-        'sticky top-0 z-10 border-b border-[#E1E6EC] bg-[#F6F8FC] text-xs font-semibold text-[#667085] sm:text-sm',
+        'sticky top-0 z-10 border-b border-[#E1E6EC] bg-[#F6F8FC] text-sm font-semibold text-[#667085]',
         className,
       )}
       {...props}

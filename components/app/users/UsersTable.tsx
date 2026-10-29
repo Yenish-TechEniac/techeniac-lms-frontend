@@ -8,6 +8,7 @@ import { BulkImportModal, type CsvUserRowWithLine } from '@/components/app/users
 import { ChangeRoleModal } from '@/components/app/users/ChangeRoleModal';
 import { CreateUserDrawer } from '@/components/app/users/CreateUserDrawer';
 import { EditUserModal } from '@/components/app/users/EditUserModal';
+import { PageHeader } from '@/components/patterns/PageHeader';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -22,7 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
-import { H1, P, Span } from '@/components/ui/Typography';
+import { P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { useAllBatchMembers } from '@/hooks/useBatches';
 import { DEFAULT_USERS_PAGE_SIZE, type UserQueryFilters, useUsers } from '@/hooks/useUsers';
@@ -231,6 +232,7 @@ export function UsersTable() {
     users: apiUsers,
     total: totalCount,
     isLoading,
+    isFetching,
     error: usersError,
     fetchUsers,
     createUser,
@@ -245,6 +247,8 @@ export function UsersTable() {
 
   // Load batch roster and live member mappings so batch and mentor are always displayed accurately
   const { userBatchMap, userMentorMap, isLoading: isRosterLoading } = useAllBatchMembers();
+
+  const isTableLoading = Boolean(isLoading || isFetching || isRosterLoading);
 
   // Modal controls
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -366,12 +370,18 @@ export function UsersTable() {
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
     handleFilterUpdate({ page: newPage });
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const handleLimitChange = (newLimit: number) => {
     setLimit(newLimit);
     setPage(1);
     handleFilterUpdate({ page: 1, limit: newLimit });
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const handleSearchChange = (val: string) => {
@@ -380,7 +390,27 @@ export function UsersTable() {
     handleFilterUpdate({ search: val, page: 1 });
   };
 
-  const isInitialLoading = (isLoading || isRosterLoading) && apiUsers.length === 0;
+  const hasActiveFilters = Boolean(
+    search.trim() !== '' ||
+    selectedRole !== 'ALL' ||
+    selectedStatus !== 'ALL' ||
+    selectedMentor !== 'ALL',
+  );
+
+  const handleResetFilters = () => {
+    setSearch('');
+    setSelectedRole('ALL');
+    setSelectedStatus('ALL');
+    setSelectedMentor('ALL');
+    setPage(1);
+    handleFilterUpdate({
+      role: 'ALL',
+      status: 'ALL',
+      search: '',
+      mentorId: 'ALL',
+      page: 1,
+    });
+  };
 
   const handleCreateUser = async (data: CreateUserFormData) => {
     try {
@@ -493,58 +523,50 @@ export function UsersTable() {
 
   return (
     <div className="space-y-4">
-      {/* Top Header & Action Controls */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        {/* Left: Breadcrumbs & Title */}
-        <div>
-          <div className="mb-1 flex items-center gap-2 text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            <Link href="/admin" className="transition-colors hover:text-[#0044D3]">
-              Administration
-            </Link>
-            <Span>/</Span>
-            <Span className="text-[#0044D3]">User Directory</Span>
-          </div>
-          <H1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
-            Users
-          </H1>
-        </div>
-
-        {/* Right: Primary Action Buttons with responsive container */}
-        <div className="flex shrink-0 flex-wrap items-center gap-2.5 sm:gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setIsBulkImportOpen(true)}
-            className="h-9 gap-2 rounded-full border-[#E1E6EC] px-4 text-xs font-semibold text-slate-700 hover:bg-slate-50 sm:h-10 sm:text-sm"
-          >
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
+      {/* Top Header via Global PageHeader with generous top spacing */}
+      <PageHeader
+        breadcrumbs={[
+          { label: 'Administration', href: '/admin' },
+          { label: 'User Directory', active: true },
+        ]}
+        title="Users"
+        actions={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsBulkImportOpen(true)}
+              className="h-9 gap-2 rounded-full border-[#E1E6EC] px-4 text-xs font-semibold text-slate-700 hover:bg-slate-50 sm:h-10 sm:text-sm"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-              />
-            </svg>
-            <Span>Bulk Import CSV</Span>
-          </Button>
-          <Button
-            type="button"
-            variant="primary"
-            size="sm"
-            onClick={() => setIsCreateOpen(true)}
-            className="h-9 gap-2 rounded-full bg-[#0044D3] px-4 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] sm:h-10 sm:text-sm"
-          >
-            <Span className="text-base font-bold">+</Span>
-            <Span>Create User</Span>
-          </Button>
-        </div>
-      </div>
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                />
+              </svg>
+              <Span>Bulk Import CSV</Span>
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              onClick={() => setIsCreateOpen(true)}
+              className="h-9 gap-2 rounded-full bg-[#0044D3] px-4 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] sm:h-10 sm:text-sm"
+            >
+              <Span className="text-base font-bold">+</Span>
+              <Span>Create User</Span>
+            </Button>
+          </>
+        }
+      />
 
       {/* Role-Based Navigation Tabs (LeadNest style per PRD Section 5.1) */}
       <div className="flex flex-wrap items-center gap-2 border-b border-[#E1E6EC] pb-3">
@@ -583,19 +605,19 @@ export function UsersTable() {
         })}
       </div>
 
-      {/* Filter Row with Search, Status Dropdown, and Mentor Dropdown */}
+      {/* Filter Row with Half-Size Search, Filter Dropdowns Alongside, and Always-Present Reset Button */}
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#E1E6EC] bg-white p-3.5 shadow-xs">
-        {/* Search Input */}
-        <div className="min-w-[240px] flex-1">
+        {/* Half-size Search Input */}
+        <div className="w-full shrink-0 sm:w-72 md:w-80">
           <UserSearchInput
             value={search}
             onSearchChange={handleSearchChange}
-            isSearching={isLoading}
+            isSearching={isTableLoading}
           />
         </div>
 
-        {/* Status Dropdown (per PRD Section 5.3) */}
-        <div className="w-44">
+        {/* Status Dropdown beside Search Bar */}
+        <div className="w-40 shrink-0 sm:w-44">
           <Select
             value={selectedStatus}
             onChange={(e) => {
@@ -613,9 +635,9 @@ export function UsersTable() {
           </Select>
         </div>
 
-        {/* Mentor Dropdown (when applicable) */}
+        {/* Mentor Dropdown beside Status Dropdown */}
         {!isMentorFilterDisabled && (selectedRole === 'ALL' || selectedRole === 'MENTEE') ? (
-          <div className="w-48">
+          <div className="w-40 shrink-0 sm:w-48">
             <Select
               value={selectedMentor}
               onChange={(e) => {
@@ -642,34 +664,32 @@ export function UsersTable() {
           </div>
         ) : null}
 
-        {/* Reset Filter Button */}
-        {search ||
-        selectedRole !== 'ALL' ||
-        selectedStatus !== 'ALL' ||
-        selectedMentor !== 'ALL' ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setSearch('');
-              setSelectedRole('ALL');
-              setSelectedStatus('ALL');
-              setSelectedMentor('ALL');
-              setPage(1);
-              handleFilterUpdate({
-                role: 'ALL',
-                status: 'ALL',
-                search: '',
-                mentorId: 'ALL',
-                page: 1,
-              });
-            }}
-            className="h-11 px-3.5 text-xs font-semibold text-[#0044D3] hover:bg-blue-50"
+        {/* Reset Filter Button - ALWAYS present: enabled if any filter active, disabled otherwise */}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={!hasActiveFilters}
+          onClick={handleResetFilters}
+          className={`h-11 shrink-0 gap-1.5 rounded-full px-4 text-xs font-semibold transition-all ${
+            hasActiveFilters
+              ? 'border-blue-200 bg-blue-50 text-[#0044D3] shadow-2xs hover:bg-blue-100'
+              : 'cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400 opacity-60'
+          }`}
+          aria-label="Reset all search and role filters"
+        >
+          <svg
+            className="h-3.5 w-3.5 shrink-0"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth="2"
+            aria-hidden="true"
           >
-            Reset Filters
-          </Button>
-        ) : null}
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          <Span>Reset Filters</Span>
+        </Button>
       </div>
 
       {/* Users Data Table */}
@@ -690,40 +710,40 @@ export function UsersTable() {
                 <TableHead>Batch / Mentor</TableHead>
               )}
               <TableHead className="w-20 text-center">Status</TableHead>
-              <TableHead className="w-16 text-right">Actions</TableHead>
+              <TableHead className="w-24 text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isInitialLoading ? (
-              // Initial Loading Skeleton Rows
-              Array.from({ length: 5 }).map((_, i) => (
-                <TableRow key={`initial-skel-${i}`}>
+            {isTableLoading ? (
+              // Loading Skeleton Rows - displayed whenever any loading or fetching occurs
+              Array.from({ length: Math.min(limit, 8) }).map((_, i) => (
+                <TableRow key={`loading-skel-${i}`}>
                   <TableCell>
                     <div className="flex items-center gap-2.5">
-                      <Skeleton className="h-8 w-8 rounded-full" />
+                      <Skeleton className="h-9 w-9 rounded-full" />
                       <div className="space-y-1">
-                        <Skeleton className="h-3.5 w-28 rounded-md" />
+                        <Skeleton className="h-4 w-32 rounded-md" />
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Skeleton className="h-3.5 w-36 rounded-md" />
+                    <Skeleton className="h-4 w-40 rounded-md" />
                   </TableCell>
                   {selectedRole === 'ALL' ? (
                     <TableCell>
-                      <Skeleton className="h-5 w-20 rounded-lg" />
+                      <Skeleton className="h-6 w-20 rounded-lg" />
                     </TableCell>
                   ) : null}
                   <TableCell>
-                    <Skeleton className="h-5 w-24 rounded-lg" />
+                    <Skeleton className="h-6 w-24 rounded-lg" />
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex items-center justify-center">
-                      <Skeleton className="h-5 w-9 rounded-full" />
+                      <Skeleton className="h-6 w-11 rounded-full" />
                     </div>
                   </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end">
+                  <TableCell className="text-center">
+                    <div className="flex items-center justify-center">
                       <Skeleton className="h-8 w-8 rounded-full" />
                     </div>
                   </TableCell>
@@ -802,24 +822,24 @@ export function UsersTable() {
                   <TableRow key={u.id}>
                     {/* User Column (Avatar + Name - Clean non-nested Link with wrapping) */}
                     <TableCell>
-                      <div className="flex items-center gap-2.5">
+                      <div className="flex items-center gap-3">
                         <Link
                           href={`/admin/users/${u.id}`}
                           title={`View user profile for ${u.name}`}
-                          className="group flex items-center gap-2.5 rounded-xl p-0.5 text-left transition-colors hover:opacity-85 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
+                          className="group flex items-center gap-3 rounded-xl p-0.5 text-left transition-colors hover:opacity-85 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
                         >
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-[#0044D3] shadow-xs transition-colors group-hover:bg-[#0044D3] group-hover:text-white">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-[#0044D3] shadow-xs transition-colors group-hover:bg-[#0044D3] group-hover:text-white">
                             {initials}
                           </div>
-                          <div className="max-w-[160px] min-w-0 sm:max-w-[200px]">
-                            <Span className="block text-sm leading-snug font-semibold break-words text-slate-900 transition-colors group-hover:text-[#0044D3]">
+                          <div className="max-w-[180px] min-w-0 sm:max-w-[220px]">
+                            <Span className="block text-base leading-snug font-semibold break-words text-slate-900 transition-colors group-hover:text-[#0044D3]">
                               {u.name || '—'}
                             </Span>
                           </div>
                         </Link>
                         {u.mustChangePassword ? (
                           <div className="flex shrink-0 items-center gap-1.5">
-                            <Span className="text-[11px] font-semibold text-amber-700">
+                            <Span className="text-xs font-semibold text-amber-700">
                               Invite pending
                             </Span>
                             <Button
@@ -830,7 +850,7 @@ export function UsersTable() {
                               onClick={() => {
                                 void handleResendInvite(u.id, u.name);
                               }}
-                              className="h-5 rounded-full border border-amber-300 bg-amber-50 px-1.5 text-[10px] font-semibold text-amber-800 hover:bg-amber-100 disabled:opacity-50"
+                              className="h-5.5 rounded-full border border-amber-300 bg-amber-50 px-2 text-[11px] font-semibold text-amber-800 hover:bg-amber-100 disabled:opacity-50"
                             >
                               {inFlightAction[u.id] === 'resend' ? 'Sending...' : 'Resend'}
                             </Button>
@@ -840,7 +860,7 @@ export function UsersTable() {
                     </TableCell>
 
                     {/* Email Column */}
-                    <TableCell className="max-w-[180px] font-mono text-xs break-all text-slate-600 select-all sm:max-w-[220px] sm:text-sm">
+                    <TableCell className="max-w-[200px] font-mono text-sm break-all text-slate-600 select-all sm:max-w-[240px]">
                       {u.email}
                     </TableCell>
 
@@ -935,9 +955,9 @@ export function UsersTable() {
                       </div>
                     </TableCell>
 
-                    {/* Actions Column (Pencil Edit Icon Only - Role Shifted to Edit Modal) */}
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end">
+                    {/* Actions Column (Pencil Edit Icon Center-Aligned with Actions Title) */}
+                    <TableCell className="text-center">
+                      <div className="flex items-center justify-center">
                         <Button
                           type="button"
                           variant="ghost"
