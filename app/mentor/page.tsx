@@ -307,8 +307,14 @@ export default function MentorPage() {
 
         {/* Section 2: Mapped Mentees */}
         <div className="mb-8 overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
-          <div className="border-b border-[#E1E6EC] p-5">
+          <div className="flex items-center justify-between border-b border-[#E1E6EC] p-5">
             <H2 className="text-xl font-bold text-[#111827]">Your Mapped Mentees</H2>
+            <Link
+              href="/mentor/mentees"
+              className="font-mono text-xs font-semibold text-blue-600 hover:text-blue-800"
+            >
+              View All Mentees →
+            </Link>
           </div>
 
           <MentorMenteesTable isLoading={isLoadingMentees} mentees={mentees} />
