@@ -412,7 +412,7 @@ export default function MenteePage() {
           </P>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
           {/* Card 1: Course Progress */}
           <Link
             href="/mentee/courses"
@@ -444,7 +444,10 @@ export default function MenteePage() {
           </Link>
 
           {/* Card 2: Assignments & Deadlines */}
-          <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
+          <Link
+            href="/mentee/assignments"
+            className="group flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs transition-all hover:border-blue-300 hover:shadow-md"
+          >
             <div>
               <div className="flex items-center justify-between">
                 <Span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
@@ -454,22 +457,51 @@ export default function MenteePage() {
                   Module 4
                 </Span>
               </div>
-              <H3 className="mt-2 text-base font-bold text-slate-900">Assignments & Due Dates</H3>
+              <H3 className="mt-2 text-base font-bold text-slate-900 transition-colors group-hover:text-blue-600">
+                Assignments & Due Dates
+              </H3>
               <P className="mt-1 text-xs leading-relaxed text-slate-600">
                 Submit assignment deliverables, review mentor feedback, and track your submission
                 history.
               </P>
             </div>
             <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
-              <Span className="text-[11px] text-slate-400">View and submit deliverables</Span>
-              <Link
-                href="/mentee/assignments"
-                className="text-xs font-semibold text-blue-600 hover:text-blue-700"
-              >
+              <Span className="text-[11px] font-semibold text-blue-600 group-hover:underline">
                 Go to Assignments →
-              </Link>
+              </Span>
+              <Span className="text-xs text-slate-400">Submissions</Span>
             </div>
-          </div>
+          </Link>
+
+          {/* Card 3: Performance & Grades */}
+          <Link
+            href="/mentee/performance"
+            className="group flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs transition-all hover:border-blue-300 hover:shadow-md"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <Span className="text-[10px] font-bold tracking-wider text-emerald-600 uppercase">
+                  Analytics
+                </Span>
+                <Span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                  FR-11.4
+                </Span>
+              </div>
+              <H3 className="mt-2 text-base font-bold text-slate-900 transition-colors group-hover:text-blue-600">
+                My Grades & Performance
+              </H3>
+              <P className="mt-1 text-xs leading-relaxed text-slate-600">
+                Review your course milestone percentages, marks breakdown, graded assignments, and
+                mentor feedback.
+              </P>
+            </div>
+            <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
+              <Span className="text-[11px] font-semibold text-blue-600 group-hover:underline">
+                View Performance & Grades →
+              </Span>
+              <Span className="text-xs text-slate-400">Learning History</Span>
+            </div>
+          </Link>
         </div>
       </main>
     </div>
