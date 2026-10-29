@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import React from 'react';
 
+import { LatestSubmissionsWidget } from '@/components/app/dashboard/LatestSubmissionsWidget';
 import { MENTOR_PORTAL_NAV } from '@/components/app/navigation/portal-nav.config';
 import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
 import { DashboardContent } from '@/components/layout/DashboardContent';
@@ -313,52 +314,39 @@ export default function MentorPage() {
           <MentorMenteesTable isLoading={isLoadingMentees} mentees={mentees} />
         </div>
 
-        {/* Action Areas / Quick Navigation Cards */}
-        <div className="mb-6">
-          <H2 className="text-xl font-bold text-[#111827]">Mentor Workspace Domains</H2>
+        {/* Section 3: Latest Submissions Widget (FR-10.1, REV-01) */}
+        <div className="mb-8">
+          <LatestSubmissionsWidget />
         </div>
 
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-          {/* Card 1: Curriculum & Course Library */}
+        {/* Action Areas */}
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          {/* Card 1: Submission Reviews */}
           <Link
-            href="/mentor/courses"
-            className="group flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs transition-all duration-200 hover:border-[#0044D3] hover:bg-white hover:shadow-md"
+            href="/mentor/submissions"
+            className="group flex flex-col justify-between rounded-xl border border-blue-200 bg-blue-50/50 p-5 shadow-xs transition-all hover:border-blue-300 hover:bg-blue-50 hover:shadow-sm"
           >
             <div>
               <div className="flex items-center justify-between">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#0044D3] transition-colors group-hover:bg-[#0044D3] group-hover:text-white">
-                  <svg
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                    />
-                  </svg>
-                </div>
-                <svg
-                  className="h-5 w-5 text-slate-400 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[#0044D3]"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  aria-hidden="true"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
+                <Span className="text-[10px] font-bold tracking-wider text-blue-700 uppercase">
+                  Grading Queue
+                </Span>
+                <Span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-800">
+                  Active
+                </Span>
               </div>
-              <H3 className="mt-4 text-base font-bold text-[#111827] transition-colors group-hover:text-[#0044D3]">
-                Course Library & Builder
+              <H3 className="mt-2 text-base font-bold text-slate-900 transition-colors group-hover:text-blue-700">
+                Submission Queue & Reviews
               </H3>
-              <P className="mt-1 text-xs text-[#667085]">
-                Review modules, syllabi, lesson outlines, and track materials.
+              <P className="mt-1 text-xs leading-relaxed text-slate-600">
+                Filter and review student submissions, give marks and feedback, or request
+                resubmissions.
               </P>
+            </div>
+            <div className="mt-4 flex items-center justify-between border-t border-blue-100 pt-3">
+              <Span className="text-[11px] font-semibold text-blue-700 group-hover:underline">
+                Open Submission Queue &rarr;
+              </Span>
             </div>
           </Link>
 

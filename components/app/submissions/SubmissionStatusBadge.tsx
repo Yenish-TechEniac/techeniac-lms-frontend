@@ -2,16 +2,17 @@ import React from 'react';
 
 import { Span } from '@/components/ui/Typography';
 import { cn } from '@/lib/cn';
+import { SubmissionStatus } from '@/types/grading';
 import { AssignmentDerivedStatus } from '@/types/submissions';
 
 interface SubmissionStatusBadgeProps {
-  status: AssignmentDerivedStatus;
+  status: AssignmentDerivedStatus | SubmissionStatus;
   isLate?: boolean | undefined;
   className?: string | undefined;
 }
 
 const STATUS_CONFIG: Record<
-  AssignmentDerivedStatus,
+  AssignmentDerivedStatus | SubmissionStatus,
   { label: string; bg: string; text: string; border: string }
 > = {
   [AssignmentDerivedStatus.PENDING]: {

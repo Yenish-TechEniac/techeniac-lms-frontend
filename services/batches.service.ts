@@ -114,6 +114,10 @@ interface ApiResponse<T> {
   data: T;
 }
 
+function toDateOnly(v: string | null | undefined): string {
+  return (v ? String(v) : '').slice(0, 10);
+}
+
 export const batchesService = {
   async listBatches(filters: BatchQueryFilters = {}): Promise<ApiBatchListResponse> {
     const params: Record<string, string | number | undefined> = {};
@@ -222,7 +226,7 @@ export const batchesService = {
         name: m.user?.name ?? 'Unknown Mentor',
         email: m.user?.email ?? '',
         memberRole: 'MENTOR' as const,
-        joinedAt: m.createdAt.slice(0, 10),
+        joinedAt: toDateOnly(m.createdAt),
       })),
       ...(res.data.mentees ?? []).map((m) => ({
         id: m.user?.id ?? m.userId ?? m.id,
@@ -230,7 +234,7 @@ export const batchesService = {
         email: m.user?.email ?? '',
         memberRole: 'MENTEE' as const,
         mappedToName: m.mappedToUser?.name,
-        joinedAt: m.createdAt.slice(0, 10),
+        joinedAt: toDateOnly(m.createdAt),
       })),
     ];
 
@@ -239,7 +243,7 @@ export const batchesService = {
       fromStatus: h.fromStatus,
       toStatus: h.toStatus,
       changedBy: h.changedByUser?.name ?? 'Super Admin',
-      changedAt: h.createdAt.slice(0, 10),
+      changedAt: toDateOnly(h.createdAt),
       reason: h.reason,
     }));
 
