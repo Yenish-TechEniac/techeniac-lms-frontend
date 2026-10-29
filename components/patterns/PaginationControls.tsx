@@ -2,6 +2,7 @@ import React from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { Span } from '@/components/ui/Typography';
 import { cn } from '@/lib/cn';
 
@@ -14,6 +15,7 @@ export interface PaginationControlsProps {
   onLimitChange: (newLimit: number) => void;
   itemLabel?: string;
   pageSizeOptions?: readonly number[] | number[];
+  isLoading?: boolean | undefined;
   className?: string;
 }
 
@@ -39,8 +41,31 @@ export function PaginationControls({
   onLimitChange,
   itemLabel = 'entries',
   pageSizeOptions = [10, 20, 50, 100],
+  isLoading = false,
   className,
 }: Readonly<PaginationControlsProps>) {
+  if (isLoading) {
+    return (
+      <div
+        className={cn(
+          'flex flex-col items-center justify-between gap-4 border-t border-[#E1E6EC] bg-white px-6 py-4 text-sm text-slate-500 sm:flex-row',
+          className,
+        )}
+      >
+        <Skeleton className="h-4 w-44 rounded-md" />
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5">
+            <Skeleton className="h-8 w-8 rounded-full" />
+            <Skeleton className="h-8 w-8 rounded-full" />
+            <Skeleton className="h-8 w-8 rounded-full" />
+            <Skeleton className="h-8 w-8 rounded-full" />
+          </div>
+          <Skeleton className="h-8 w-32 rounded-xl" />
+        </div>
+      </div>
+    );
+  }
+
   const startItem = total === 0 ? 0 : (page - 1) * limit + 1;
   const endItem = Math.min(page * limit, total);
   const pageNumbers = getPageNumbers(page, totalPages);

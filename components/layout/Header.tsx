@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
+import { ConfirmationModal } from '@/components/patterns/ConfirmationModal';
 import { Button } from '@/components/ui/Button';
 import { Span } from '@/components/ui/Typography';
 import { useSidebar } from '@/context/SidebarContext';
@@ -158,6 +159,28 @@ function getNavIcon(itemOrLabel: HeaderNavItem | string) {
       </svg>
     );
   }
+  if (
+    normalized.includes('performance') ||
+    normalized.includes('analytic') ||
+    normalized.includes('metric')
+  ) {
+    return (
+      <svg
+        className="h-5 w-5 shrink-0"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        aria-hidden="true"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.8"
+          d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+        />
+      </svg>
+    );
+  }
   if (normalized.includes('progress') || normalized.includes('tracker')) {
     return (
       <svg
@@ -194,6 +217,7 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
   const { user, logout } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutError, setLogoutError] = useState<string | null>(null);
+  const [isSignOutConfirmOpen, setIsSignOutConfirmOpen] = useState(false);
 
   // Side Drawer State managed by SidebarContext
   const { isDrawerOpen, setIsDrawerOpen, isMobileNavOpen, setIsMobileNavOpen } = useSidebar();
@@ -231,6 +255,12 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
 
   const userInitials = getUserInitials(user?.name);
   const formattedRole = formatRole(user?.role);
+  const panelTitle = (() => {
+    if (user?.role === 'SUPER_ADMIN') return 'ADMIN PANEL';
+    if (user?.role === 'MENTOR') return 'MENTOR PANEL';
+    if (user?.role === 'MENTEE') return 'MENTEE PANEL';
+    return 'ADMIN PANEL';
+  })();
 
   return (
     <>
@@ -436,7 +466,7 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
         {/* Navigation Category Label (Matching LeadNest Reference) */}
         <div className="px-5 pt-5 pb-2">
           <Span className="font-mono text-xs font-bold tracking-wider text-[#667085] uppercase">
-            PORTAL NAVIGATION
+            {panelTitle}
           </Span>
         </div>
 
@@ -529,31 +559,40 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
             variant="outline"
             size="md"
             onClick={() => {
-              void handleLogout();
+              setIsSignOutConfirmOpen(true);
             }}
             disabled={isLoggingOut}
-            isLoading={isLoggingOut}
             className="h-11 w-full justify-center gap-2 rounded-full border-[#E1E6EC] bg-white text-sm font-semibold text-[#667085] transition-colors hover:border-red-200 hover:bg-red-50 hover:text-[#D92D20]"
           >
-            {!isLoggingOut ? (
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                />
-              </svg>
-            ) : null}
-            {isLoggingOut ? 'Signing out...' : 'Sign Out'}
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+              />
+            </svg>
+            <Span>Sign Out</Span>
           </Button>
         </div>
       </aside>
+
+      {/* Confirmation Modal before Sign Out */}
+      <ConfirmationModal
+        isOpen={isSignOutConfirmOpen}
+        onClose={() => setIsSignOutConfirmOpen(false)}
+        onConfirm={handleLogout}
+        title="Sign Out?"
+        description="Are you sure you want to sign out of Techeniac LMS? You will need to log in again to access your account."
+        confirmLabel="Sign Out"
+        confirmVariant="danger"
+        isLoading={isLoggingOut}
+      />
     </>
   );
 }

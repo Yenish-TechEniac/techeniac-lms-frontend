@@ -281,11 +281,17 @@ export function useAllBatchMembers(activeBatchIds?: string[]) {
   return useMemo(() => {
     const bMap = new Map<string, string>();
     const mMap = new Map<string, string>();
+    const bIdMap = new Map<string, string[]>();
 
     for (const q of batchDetailsQueries) {
       if (q.data) {
         const batch = q.data;
         for (const member of batch.members ?? []) {
+          const existingIds = bIdMap.get(member.id) ?? [];
+          if (!existingIds.includes(batch.id)) {
+            bIdMap.set(member.id, [...existingIds, batch.id]);
+          }
+
           const existing = bMap.get(member.id);
           if (existing) {
             if (!existing.includes(batch.name)) {
@@ -304,6 +310,7 @@ export function useAllBatchMembers(activeBatchIds?: string[]) {
     return {
       userBatchMap: bMap,
       userMentorMap: mMap,
+      userBatchIdsMap: bIdMap,
       isLoading: (shouldFetchSummaries && isBatchesLoading) || isDetailsLoading,
       isError: isDetailsError,
     };
