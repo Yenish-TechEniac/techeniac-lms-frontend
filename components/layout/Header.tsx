@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { Span } from '@/components/ui/Typography';
@@ -196,41 +196,21 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
   const [logoutError, setLogoutError] = useState<string | null>(null);
 
   // Side Drawer State managed by SidebarContext
-  const { isDrawerOpen, setIsDrawerOpen, contentMarginClass } = useSidebar();
+  const { isDrawerOpen, setIsDrawerOpen, isMobileNavOpen, setIsMobileNavOpen } = useSidebar();
 
-  // Profile Popover State
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const profileContainerRef = useRef<HTMLDivElement>(null);
-
-  // Close profile on click outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        profileContainerRef.current &&
-        !profileContainerRef.current.contains(event.target as Node)
-      ) {
-        setIsProfileOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  // Handle escape key for drawer and popover
+  // Handle escape key for drawer
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
+        setIsMobileNavOpen(false);
         setIsDrawerOpen(false);
-        setIsProfileOpen(false);
       }
     }
     document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [setIsDrawerOpen]);
+  }, [setIsDrawerOpen, setIsMobileNavOpen]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -254,150 +234,61 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
 
   return (
     <>
-      <header
-        className={`sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-md transition-all duration-300 ${contentMarginClass}`}
-      >
-        <div className="flex h-16 w-full items-center justify-between px-6 sm:px-8 lg:px-10">
-          {/* Left Corner: Logo + Product Name + Mobile Menu Toggle (< md) */}
-          <div className="flex items-center gap-3 md:hidden">
+      {/* Mobile-Only Header (< md) with Hamburger Menu & Logo */}
+      <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white/95 px-6 backdrop-blur-md md:hidden">
+        <div className="flex items-center gap-3">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsMobileNavOpen(true)}
+            className="flex h-10 w-10 items-center justify-center rounded-xl p-0 text-slate-700 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-[#0044D3]"
+            aria-label="Open navigation menu"
+          >
+            <svg
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </Button>
+          <Link href={homeUrl} className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0044D3] text-sm font-bold text-white shadow-sm">
+              TL
+            </div>
+            <Span className="text-base font-bold tracking-tight text-slate-900">Techeniac LMS</Span>
+          </Link>
+        </div>
+
+        {logoutError ? (
+          <div
+            role="alert"
+            className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-2 py-1 text-xs font-medium text-red-700"
+          >
+            <Span>{logoutError}</Span>
             <Button
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => setIsDrawerOpen(true)}
-              className="flex h-10 w-10 items-center justify-center rounded-xl p-0 text-slate-700 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-[#0044D3]"
-              aria-label="Open navigation menu"
+              onClick={() => setLogoutError(null)}
+              className="h-5 w-5 p-0 font-bold text-red-500 hover:text-red-800"
+              aria-label="Dismiss error"
             >
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="2"
-                aria-hidden="true"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
+              ×
             </Button>
-            <Link href={homeUrl} className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0044D3] text-sm font-bold text-white shadow-sm">
-                TL
-              </div>
-              <Span className="text-base font-bold tracking-tight text-slate-900">
-                Techeniac LMS
-              </Span>
-            </Link>
           </div>
-
-          {/* Right Corner: Profile Button (with Hover Popover) + Sign Out Icon */}
-          <div className="relative ml-auto flex items-center gap-3">
-            {logoutError ? (
-              <div
-                role="alert"
-                className="absolute top-12 right-0 z-50 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700 shadow-lg"
-              >
-                <Span>{logoutError}</Span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setLogoutError(null)}
-                  className="h-6 w-6 p-0 font-bold text-red-500 hover:text-red-800"
-                  aria-label="Dismiss error"
-                >
-                  ×
-                </Button>
-              </div>
-            ) : null}
-
-            {user ? (
-              <div
-                ref={profileContainerRef}
-                className="relative"
-                onMouseEnter={() => setIsProfileOpen(true)}
-                onMouseLeave={() => setIsProfileOpen(false)}
-              >
-                {/* Profile Trigger Button */}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsProfileOpen((prev) => !prev)}
-                  className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-blue-200 bg-blue-50 p-0 text-xs font-bold text-[#0044D3] shadow-xs transition-all hover:border-blue-400 hover:bg-blue-100 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
-                  aria-label="User profile and account settings"
-                  aria-expanded={isProfileOpen}
-                >
-                  {userInitials}
-                </Button>
-
-                {/* Profile Popover / Dropdown Card */}
-                {isProfileOpen ? (
-                  <div className="absolute top-full right-0 z-50 w-72 origin-top-right pt-2">
-                    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xl ring-1 ring-black/5">
-                      {/* User Header */}
-                      <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#0044D3] text-sm font-bold text-white shadow-sm">
-                          {userInitials}
-                        </div>
-                        <div className="flex min-w-0 flex-1 flex-col">
-                          <Span className="truncate text-sm font-bold text-slate-900">
-                            {user.name}
-                          </Span>
-                          <Span className="truncate text-xs text-slate-500">{user.email}</Span>
-                        </div>
-                      </div>
-
-                      {/* Role Info */}
-                      <div className="my-3 flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
-                        <Span className="text-xs font-medium text-slate-600">Assigned Role</Span>
-                        <Span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-xs font-semibold text-[#0044D3]">
-                          {formattedRole}
-                        </Span>
-                      </div>
-
-                      {/* Popover Signout Action */}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setIsProfileOpen(false);
-                          void handleLogout();
-                        }}
-                        disabled={isLoggingOut}
-                        isLoading={isLoggingOut}
-                        className="w-full justify-start gap-2.5 text-red-600 hover:bg-red-50 hover:text-red-700"
-                      >
-                        <svg
-                          className="h-4 w-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          aria-hidden="true"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                          />
-                        </svg>
-                        Sign out
-                      </Button>
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-        </div>
+        ) : null}
       </header>
 
-      {/* Mobile-Only Backdrop Overlay (< md) */}
+      {/* Mobile & Tablet Backdrop Overlay (< lg) */}
       <div
-        onClick={() => setIsDrawerOpen(false)}
-        className={`backdrop-blur-2xs fixed inset-0 z-40 bg-slate-900/30 transition-opacity duration-300 md:hidden ${
-          isDrawerOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+        onClick={() => setIsMobileNavOpen(false)}
+        className={`backdrop-blur-2xs fixed inset-0 z-40 bg-slate-900/30 transition-opacity duration-300 lg:hidden ${
+          isMobileNavOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
         }`}
         aria-hidden="true"
       />
@@ -407,7 +298,7 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
         aria-label="Collapsed Navigation Rail"
         className={`fixed inset-y-0 left-0 z-40 hidden w-20 flex-col items-center justify-between border-r border-[#E1E6EC] bg-white py-5 transition-all duration-300 md:flex ${
           isDrawerOpen
-            ? 'pointer-events-none -translate-x-full opacity-0'
+            ? 'lg:pointer-events-none lg:-translate-x-full lg:opacity-0'
             : 'pointer-events-auto translate-x-0 opacity-100 shadow-sm'
         }`}
       >
@@ -461,13 +352,27 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
           </nav>
         </div>
 
-        {/* Bottom: Expand Toggle Button */}
-        <div className="flex flex-col items-center">
+        {/* Bottom: User Avatar + Expand Toggle Button */}
+        <div className="flex flex-col items-center gap-3 pb-2">
+          {user ? (
+            <div
+              title={`${user.name} (${formattedRole})`}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0044D3] text-xs font-bold text-white shadow-xs"
+            >
+              {userInitials}
+            </div>
+          ) : null}
           <Button
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => setIsDrawerOpen(true)}
+            onClick={() => {
+              if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                setIsMobileNavOpen(true);
+              } else {
+                setIsDrawerOpen(true);
+              }
+            }}
             className="flex h-10 w-10 items-center justify-center rounded-full border-[#E1E6EC] p-0 text-[#667085] transition-colors hover:bg-[#F6F8FC] hover:text-[#111827]"
             title="Expand sidebar"
             aria-label="Expand sidebar"
@@ -491,18 +396,41 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
         role="dialog"
         aria-modal="true"
         aria-label="Site Navigation Drawer"
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-[#E1E6EC] bg-white shadow-2xl transition-transform duration-300 ease-in-out md:shadow-md ${
-          isDrawerOpen ? 'translate-x-0' : 'pointer-events-none -translate-x-full'
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-[#E1E6EC] bg-white shadow-2xl transition-transform duration-300 ease-in-out lg:shadow-md ${
+          isMobileNavOpen ? 'translate-x-0' : 'pointer-events-none -translate-x-full'
+        } ${
+          isDrawerOpen
+            ? 'lg:pointer-events-auto lg:translate-x-0'
+            : 'lg:pointer-events-none lg:-translate-x-full'
         }`}
       >
-        {/* Drawer Header: TL Logo + Techeniac LMS Title (Close button removed as bottom dock button controls collapse) */}
-        <div className="flex h-16 items-center border-b border-[#E1E6EC] px-5">
+        {/* Drawer Header: TL Logo + Techeniac LMS Title + Mobile/Tablet Close Button */}
+        <div className="flex h-16 items-center justify-between border-b border-[#E1E6EC] px-5">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0044D3] text-sm font-black text-white shadow-xs">
               TL
             </div>
             <Span className="text-base font-bold tracking-tight text-[#111827]">Techeniac LMS</Span>
           </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsMobileNavOpen(false)}
+            className="flex h-8 w-8 items-center justify-center rounded-full p-0 text-slate-500 hover:bg-slate-100 lg:hidden"
+            aria-label="Close navigation menu"
+          >
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </Button>
         </div>
 
         {/* Navigation Category Label (Matching LeadNest Reference) */}
@@ -525,8 +453,8 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
                     key={item.label}
                     href={item.href}
                     onClick={() => {
-                      if (typeof window !== 'undefined' && window.innerWidth < 768) {
-                        setIsDrawerOpen(false);
+                      if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                        setIsMobileNavOpen(false);
                       }
                     }}
                     className={`flex items-center gap-3.5 rounded-full px-4 py-3.5 text-base transition-all ${
@@ -580,8 +508,22 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
           </Button>
         </div>
 
-        {/* Drawer Footer with Logout Action */}
-        <div className="border-t border-[#E1E6EC] bg-[#F6F8FC]/50 p-4">
+        {/* Drawer Footer with User Profile and Logout */}
+        <div className="space-y-3 border-t border-[#E1E6EC] bg-[#F6F8FC]/50 p-4">
+          {user ? (
+            <div className="flex items-center gap-3 rounded-2xl border border-[#E1E6EC] bg-white p-2.5 shadow-xs">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0044D3] text-sm font-bold text-white shadow-xs">
+                {userInitials}
+              </div>
+              <div className="min-w-0 flex-1">
+                <Span className="block truncate text-sm font-bold text-[#111827]">{user.name}</Span>
+                <Span className="block truncate text-xs font-semibold text-[#667085]">
+                  {formattedRole}
+                </Span>
+              </div>
+            </div>
+          ) : null}
+
           <Button
             type="button"
             variant="outline"

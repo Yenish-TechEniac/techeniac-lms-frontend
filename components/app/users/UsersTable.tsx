@@ -230,9 +230,7 @@ export function UsersTable() {
   const {
     users: apiUsers,
     total: totalCount,
-    counts,
     isLoading,
-    isFetching,
     error: usersError,
     fetchUsers,
     createUser,
@@ -494,9 +492,9 @@ export function UsersTable() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Top Header & Shifted Middle Buttons & Action Controls */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div className="space-y-4">
+      {/* Top Header & Action Controls */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         {/* Left: Breadcrumbs & Title */}
         <div>
           <div className="mb-1 flex items-center gap-2 text-xs font-semibold tracking-wider text-slate-400 uppercase">
@@ -506,117 +504,19 @@ export function UsersTable() {
             <Span>/</Span>
             <Span className="text-[#0044D3]">User Directory</Span>
           </div>
-          <H1 className="text-3xl font-extrabold tracking-tight text-slate-900">Users</H1>
+          <H1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+            Users
+          </H1>
         </div>
 
-        {/* Middle: Shifted Status Telemetry Buttons */}
-        <div className="flex items-center justify-center gap-2 self-center rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-xs">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setSelectedStatus('ALL');
-              setPage(1);
-              handleFilterUpdate({ status: 'ALL', page: 1 });
-            }}
-            className={`h-9 gap-2 rounded-full px-4 text-xs font-semibold transition-all ${
-              selectedStatus === 'ALL'
-                ? 'bg-[#0044D3] text-white shadow-xs hover:bg-[#0039B3]'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-            }`}
-          >
-            <Span>Total Users</Span>
-            {isLoading ? (
-              <Skeleton className="inline-block h-4 w-6 rounded-md bg-slate-300" />
-            ) : (
-              <Span
-                className={`font-mono font-bold ${
-                  selectedStatus === 'ALL' ? 'text-white' : 'text-[#0044D3]'
-                }`}
-              >
-                {counts.total || totalCount}
-              </Span>
-            )}
-          </Button>
-
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setSelectedStatus('ACTIVE');
-              setPage(1);
-              handleFilterUpdate({ status: 'ACTIVE', page: 1 });
-            }}
-            className={`h-9 gap-2 rounded-full px-4 text-xs font-semibold transition-all ${
-              selectedStatus === 'ACTIVE'
-                ? 'bg-emerald-600 text-white shadow-xs hover:bg-emerald-700'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-            }`}
-          >
-            <Span
-              className={`h-2 w-2 rounded-full ${
-                selectedStatus === 'ACTIVE' ? 'bg-white' : 'bg-emerald-500'
-              }`}
-            />
-            <Span>Active</Span>
-            {isLoading ? (
-              <Skeleton className="inline-block h-4 w-6 rounded-md bg-slate-300" />
-            ) : (
-              <Span
-                className={`font-mono font-bold ${
-                  selectedStatus === 'ACTIVE' ? 'text-white' : 'text-slate-600'
-                }`}
-              >
-                {counts.active}
-              </Span>
-            )}
-          </Button>
-
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setSelectedStatus('INACTIVE');
-              setPage(1);
-              handleFilterUpdate({ status: 'INACTIVE', page: 1 });
-            }}
-            className={`h-9 gap-2 rounded-full px-4 text-xs font-semibold transition-all ${
-              selectedStatus === 'INACTIVE'
-                ? 'bg-slate-800 text-white shadow-xs hover:bg-slate-900'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-            }`}
-          >
-            <Span
-              className={`h-2 w-2 rounded-full ${
-                selectedStatus === 'INACTIVE' ? 'bg-white' : 'bg-slate-400'
-              }`}
-            />
-            <Span>Inactive</Span>
-            {isLoading ? (
-              <Skeleton className="inline-block h-4 w-6 rounded-md bg-slate-300" />
-            ) : (
-              <Span
-                className={`font-mono font-bold ${
-                  selectedStatus === 'INACTIVE' ? 'text-white' : 'text-slate-600'
-                }`}
-              >
-                {counts.inactive}
-              </Span>
-            )}
-          </Button>
-        </div>
-
-        {/* Right: Primary Action Buttons */}
-        <div className="flex items-center gap-3">
+        {/* Right: Primary Action Buttons with responsive container */}
+        <div className="flex shrink-0 flex-wrap items-center gap-2.5 sm:gap-3">
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={() => setIsBulkImportOpen(true)}
-            className="h-11 gap-2 rounded-full border-[#E1E6EC] px-5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            className="h-9 gap-2 rounded-full border-[#E1E6EC] px-4 text-xs font-semibold text-slate-700 hover:bg-slate-50 sm:h-10 sm:text-sm"
           >
             <svg
               className="h-4 w-4"
@@ -638,7 +538,7 @@ export function UsersTable() {
             variant="primary"
             size="sm"
             onClick={() => setIsCreateOpen(true)}
-            className="h-11 gap-2 rounded-full bg-[#0044D3] px-6 text-sm font-semibold text-white shadow-xs hover:bg-[#0039B3]"
+            className="h-9 gap-2 rounded-full bg-[#0044D3] px-4 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] sm:h-10 sm:text-sm"
           >
             <Span className="text-base font-bold">+</Span>
             <Span>Create User</Span>
@@ -646,7 +546,44 @@ export function UsersTable() {
         </div>
       </div>
 
-      {/* Filter Row with Search, Role Dropdown, Status Dropdown, and Mentor Dropdown */}
+      {/* Role-Based Navigation Tabs (LeadNest style per PRD Section 5.1) */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-[#E1E6EC] pb-3">
+        {[
+          { label: 'All Users', value: 'ALL' },
+          { label: 'Mentees', value: 'MENTEE' },
+          { label: 'Mentors', value: 'MENTOR' },
+          { label: 'Super Admins', value: 'SUPER_ADMIN' },
+        ].map((tab) => {
+          const isActive = selectedRole === tab.value;
+          return (
+            <Button
+              key={tab.value}
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setSelectedRole(tab.value);
+                setPage(1);
+                if (tab.value === 'SUPER_ADMIN' || tab.value === 'MENTOR') {
+                  setSelectedMentor('ALL');
+                  handleFilterUpdate({ role: tab.value, mentorId: 'ALL', page: 1 });
+                } else {
+                  handleFilterUpdate({ role: tab.value, page: 1 });
+                }
+              }}
+              className={`h-9 rounded-full px-4 text-xs font-semibold transition-all ${
+                isActive
+                  ? 'bg-[#0044D3] text-white shadow-xs hover:bg-[#0039B3]'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              }`}
+            >
+              {tab.label}
+            </Button>
+          );
+        })}
+      </div>
+
+      {/* Filter Row with Search, Status Dropdown, and Mentor Dropdown */}
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#E1E6EC] bg-white p-3.5 shadow-xs">
         {/* Search Input */}
         <div className="min-w-[240px] flex-1">
@@ -657,34 +594,8 @@ export function UsersTable() {
           />
         </div>
 
-        {/* Role Filter Dropdown */}
-        <div className="w-48">
-          <Select
-            value={selectedRole}
-            onChange={(e) => {
-              const val = e.target.value;
-              setSelectedRole(val);
-              setPage(1);
-              const isMentorRestricted = val === 'SUPER_ADMIN' || val === 'MENTOR';
-              if (isMentorRestricted && selectedMentor !== 'ALL') {
-                setSelectedMentor('ALL');
-                handleFilterUpdate({ role: val, mentorId: 'ALL', page: 1 });
-              } else {
-                handleFilterUpdate({ role: val, page: 1 });
-              }
-            }}
-            aria-label="Filter by role"
-            className="h-11 text-xs font-semibold"
-          >
-            <option value="ALL">All Roles</option>
-            <option value="SUPER_ADMIN">Super Admins</option>
-            <option value="MENTOR">Mentors</option>
-            <option value="MENTEE">Mentees</option>
-          </Select>
-        </div>
-
-        {/* Status Dropdown */}
-        <div className="w-40">
+        {/* Status Dropdown (per PRD Section 5.3) */}
+        <div className="w-44">
           <Select
             value={selectedStatus}
             onChange={(e) => {
@@ -696,14 +607,14 @@ export function UsersTable() {
             aria-label="Filter by status"
             className="h-11 text-xs font-semibold"
           >
-            <option value="ALL">All Status</option>
+            <option value="ALL">All Statuses</option>
             <option value="ACTIVE">Active Users</option>
             <option value="INACTIVE">Inactive Users</option>
           </Select>
         </div>
 
         {/* Mentor Dropdown (when applicable) */}
-        {!isMentorFilterDisabled ? (
+        {!isMentorFilterDisabled && (selectedRole === 'ALL' || selectedRole === 'MENTEE') ? (
           <div className="w-48">
             <Select
               value={selectedMentor}
@@ -766,60 +677,77 @@ export function UsersTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>User</TableHead>
+              <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Batch</TableHead>
-              <TableHead>Mentor</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              {selectedRole === 'ALL' ? <TableHead>Role</TableHead> : null}
+              {selectedRole === 'MENTEE' ? (
+                <TableHead>Mentor</TableHead>
+              ) : selectedRole === 'MENTOR' ? (
+                <TableHead>Batches</TableHead>
+              ) : selectedRole === 'SUPER_ADMIN' ? (
+                <TableHead>Batches</TableHead>
+              ) : (
+                <TableHead>Batch / Mentor</TableHead>
+              )}
+              <TableHead className="w-20 text-center">Status</TableHead>
+              <TableHead className="w-16 text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody
-            className={
-              (isFetching || isRosterLoading) && !isInitialLoading
-                ? 'opacity-60 transition-opacity'
-                : undefined
-            }
-          >
+          <TableBody>
             {isInitialLoading ? (
               // Initial Loading Skeleton Rows
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={`initial-skel-${i}`}>
                   <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Skeleton className="h-10 w-10 rounded-full" />
-                      <div className="space-y-1.5">
-                        <Skeleton className="h-4 w-32 rounded-md" />
+                    <div className="flex items-center gap-2.5">
+                      <Skeleton className="h-8 w-8 rounded-full" />
+                      <div className="space-y-1">
+                        <Skeleton className="h-3.5 w-28 rounded-md" />
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Skeleton className="h-4 w-40 rounded-md" />
+                    <Skeleton className="h-3.5 w-36 rounded-md" />
                   </TableCell>
+                  {selectedRole === 'ALL' ? (
+                    <TableCell>
+                      <Skeleton className="h-5 w-20 rounded-lg" />
+                    </TableCell>
+                  ) : null}
                   <TableCell>
-                    <Skeleton className="h-6 w-20 rounded-lg" />
+                    <Skeleton className="h-5 w-24 rounded-lg" />
                   </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-24 rounded-md" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-28 rounded-md" />
+                  <TableCell className="text-center">
+                    <div className="flex items-center justify-center">
+                      <Skeleton className="h-5 w-9 rounded-full" />
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Skeleton className="h-8 w-8 rounded-lg" />
-                      <Skeleton className="h-8 w-20 rounded-lg" />
-                      <Skeleton className="h-6 w-11 rounded-full" />
+                    <div className="flex items-center justify-end">
+                      <Skeleton className="h-8 w-8 rounded-full" />
                     </div>
                   </TableCell>
                 </TableRow>
               ))
             ) : usersError ? (
               <TableRow>
-                <TableCell colSpan={6} className="py-12 text-center">
+                <TableCell colSpan={selectedRole === 'ALL' ? 6 : 5} className="py-12 text-center">
                   <div className="mx-auto flex max-w-sm flex-col items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-lg text-red-600">
-                      ⚠️
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-600">
+                      <svg
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        aria-hidden="true"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                        />
+                      </svg>
                     </div>
                     <div>
                       <P className="text-sm font-semibold text-slate-900">Failed to load users</P>
@@ -842,7 +770,10 @@ export function UsersTable() {
               </TableRow>
             ) : users.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="py-12 text-center text-slate-400">
+                <TableCell
+                  colSpan={selectedRole === 'ALL' ? 6 : 5}
+                  className="py-12 text-center text-slate-400"
+                >
                   <Span>No users match your filters.</Span>
                 </TableCell>
               </TableRow>
@@ -869,135 +800,144 @@ export function UsersTable() {
 
                 return (
                   <TableRow key={u.id}>
-                    {/* User Column (Avatar + Name - Clickable button for future profile navigation) */}
+                    {/* User Column (Avatar + Name - Clean non-nested Link with wrapping) */}
                     <TableCell>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          router.push(`/admin/users/${u.id}`);
-                        }}
-                        title={`View user profile for ${u.name}`}
-                        className="group flex h-auto items-center gap-3 rounded-2xl p-1.5 text-left transition-colors hover:bg-blue-50/60"
-                      >
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-[#0044D3] shadow-xs transition-colors group-hover:bg-[#0044D3] group-hover:text-white">
-                          {initials}
-                        </div>
-                        <div className="min-w-0">
-                          <Span className="block truncate text-base font-semibold text-slate-900 transition-colors group-hover:text-[#0044D3]">
-                            {u.name || '—'}
-                          </Span>
-                          {u.mustChangePassword ? (
-                            <div className="mt-0.5 flex items-center gap-2">
-                              <Span className="text-xs font-semibold text-amber-700">
-                                Invite pending
-                              </Span>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                disabled={inFlightAction[u.id] === 'resend'}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  void handleResendInvite(u.id, u.name);
-                                }}
-                                className="h-5 px-1.5 text-[11px] font-semibold text-[#0044D3] hover:bg-blue-100/70 disabled:opacity-50"
-                              >
-                                {inFlightAction[u.id] === 'resend' ? 'Sending...' : 'Resend'}
-                              </Button>
-                            </div>
-                          ) : null}
-                        </div>
-                      </Button>
+                      <div className="flex items-center gap-2.5">
+                        <Link
+                          href={`/admin/users/${u.id}`}
+                          title={`View user profile for ${u.name}`}
+                          className="group flex items-center gap-2.5 rounded-xl p-0.5 text-left transition-colors hover:opacity-85 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
+                        >
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-[#0044D3] shadow-xs transition-colors group-hover:bg-[#0044D3] group-hover:text-white">
+                            {initials}
+                          </div>
+                          <div className="max-w-[160px] min-w-0 sm:max-w-[200px]">
+                            <Span className="block text-sm leading-snug font-semibold break-words text-slate-900 transition-colors group-hover:text-[#0044D3]">
+                              {u.name || '—'}
+                            </Span>
+                          </div>
+                        </Link>
+                        {u.mustChangePassword ? (
+                          <div className="flex shrink-0 items-center gap-1.5">
+                            <Span className="text-[11px] font-semibold text-amber-700">
+                              Invite pending
+                            </Span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              disabled={inFlightAction[u.id] === 'resend'}
+                              onClick={() => {
+                                void handleResendInvite(u.id, u.name);
+                              }}
+                              className="h-5 rounded-full border border-amber-300 bg-amber-50 px-1.5 text-[10px] font-semibold text-amber-800 hover:bg-amber-100 disabled:opacity-50"
+                            >
+                              {inFlightAction[u.id] === 'resend' ? 'Sending...' : 'Resend'}
+                            </Button>
+                          </div>
+                        ) : null}
+                      </div>
                     </TableCell>
 
                     {/* Email Column */}
-                    <TableCell className="font-mono text-sm text-slate-600 select-all">
+                    <TableCell className="max-w-[180px] font-mono text-xs break-all text-slate-600 select-all sm:max-w-[220px] sm:text-sm">
                       {u.email}
                     </TableCell>
 
-                    {/* Role Column */}
-                    <TableCell>
-                      <Span
-                        className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-semibold ${
-                          u.role === 'SUPER_ADMIN'
-                            ? 'bg-purple-50 text-purple-700'
+                    {/* Role Column (only displayed on ALL filter) */}
+                    {selectedRole === 'ALL' ? (
+                      <TableCell>
+                        <Span
+                          className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-semibold ${
+                            u.role === 'SUPER_ADMIN'
+                              ? 'bg-purple-50 text-purple-700'
+                              : u.role === 'MENTOR'
+                                ? 'bg-blue-50 text-[#0044D3]'
+                                : 'bg-emerald-50 text-emerald-700'
+                          }`}
+                        >
+                          {u.role === 'SUPER_ADMIN'
+                            ? 'Super Admin'
                             : u.role === 'MENTOR'
-                              ? 'bg-blue-50 text-[#0044D3]'
-                              : 'bg-emerald-50 text-emerald-700'
-                        }`}
-                      >
-                        {u.role === 'SUPER_ADMIN'
-                          ? 'Super Admin'
-                          : u.role === 'MENTOR'
-                            ? 'Mentor'
-                            : 'Mentee'}
-                      </Span>
-                    </TableCell>
+                              ? 'Mentor'
+                              : 'Mentee'}
+                        </Span>
+                      </TableCell>
+                    ) : null}
 
-                    {/* Batch Column */}
-                    <TableCell className="text-sm font-medium">
-                      {u.batch === 'Unassigned' ? (
-                        <Span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200/80 bg-amber-50/80 px-2.5 py-1 text-xs font-semibold text-amber-800">
-                          <Span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                          Unassigned
-                        </Span>
-                      ) : u.batch === 'System (All)' ? (
-                        <Span className="inline-flex items-center gap-1.5 rounded-lg border border-purple-200 bg-purple-50 px-2.5 py-1 text-xs font-semibold text-purple-700">
-                          <Span className="h-1.5 w-1.5 rounded-full bg-purple-500" />
-                          System (All)
-                        </Span>
-                      ) : (
-                        <div className="inline-flex items-center gap-1.5 rounded-lg border border-blue-100 bg-blue-50/70 px-2.5 py-1 text-xs font-semibold text-slate-900">
-                          <svg
-                            className="h-3.5 w-3.5 text-[#0044D3]"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                            />
-                          </svg>
-                          <Span className="font-semibold text-slate-800">{u.batch}</Span>
-                        </div>
-                      )}
-                    </TableCell>
-
-                    {/* Mentor Column */}
-                    <TableCell className="text-sm font-medium">
-                      {u.mentorName === 'Unassigned' ? (
-                        <Span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200/80 bg-amber-50/80 px-2.5 py-1 text-xs font-semibold text-amber-800">
-                          <Span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                          Unassigned
-                        </Span>
-                      ) : u.mentorName === 'N/A (Admin)' ? (
-                        <Span className="inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-500">
-                          N/A
-                        </Span>
-                      ) : u.mentorName === 'Self (Mentor)' ? (
-                        <Span className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-[#0044D3]">
-                          <Span className="h-1.5 w-1.5 rounded-full bg-[#0044D3]" />
-                          Mentor (Lead)
-                        </Span>
-                      ) : (
-                        <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-800 shadow-2xs">
-                          <div className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-100 text-[9px] font-bold text-[#0044D3]">
-                            {(u.mentorName || 'M').slice(0, 1).toUpperCase()}
+                    {/* Dynamic Role-Specific Column per PRD Section 5.2 */}
+                    {selectedRole === 'MENTEE' ? (
+                      <TableCell className="text-sm font-medium">
+                        {u.mentorName &&
+                        u.mentorName !== 'Unassigned' &&
+                        u.mentorName !== 'N/A (Admin)' ? (
+                          <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-800 shadow-2xs">
+                            <div className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-100 text-[9px] font-bold text-[#0044D3]">
+                              {u.mentorName.slice(0, 1).toUpperCase()}
+                            </div>
+                            <Span className="font-semibold text-slate-800">{u.mentorName}</Span>
                           </div>
-                          <Span className="font-semibold text-slate-800">{u.mentorName}</Span>
+                        ) : (
+                          <Span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200/80 bg-amber-50/80 px-2.5 py-1 text-xs font-semibold text-amber-800">
+                            <Span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                            Not assigned
+                          </Span>
+                        )}
+                      </TableCell>
+                    ) : selectedRole === 'MENTOR' ? (
+                      <TableCell className="text-sm font-medium">
+                        {u.batch && u.batch !== 'Unassigned' ? (
+                          <div className="inline-flex items-center gap-1.5 rounded-lg border border-blue-100 bg-blue-50/70 px-2.5 py-1 text-xs font-semibold text-slate-900">
+                            <Span className="font-semibold text-slate-800">{u.batch}</Span>
+                          </div>
+                        ) : (
+                          <Span className="text-xs text-slate-400">No active batch</Span>
+                        )}
+                      </TableCell>
+                    ) : selectedRole === 'SUPER_ADMIN' ? (
+                      <TableCell className="text-sm font-medium">
+                        {u.batch && u.batch !== 'Unassigned' ? (
+                          <Span className="text-xs font-semibold text-slate-700">{u.batch}</Span>
+                        ) : (
+                          <Span className="text-xs text-slate-400">—</Span>
+                        )}
+                      </TableCell>
+                    ) : (
+                      /* ALL Users view: Batch / Mentor */
+                      <TableCell className="text-sm font-medium">
+                        <div className="space-y-1">
+                          {u.batch && u.batch !== 'Unassigned' ? (
+                            <div className="text-xs font-semibold text-slate-800">{u.batch}</div>
+                          ) : null}
+                          {u.mentorName &&
+                          u.mentorName !== 'Unassigned' &&
+                          u.mentorName !== 'N/A (Admin)' ? (
+                            <div className="text-[11px] text-slate-500">Mentor: {u.mentorName}</div>
+                          ) : null}
+                          {(!u.batch || u.batch === 'Unassigned') &&
+                          (!u.mentorName || u.mentorName === 'Unassigned') ? (
+                            <Span className="text-xs text-slate-400">Not assigned</Span>
+                          ) : null}
                         </div>
-                      )}
+                      </TableCell>
+                    )}
+
+                    {/* Status Column with Switch Only (Tag Removed) */}
+                    <TableCell className="text-center">
+                      <div className="flex items-center justify-center">
+                        <ToggleSwitch
+                          checked={u.status === 'ACTIVE'}
+                          disabled={isDeactivateDisabled || isRowPending}
+                          title={deactivateTooltip}
+                          ariaLabel={`${u.status === 'ACTIVE' ? 'Deactivate' : 'Activate'} account for ${u.name}`}
+                          onChange={() => void handleToggleStatus(u)}
+                        />
+                      </div>
                     </TableCell>
 
-                    {/* Actions Column (Pencil Edit Icon + Change Role + Toggle Switch) */}
+                    {/* Actions Column (Pencil Edit Icon Only - Role Shifted to Edit Modal) */}
                     <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2.5">
-                        {/* Edit Action - Pencil SVG Icon */}
+                      <div className="flex items-center justify-end">
                         <Button
                           type="button"
                           variant="ghost"
@@ -1005,7 +945,7 @@ export function UsersTable() {
                           onClick={() => setUserToEdit(u)}
                           title="Edit user"
                           aria-label={`Edit ${u.name}`}
-                          className="h-9 w-9 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                          className="h-8 w-8 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                         >
                           <svg
                             className="h-4 w-4"
@@ -1021,28 +961,6 @@ export function UsersTable() {
                             />
                           </svg>
                         </Button>
-
-                        {/* Change Role Button */}
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setUserToChangeRole(u)}
-                          className="h-9 rounded-full px-3 text-xs font-semibold text-[#0044D3] hover:bg-blue-50"
-                        >
-                          Change Role
-                        </Button>
-
-                        {/* Interactive Toggle Switch for Activate / Deactivate */}
-                        <div className="pl-1">
-                          <ToggleSwitch
-                            checked={u.status === 'ACTIVE'}
-                            disabled={isDeactivateDisabled || isRowPending}
-                            title={deactivateTooltip}
-                            ariaLabel={`${u.status === 'ACTIVE' ? 'Deactivate' : 'Activate'} account for ${u.name}`}
-                            onChange={() => void handleToggleStatus(u)}
-                          />
-                        </div>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -1079,6 +997,14 @@ export function UsersTable() {
         isOpen={Boolean(userToEdit)}
         onClose={() => setUserToEdit(null)}
         onSuccess={handleEditUserSuccess}
+        onChangeRoleClick={() => {
+          if (userToEdit) {
+            setUserToChangeRole(userToEdit);
+          }
+        }}
+        canChangeRole={
+          Boolean(userToEdit) && currentUser?.id !== userToEdit?.id && !userToEdit?.isLastSuperAdmin
+        }
       />
 
       <ChangeRoleModal
@@ -1104,7 +1030,31 @@ export function UsersTable() {
               : 'bg-slate-900 text-white'
           }`}
         >
-          <Span>{toast.type === 'error' ? '⚠️' : '✅'}</Span>
+          {toast.type === 'error' ? (
+            <svg
+              className="h-4 w-4 shrink-0 text-red-200"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+          ) : (
+            <svg
+              className="h-4 w-4 shrink-0 text-emerald-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          )}
           <Span>{toast.message}</Span>
         </div>
       ) : null}
