@@ -116,6 +116,20 @@ export const Span = React.forwardRef<HTMLSpanElement, Omit<TypographyProps, 'as'
 );
 Span.displayName = 'Span';
 
+export const Large = React.forwardRef<HTMLDivElement, Omit<TypographyProps, 'as'>>(
+  ({ variant = 'large', ...props }, ref) => (
+    <Typography ref={ref} as="div" variant={variant} {...props} />
+  ),
+);
+Large.displayName = 'Large';
+
+export const Small = React.forwardRef<HTMLElement, Omit<TypographyProps, 'as'>>(
+  ({ variant = 'small', ...props }, ref) => (
+    <Typography ref={ref} as="small" variant={variant} {...props} />
+  ),
+);
+Small.displayName = 'Small';
+
 export const Lead = React.forwardRef<HTMLParagraphElement, Omit<TypographyProps, 'as'>>(
   ({ variant = 'lead', ...props }, ref) => (
     <Typography ref={ref} as="p" variant={variant} {...props} />

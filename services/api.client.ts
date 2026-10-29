@@ -19,6 +19,7 @@ function isApiErrorResponse(data: unknown): data is ApiErrorResponse {
 export interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean | undefined>;
   timeoutMs?: number;
+  responseType?: 'json' | 'blob';
   _isRetry?: boolean;
 }
 
@@ -173,6 +174,7 @@ export async function apiClient<T>(endpoint: string, options: RequestOptions = {
     headers,
     timeoutMs = DEFAULT_TIMEOUT_MS,
     signal: userSignal,
+    responseType = 'json',
     ...customConfig
   } = options;
 
@@ -189,10 +191,13 @@ export async function apiClient<T>(endpoint: string, options: RequestOptions = {
     });
   }
 
-  const defaultHeaders: HeadersInit = {
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
-  };
+  const defaultHeaders: HeadersInit =
+    responseType === 'blob'
+      ? { Accept: '*/*' }
+      : {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        };
 
   const config: RequestInit = {
     method: 'GET',
@@ -214,8 +219,6 @@ export async function apiClient<T>(endpoint: string, options: RequestOptions = {
     clearTimeout(timeoutId);
   }
 
-  const data = await safeParseJson(response);
-
   if (response.status === 401 && !options._isRetry && !isAuthBypassEndpoint(endpoint)) {
     refreshPromise ??= requestTokenRefresh().finally(() => {
       refreshPromise = null;
@@ -230,8 +233,14 @@ export async function apiClient<T>(endpoint: string, options: RequestOptions = {
   }
 
   if (!response.ok) {
+    const data = await safeParseJson(response);
     throw parseErrorPayload(response, data);
   }
 
+  if (responseType === 'blob') {
+    return (await response.blob()) as unknown as T;
+  }
+
+  const data = await safeParseJson(response);
   return data as T;
 }
