@@ -179,7 +179,7 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
                   placeholder="amit@techeniac.com"
                   hasError={Boolean(errors.email)}
                   disabled={isSubmitting}
-                  className="h-12 rounded-full border border-slate-200 bg-[#F6F8FC] px-5 font-mono text-base font-medium transition-all focus:border-[#0044D3] focus:bg-white"
+                  className="h-12 rounded-full border border-slate-200 bg-[#F6F8FC] px-5 text-base font-medium transition-all focus:border-[#0044D3] focus:bg-white"
                 />
                 <FieldError error={errors.email} />
               </div>

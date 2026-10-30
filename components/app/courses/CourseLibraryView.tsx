@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import React, { useEffect, useMemo, useState } from 'react';
 
 import { AssignCourseModal } from '@/components/app/allocations/AssignCourseModal';
-import { CourseCard } from '@/components/app/courses/CourseCard';
 import { ImpactNoticeModal } from '@/components/app/courses/ImpactNoticeModal';
+import { formatDurationMinutes } from '@/components/app/courses/types';
 import {
   ADMIN_COURSES_NAV,
   MENTOR_COURSES_NAV,
@@ -18,6 +18,15 @@ import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/Table';
 import { H1, H3, P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { useCourses } from '@/hooks/useCourses';
@@ -61,7 +70,6 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
     courses,
     pagination,
     isLoading: loadingCourses,
-    isFetching,
     createCourse,
     deleteCourse,
     toggleCourseStatus,
@@ -422,31 +430,155 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                   </P>
                 </div>
               ) : (
-                <div
-                  className={`grid grid-cols-1 gap-6 transition-opacity duration-150 md:grid-cols-2 lg:grid-cols-3 ${
-                    isFetching && !loadingCourses ? 'opacity-70' : 'opacity-100'
-                  }`}
-                >
-                  {courses.map((c) => (
-                    <CourseCard
-                      key={c.id}
-                      course={c}
-                      basePath={`/${portal}/courses`}
-                      onCloneCourse={async (targetCourse) => {
-                        await cloneCourse(targetCourse.id);
-                      }}
-                      onRequestDelete={(targetCourse) => {
-                        void onRequestDelete(targetCourse);
-                      }}
-                      onRequestToggleStatus={(targetCourse) => {
-                        void onRequestToggleStatus(targetCourse);
-                      }}
-                      onAssignCourse={(targetCourse) => {
-                        setAssignModalCourse(targetCourse);
-                      }}
-                    />
-                  ))}
-                </div>
+                <TableContainer className="w-full">
+                  <Table className="w-full">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[36%]">Course</TableHead>
+                        <TableHead>Content Stats</TableHead>
+                        <TableHead>Duration</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {courses.map((c) => {
+                        const topicCount = c.topicCount ?? c.topics?.length ?? 0;
+                        const assignmentCount =
+                          c.assignmentCount ??
+                          (c.courseAssignments?.length ?? c.assignments?.length ?? 0) +
+                            (c.topics?.reduce((acc, t) => acc + (t.assignments?.length ?? 0), 0) ??
+                              0);
+
+                        return (
+                          <TableRow key={c.id} className="hover:bg-slate-50/70">
+                            <TableCell>
+                              <div className="flex flex-col">
+                                <Link
+                                  href={`/${portal}/courses/${c.id}/builder`}
+                                  className="text-sm font-bold text-slate-900 transition-colors hover:text-[#0044D3]"
+                                >
+                                  {c.title}
+                                </Link>
+                                <Span className="mt-0.5 line-clamp-1 text-xs text-slate-500">
+                                  {c.description || 'No description provided.'}
+                                </Span>
+                              </div>
+                            </TableCell>
+
+                            <TableCell className="text-xs text-slate-600">
+                              <div className="flex items-center gap-2">
+                                <Span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-700">
+                                  {topicCount} topics
+                                </Span>
+                                <Span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-700">
+                                  {assignmentCount} tasks
+                                </Span>
+                              </div>
+                            </TableCell>
+
+                            <TableCell className="text-xs font-medium text-slate-600">
+                              {formatDurationMinutes(c.estimatedMinutes)}
+                            </TableCell>
+
+                            <TableCell>
+                              <Span
+                                className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                                  c.isActive
+                                    ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
+                                    : 'border border-slate-200 bg-slate-100 text-slate-600'
+                                }`}
+                              >
+                                <Span
+                                  className={`h-1.5 w-1.5 rounded-full ${c.isActive ? 'bg-emerald-500' : 'bg-slate-400'}`}
+                                />
+                                {c.isActive ? 'Active' : 'Inactive'}
+                              </Span>
+                            </TableCell>
+
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => router.push(`/${portal}/courses/${c.id}/builder`)}
+                                  title="Open course builder"
+                                  className="h-8 text-xs font-semibold"
+                                >
+                                  Builder →
+                                </Button>
+
+                                <Button
+                                  type="button"
+                                  variant="primary"
+                                  size="sm"
+                                  disabled={!c.isActive}
+                                  onClick={() => setAssignModalCourse(c)}
+                                  title={
+                                    c.isActive
+                                      ? 'Assign to batch or mentees'
+                                      : 'Only active courses can be assigned'
+                                  }
+                                  className="h-8 text-xs font-semibold"
+                                >
+                                  Assign
+                                </Button>
+
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => void cloneCourse(c.id)}
+                                  title="Clone course"
+                                  className="h-8 text-xs font-medium"
+                                >
+                                  Clone
+                                </Button>
+
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => void onRequestToggleStatus(c)}
+                                  title={c.isActive ? 'Deactivate course' : 'Activate course'}
+                                  className="h-8 text-xs text-slate-600 hover:text-slate-900"
+                                >
+                                  {c.isActive ? 'Deactivate' : 'Activate'}
+                                </Button>
+
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => void onRequestDelete(c)}
+                                  title="Delete course"
+                                  aria-label="Delete course"
+                                  className="h-8 w-8 rounded-lg p-0 text-red-500 hover:bg-red-50 hover:text-red-700"
+                                >
+                                  <svg
+                                    className="h-3.5 w-3.5"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth={1.75}
+                                    aria-hidden="true"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                    />
+                                  </svg>
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
               )}
 
               {/* Pagination Controls */}

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import React from 'react';
 
 import { LatestSubmissionsWidget } from '@/components/app/dashboard/LatestSubmissionsWidget';
@@ -45,6 +46,8 @@ function MentorBatchesTable({
   isLoading: boolean;
   batches: ApiBatchSummary[];
 }>) {
+  const router = useRouter();
+
   if (isLoading) {
     return (
       <div className="space-y-4 p-6">
@@ -90,28 +93,42 @@ function MentorBatchesTable({
         </TableHeader>
         <TableBody>
           {batches.map((batch) => (
-            <TableRow key={batch.id}>
+            <TableRow
+              key={batch.id}
+              tabIndex={0}
+              role="link"
+              onClick={() => {
+                router.push('/mentor/allocations');
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  router.push('/mentor/allocations');
+                }
+              }}
+              className="cursor-pointer transition-colors hover:bg-[#F9FAFB]/90 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
+            >
               <TableCell>
                 <P className="text-base font-bold text-[#111827]">{batch.name}</P>
               </TableCell>
               <TableCell>
-                <Span className="inline-block rounded-md border border-[#E1E6EC] bg-[#F6F8FC] px-2.5 py-1 font-mono text-xs font-bold text-[#111827]">
+                <Span className="inline-block rounded-md border border-[#E1E6EC] bg-[#F6F8FC] px-2.5 py-1 text-xs font-bold text-[#111827]">
                   {batch.code}
                 </Span>
               </TableCell>
               <TableCell>
                 <Span
-                  className={`inline-block rounded-full px-3 py-1 font-mono text-xs font-bold uppercase ${getBatchStatusBadgeClass(
+                  className={`inline-block rounded-full px-3 py-1 text-xs font-bold uppercase ${getBatchStatusBadgeClass(
                     batch.status,
                   )}`}
                 >
                   {batch.status}
                 </Span>
               </TableCell>
-              <TableCell className="font-mono text-sm text-[#667085]">
+              <TableCell className="text-sm text-[#667085]">
                 {batch.startDate} → {batch.endDate}
               </TableCell>
-              <TableCell className="text-right font-mono text-base font-bold text-[#111827]">
+              <TableCell className="text-right text-base font-bold text-[#111827]">
                 {batch.menteesCount ?? 0}
               </TableCell>
             </TableRow>
@@ -257,7 +274,7 @@ export default function MentorPage() {
             <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
               Assigned Cohorts
             </Span>
-            <P className="mt-1 font-mono text-3xl font-bold text-[#111827]">
+            <P className="mt-1 text-3xl font-bold text-[#111827]">
               {isLoadingBatches ? '—' : batches.length}
             </P>
           </div>
@@ -265,7 +282,7 @@ export default function MentorPage() {
             <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
               Mapped Mentees
             </Span>
-            <P className="mt-1 font-mono text-3xl font-bold text-[#111827]">
+            <P className="mt-1 text-3xl font-bold text-[#111827]">
               {isLoadingMentees ? '—' : mentees.length}
             </P>
           </div>
@@ -273,7 +290,7 @@ export default function MentorPage() {
             <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
               Live Cohorts
             </Span>
-            <P className="mt-1 font-mono text-3xl font-bold text-[#0044D3]">
+            <P className="mt-1 text-3xl font-bold text-[#0044D3]">
               {isLoadingBatches ? '—' : liveBatchesCount}
             </P>
           </div>
@@ -294,7 +311,7 @@ export default function MentorPage() {
             <H2 className="text-xl font-bold text-[#111827]">Your Mapped Mentees</H2>
             <Link
               href="/mentor/mentees"
-              className="font-mono text-xs font-semibold text-blue-600 hover:text-blue-800"
+              className="text-xs font-semibold text-blue-600 hover:text-blue-800"
             >
               View All Mentees →
             </Link>

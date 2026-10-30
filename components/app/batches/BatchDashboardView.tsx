@@ -443,25 +443,11 @@ export function BatchDashboardView({
           <div className="flex items-center gap-2.5">
             <Button
               type="button"
-              variant="primary"
+              variant="secondary"
               size="sm"
               onClick={() => setIsStatusOpen(true)}
-              className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-bold text-white shadow-sm shadow-blue-600/25 hover:bg-blue-700"
+              className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-semibold text-slate-700 shadow-xs hover:border-slate-300 hover:bg-slate-50"
             >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                />
-              </svg>
               <Span>Change Status</Span>
             </Button>
           </div>
@@ -685,14 +671,17 @@ export function BatchDashboardView({
                             variant="ghost"
                             size="sm"
                             disabled={removeMemberMutation.isPending || isArchived}
-                            title={isArchived ? "Can't remove from archived batch" : undefined}
+                            title={
+                              isArchived ? "Can't remove from archived batch" : `Remove ${m.name}`
+                            }
+                            aria-label={`Remove ${m.name}`}
                             onClick={() => {
                               setMemberToRemove({ id: m.id, name: m.name, role: m.memberRole });
                             }}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs text-red-600 hover:bg-red-50 hover:text-red-700 disabled:opacity-50"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg p-0 text-red-600 hover:bg-red-50 hover:text-red-700 disabled:opacity-50"
                           >
                             <svg
-                              className="h-3.5 w-3.5"
+                              className="h-4 w-4"
                               fill="none"
                               viewBox="0 0 24 24"
                               stroke="currentColor"
@@ -705,7 +694,6 @@ export function BatchDashboardView({
                                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                               />
                             </svg>
-                            <Span>Remove</Span>
                           </Button>
                         </div>
                       </TableCell>
@@ -933,12 +921,10 @@ export function BatchDashboardView({
                   <div key={h.id} className="relative">
                     <Span className="absolute top-1 -left-6 h-3.5 w-3.5 rounded-full bg-blue-600 ring-4 ring-white" />
                     <div className="flex flex-wrap items-center gap-2.5">
-                      <Span className="font-mono text-xs font-bold text-slate-800">
+                      <Span className="text-xs font-bold text-slate-800">
                         {h.fromStatus} → {h.toStatus}
                       </Span>
-                      <Span className="font-mono text-xs text-slate-400">
-                        {formatDateDMY(h.changedAt)}
-                      </Span>
+                      <Span className="text-xs text-slate-400">{formatDateDMY(h.changedAt)}</Span>
                     </div>
                     <P className="mt-1 text-xs break-words text-slate-600">
                       By <strong className="font-semibold text-slate-800">{h.changedBy}</strong>

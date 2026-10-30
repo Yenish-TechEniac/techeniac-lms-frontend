@@ -31,11 +31,31 @@ export function MultiSelectDropdown<T extends string = string>({
   className,
 }: Readonly<MultiSelectDropdownProps<T>>) {
   const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Close when clicking outside
-  useClickOutside(containerRef, () => setIsOpen(false), isOpen);
+  useClickOutside(
+    containerRef,
+    () => {
+      setIsOpen(false);
+      setSearchQuery('');
+    },
+    isOpen,
+  );
+
+  // Focus search input when popover opens
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const timer = setTimeout(() => {
+      searchInputRef.current?.focus();
+    }, 50);
+
+    return () => clearTimeout(timer);
+  }, [isOpen]);
 
   // Escape to close and refocus trigger
   useEffect(() => {
@@ -46,6 +66,7 @@ export function MultiSelectDropdown<T extends string = string>({
         e.stopPropagation();
         e.preventDefault();
         setIsOpen(false);
+        setSearchQuery('');
         triggerRef.current?.focus();
       }
     }
@@ -64,6 +85,7 @@ export function MultiSelectDropdown<T extends string = string>({
         onChange([val]);
       }
       setIsOpen(false);
+      setSearchQuery('');
       triggerRef.current?.focus();
       return;
     }
@@ -90,15 +112,23 @@ export function MultiSelectDropdown<T extends string = string>({
     return `${label} (${selectedValues.length})`;
   }, [label, options, selectedValues]);
 
+  const filteredOptions = useMemo(() => {
+    if (!searchQuery.trim()) return options;
+    const q = searchQuery.toLowerCase().trim();
+    return options.filter((o) => o.label.toLowerCase().includes(q));
+  }, [options, searchQuery]);
+
   return (
-    <div className="relative inline-block w-44 sm:w-48" ref={containerRef}>
+    <div
+      className={cn('relative inline-block min-w-[130px] sm:min-w-[140px]', className)}
+      ref={containerRef}
+    >
       {/* Trigger Button with Rounded Border & Hover Effect */}
       <div
         className={cn(
           'flex h-11 w-full items-center justify-between gap-2 rounded-xl border border-[#E1E6EC] bg-white px-3.5 text-xs font-semibold text-slate-700 shadow-xs transition-all hover:border-slate-300 hover:bg-slate-50/70',
           selectedValues.length > 0 && 'border-blue-300 bg-blue-50/40 text-[#0044D3]',
           isOpen && 'border-[#0044D3] ring-2 ring-[#0044D3]/15',
-          className,
         )}
       >
         <button
@@ -106,7 +136,12 @@ export function MultiSelectDropdown<T extends string = string>({
           type="button"
           aria-haspopup="listbox"
           aria-expanded={isOpen}
-          onClick={() => setIsOpen((prev) => !prev)}
+          onClick={() => {
+            setIsOpen((prev) => {
+              if (prev) setSearchQuery('');
+              return !prev;
+            });
+          }}
           className="flex flex-1 items-center justify-between gap-2 text-left focus:outline-none"
         >
           <Span className="truncate">{triggerLabel}</Span>
@@ -126,11 +161,11 @@ export function MultiSelectDropdown<T extends string = string>({
         </button>
       </div>
 
-      {/* Popover Dropdown matching trigger width */}
+      {/* Popover Dropdown matching trigger width with high z-index */}
       {isOpen ? (
         <div
           role="listbox"
-          className="animate-in fade-in zoom-in-95 absolute left-0 z-40 mt-1.5 w-full min-w-[200px] rounded-2xl border border-[#E1E6EC] bg-white p-2.5 shadow-xl duration-100"
+          className="animate-in fade-in zoom-in-95 absolute left-0 z-50 mt-1.5 w-full min-w-[220px] rounded-2xl border border-[#E1E6EC] bg-white p-2.5 shadow-xl duration-100"
         >
           {/* Header Row: Title & Optional Clear */}
           <div className="flex items-center justify-between border-b border-slate-100 px-2 pb-2">
@@ -146,59 +181,79 @@ export function MultiSelectDropdown<T extends string = string>({
             ) : null}
           </div>
 
-          {/* Option List */}
-          <div className="mt-1.5 max-h-52 space-y-0.5 overflow-y-auto">
-            {options.map((opt) => {
-              const isChecked = selectedValues.includes(opt.value);
-              if (singleSelect) {
-                return (
+          {/* Search Box inside Dropdown */}
+          {options.length >= 4 ? (
+            <div className="pt-2 pb-1">
+              <div className="relative">
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={`Search ${label.toLowerCase()}...`}
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#0044D3] focus:bg-white focus:outline-none"
+                />
+                {searchQuery ? (
                   <button
-                    key={opt.value}
                     type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="absolute inset-y-0 right-2 flex items-center text-xs text-slate-400 hover:text-slate-600"
+                  >
+                    ×
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+
+          {/* Option List */}
+          <div className="mt-1 max-h-52 space-y-0.5 overflow-y-auto">
+            {filteredOptions.length === 0 ? (
+              <Span className="block px-2.5 py-3 text-center text-xs text-slate-400">
+                No matching options
+              </Span>
+            ) : (
+              filteredOptions.map((opt) => {
+                const isChecked = selectedValues.includes(opt.value);
+                if (singleSelect) {
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      role="option"
+                      aria-selected={isChecked}
+                      onClick={() => toggleOption(opt.value)}
+                      className={cn(
+                        'flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-left text-xs font-medium transition-colors hover:bg-slate-50',
+                        isChecked ? 'bg-blue-50 font-semibold text-[#0044D3]' : 'text-slate-700',
+                      )}
+                    >
+                      <Span className="truncate">{opt.label}</Span>
+                    </button>
+                  );
+                }
+
+                return (
+                  <div
+                    key={opt.value}
                     role="option"
                     aria-selected={isChecked}
                     onClick={() => toggleOption(opt.value)}
                     className={cn(
-                      'flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-left text-xs font-medium transition-colors hover:bg-slate-50',
+                      'flex cursor-pointer items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-medium transition-colors hover:bg-slate-50',
                       isChecked ? 'bg-blue-50/50 font-semibold text-[#0044D3]' : 'text-slate-700',
                     )}
                   >
+                    <Checkbox
+                      checked={isChecked}
+                      onChange={() => {}} // handled by parent container click
+                      className="pointer-events-none"
+                    />
                     <Span className="truncate">{opt.label}</Span>
-                    {isChecked ? (
-                      <svg
-                        className="h-4 w-4 shrink-0 text-[#0044D3]"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2.5}
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    ) : null}
-                  </button>
+                  </div>
                 );
-              }
-
-              return (
-                <div
-                  key={opt.value}
-                  role="option"
-                  aria-selected={isChecked}
-                  onClick={() => toggleOption(opt.value)}
-                  className={cn(
-                    'flex cursor-pointer items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-medium transition-colors hover:bg-slate-50',
-                    isChecked ? 'bg-blue-50/50 font-semibold text-[#0044D3]' : 'text-slate-700',
-                  )}
-                >
-                  <Checkbox
-                    checked={isChecked}
-                    onChange={() => {}} // handled by parent container click
-                    className="pointer-events-none"
-                  />
-                  <Span className="truncate">{opt.label}</Span>
-                </div>
-              );
-            })}
+              })
+            )}
           </div>
         </div>
       ) : null}

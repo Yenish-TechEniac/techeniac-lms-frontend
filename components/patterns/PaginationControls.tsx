@@ -40,7 +40,7 @@ export function PaginationControls({
   onPageChange,
   onLimitChange,
   itemLabel = 'entries',
-  pageSizeOptions = [10, 20, 50, 100],
+  pageSizeOptions = [10, 20, 50],
   isLoading = false,
   className,
 }: Readonly<PaginationControlsProps>) {
@@ -152,12 +152,12 @@ export function PaginationControls({
         </div>
 
         {/* Page Size Selector */}
-        <div className="w-36">
+        <div className="w-40">
           <Select
             value={limit}
             onChange={(e) => onLimitChange(Number(e.target.value))}
             aria-label="Entries per page"
-            className="h-8 text-xs font-semibold text-slate-700"
+            className="h-9 rounded-lg text-xs font-semibold text-slate-700"
           >
             {pageSizeOptions.map((opt) => (
               <option key={opt} value={opt}>

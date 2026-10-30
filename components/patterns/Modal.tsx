@@ -58,12 +58,16 @@ export function Modal({
   const resolvedTitleId = ariaLabelledBy ?? generatedTitleId;
 
   return (
-    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm duration-150">
+    <div
+      onClick={onClose}
+      className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm duration-150"
+    >
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={resolvedTitleId}
+        onClick={(e) => e.stopPropagation()}
         className={cn(
           'flex max-h-[90vh] w-full flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl',
           sizeClasses[size],

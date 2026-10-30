@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import React, { useMemo, useState } from 'react';
 
 import { CreateBatchModal } from '@/components/app/batches/CreateBatchModal';
@@ -38,19 +39,34 @@ const BATCH_STATUS_FILTER_OPTIONS: MultiSelectOption<BatchStatus>[] = [
 ];
 
 function BatchesTableRow({ batch }: Readonly<{ batch: ApiBatchSummary }>) {
+  const router = useRouter();
   const totalMembers = (batch.menteesCount ?? 0) + (batch.mentorsCount ?? 0);
 
   return (
-    <TableRow className="h-14 transition-colors hover:bg-slate-50/60">
+    <TableRow
+      tabIndex={0}
+      role="link"
+      onClick={() => {
+        router.push(`/admin/batches/${batch.id}`);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          router.push(`/admin/batches/${batch.id}`);
+        }
+      }}
+      className="h-14 cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
+    >
       <TableCell className="font-semibold text-slate-900">
         <Link
           href={`/admin/batches/${batch.id}`}
+          onClick={(e) => e.stopPropagation()}
           className="transition-colors hover:text-[#0044D3]"
         >
           {batch.name}
         </Link>
       </TableCell>
-      <TableCell className="font-mono text-xs font-semibold text-slate-600">
+      <TableCell className="text-xs font-semibold text-slate-600">
         <Span>{batch.code}</Span>
       </TableCell>
       <TableCell>
@@ -62,7 +78,7 @@ function BatchesTableRow({ batch }: Readonly<{ batch: ApiBatchSummary }>) {
           {batch.status}
         </Span>
       </TableCell>
-      <TableCell className="font-mono text-xs text-slate-500">
+      <TableCell className="text-xs text-slate-500">
         <Span>
           {formatDateDMY(batch.startDate)} → {formatDateDMY(batch.endDate)}
         </Span>
@@ -80,7 +96,7 @@ function BatchesTableRow({ batch }: Readonly<{ batch: ApiBatchSummary }>) {
               style={{ width: `${batch.progressPercent ?? 0}%` }}
             />
           </div>
-          <Span className="font-mono text-xs font-semibold text-slate-700">
+          <Span className="text-xs font-semibold text-slate-700">
             {batch.progressPercent ?? 0}%
           </Span>
         </div>
@@ -180,7 +196,6 @@ export function BatchesTable() {
   const {
     data: batchesResponse,
     isLoading,
-    isFetching,
     error,
   } = useBatchesList({
     status: filterStatus,
@@ -295,13 +310,7 @@ export function BatchesTable() {
               <TableHead className="text-right">Overall Progress</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody
-            className={
-              isFetching && !isInitialLoading
-                ? 'opacity-60 transition-opacity'
-                : 'transition-opacity'
-            }
-          >
+          <TableBody>
             {isInitialLoading ? (
               <BatchesTableSkeleton count={limit} />
             ) : batches.length === 0 ? (

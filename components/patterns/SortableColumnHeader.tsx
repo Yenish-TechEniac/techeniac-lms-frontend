@@ -2,7 +2,6 @@
 
 import React from 'react';
 
-import { Button } from '@/components/ui/Button';
 import { TableHead } from '@/components/ui/Table';
 import { Span } from '@/components/ui/Typography';
 import { cn } from '@/lib/cn';
@@ -31,13 +30,11 @@ export function SortableColumnHeader<T extends string>({
 
   return (
     <TableHead aria-sort={ariaSort} className={className}>
-      <Button
+      <button
         type="button"
-        variant="ghost"
-        size="sm"
         onClick={() => onSort(field)}
         title={tooltip ?? `Sort by ${label}`}
-        className="group inline-flex items-center gap-1.5 p-0 font-bold hover:bg-transparent focus-visible:ring-2 focus-visible:ring-[#0044D3]"
+        className="group inline-flex cursor-pointer items-center gap-1.5 p-0 text-left font-bold hover:bg-transparent focus-visible:text-[#0044D3] focus-visible:outline-none"
       >
         <Span className="text-slate-700 transition-colors group-hover:text-slate-900">{label}</Span>
         <svg
@@ -69,7 +66,7 @@ export function SortableColumnHeader<T extends string>({
             />
           )}
         </svg>
-      </Button>
+      </button>
     </TableHead>
   );
 }

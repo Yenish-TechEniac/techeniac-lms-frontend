@@ -6,7 +6,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { DEFAULT_PAGE_SIZE_OPTIONS } from '@/components/app/batches/batchStatus';
 import { BulkImportModal, type CsvUserRowWithLine } from '@/components/app/users/BulkImportModal';
-import { ChangeRoleModal } from '@/components/app/users/ChangeRoleModal';
+import { ChangeRoleModal, type UserToChangeRole } from '@/components/app/users/ChangeRoleModal';
 import { CreateUserDrawer } from '@/components/app/users/CreateUserDrawer';
 import { EditUserModal } from '@/components/app/users/EditUserModal';
 import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
@@ -87,16 +87,12 @@ function ToggleSwitch({ checked, disabled, onChange, title, ariaLabel }: ToggleS
   );
 }
 
-const USER_STATUS_OPTIONS: MultiSelectOption[] = [
-  { value: 'ACTIVE', label: 'Active Users' },
-  { value: 'INACTIVE', label: 'Inactive Users' },
-];
-
 interface FilterUpdateOptions {
   role?: string | undefined;
   status?: string | undefined;
   search?: string | undefined;
   mentorId?: string | undefined;
+  mentorIds?: string[] | undefined;
   page?: number | undefined;
   limit?: number | undefined;
   sortBy?: 'name' | 'email' | undefined;
@@ -110,7 +106,7 @@ export function UsersTable() {
   const [search, setSearch] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
-  const [selectedMentor, setSelectedMentor] = useState<string>('ALL');
+  const [selectedMentorIds, setSelectedMentorIds] = useState<string[]>([]);
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
 
@@ -131,7 +127,7 @@ export function UsersTable() {
     role: selectedRole,
     status: selectedStatus,
     search,
-    mentorId: selectedMentor,
+    mentorIds: selectedMentorIds,
     page,
     limit,
     sortBy: sortField ?? undefined,
@@ -143,13 +139,13 @@ export function UsersTable() {
       role: selectedRole,
       status: selectedStatus,
       search,
-      mentorId: selectedMentor,
+      mentorIds: selectedMentorIds,
       page,
       limit,
       sortBy: sortField ?? undefined,
       sortOrder: sortField ? sortOrder : undefined,
     };
-  }, [selectedRole, selectedStatus, search, selectedMentor, page, limit, sortField, sortOrder]);
+  }, [selectedRole, selectedStatus, search, selectedMentorIds, page, limit, sortField, sortOrder]);
 
   useEffect(() => {
     if (!isAuthLoading) {
@@ -167,7 +163,6 @@ export function UsersTable() {
     users: apiUsers,
     total: totalCount,
     isLoading,
-    isFetching,
     error: usersError,
     fetchUsers,
     createUser,
@@ -210,7 +205,7 @@ export function UsersTable() {
   // Modal controls
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
-  const [userToChangeRole, setUserToChangeRole] = useState<UserItem | null>(null);
+  const [userToChangeRole, setUserToChangeRole] = useState<UserToChangeRole | null>(null);
   const [userToEdit, setUserToEdit] = useState<UserItem | null>(null);
 
   // In-flight row actions tracking
@@ -244,20 +239,47 @@ export function UsersTable() {
     [apiUsers],
   );
 
+  const selectedMentorNames = useMemo(() => {
+    return mentorRoster
+      .filter((m) => selectedMentorIds.includes(m.id))
+      .map((m) => m.name.toLowerCase());
+  }, [mentorRoster, selectedMentorIds]);
+
   const users: UserItem[] = useMemo(() => {
-    return apiUsers.map((u) => ({
+    let list = apiUsers.map((u) => ({
       id: u.id,
       name: u.name,
       email: u.email,
       role: u.role,
-      status: u.isActive ? 'ACTIVE' : 'INACTIVE',
+      status: u.isActive ? ('ACTIVE' as const) : ('INACTIVE' as const),
       batch: userBatchMap.get(u.id) || '—',
       mentorName: userMentorMap.get(u.id) || '—',
       hasLoggedIn: u.lastLoginAt !== null,
       mustChangePassword: u.mustChangePassword,
       isLastSuperAdmin: u.role === 'SUPER_ADMIN' && activeAdminsCount <= 1,
     }));
-  }, [apiUsers, activeAdminsCount, userBatchMap, userMentorMap]);
+
+    if (selectedStatus === 'PENDING') {
+      list = list.filter((u) => !u.hasLoggedIn);
+    }
+
+    if (selectedMentorIds.length > 0) {
+      list = list.filter((u) => {
+        const assignedMentor = (u.mentorName || '').toLowerCase();
+        return selectedMentorNames.some((name) => assignedMentor.includes(name));
+      });
+    }
+
+    return list;
+  }, [
+    apiUsers,
+    activeAdminsCount,
+    userBatchMap,
+    userMentorMap,
+    selectedStatus,
+    selectedMentorIds,
+    selectedMentorNames,
+  ]);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / limit));
 
@@ -265,7 +287,7 @@ export function UsersTable() {
     role = filtersRef.current.role,
     status = filtersRef.current.status,
     search: searchVal = filtersRef.current.search,
-    mentorId = filtersRef.current.mentorId,
+    mentorIds = filtersRef.current.mentorIds,
     page: newPage = filtersRef.current.page,
     limit: newLimit = filtersRef.current.limit,
     sortBy = filtersRef.current.sortBy,
@@ -275,20 +297,23 @@ export function UsersTable() {
       role,
       status,
       search: searchVal,
-      mentorId,
+      mentorIds,
       page: newPage,
       limit: newLimit,
       sortBy,
       sortOrder: newSortOrder,
     };
 
+    const backendStatus = status === 'PENDING' ? undefined : status !== 'ALL' ? status : undefined;
+    const backendMentorId = mentorIds.length === 1 ? mentorIds[0] : undefined;
+
     void fetchUsers({
       page: newPage,
       limit: newLimit,
       role: role !== 'ALL' ? role : undefined,
-      status: status !== 'ALL' ? status : undefined,
+      status: backendStatus,
       search: searchVal.trim() || undefined,
-      mentorId: mentorId !== 'ALL' ? mentorId : undefined,
+      mentorId: backendMentorId,
       sortBy,
       sortOrder: newSortOrder,
     });
@@ -501,7 +526,7 @@ export function UsersTable() {
         })}
       </div>
 
-      {/* Filter Row with Expanded Search Input and Rounded Dropdowns at the End */}
+      {/* Filter Row with Expanded Search Input, Pill Filters, and Dropdowns */}
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#E1E6EC] bg-white p-3.5 shadow-xs">
         {/* Expanded Search Input */}
         <div className="w-full flex-1 sm:max-w-md lg:max-w-lg">
@@ -512,34 +537,53 @@ export function UsersTable() {
           />
         </div>
 
-        {/* Rounded Dropdowns at the End */}
-        <div className="flex w-full flex-wrap items-center gap-3 sm:ml-auto sm:w-auto">
-          {/* Status Dropdown */}
-          <MultiSelectDropdown
-            label="Status"
-            singleSelect
-            options={USER_STATUS_OPTIONS}
-            selectedValues={selectedStatus === 'ALL' ? [] : [selectedStatus]}
-            onChange={(vals) => {
-              const nextVal = vals[0] ?? 'ALL';
-              setSelectedStatus(nextVal);
-              setPage(1);
-              handleFilterUpdate({ status: nextVal, page: 1 });
-            }}
-          />
+        {/* Pill-Style Status Filters and Dynamic Dropdowns */}
+        <div className="flex w-full flex-wrap items-center gap-2.5 sm:ml-auto sm:w-auto">
+          {/* Pill-Style Filter Buttons (Issue 4 & 5) */}
+          <div
+            className="flex items-center gap-1.5"
+            role="group"
+            aria-label="Filter users by account status"
+          >
+            {[
+              { label: 'All Users', value: 'ALL' },
+              { label: 'Active Users', value: 'ACTIVE' },
+              { label: 'Pending Users', value: 'PENDING' },
+              { label: 'Inactive Users', value: 'INACTIVE' },
+            ].map((pill) => {
+              const isActive = selectedStatus === pill.value;
+              return (
+                <button
+                  key={pill.value}
+                  type="button"
+                  onClick={() => {
+                    setSelectedStatus(pill.value);
+                    setPage(1);
+                    handleFilterUpdate({ status: pill.value, page: 1 });
+                  }}
+                  className={`cursor-pointer rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
+                    isActive
+                      ? 'border border-[#0044D3] bg-blue-50 text-[#0044D3] shadow-xs'
+                      : 'border border-[#E1E6EC] bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                  }`}
+                  aria-pressed={isActive}
+                >
+                  <Span>{pill.label}</Span>
+                </button>
+              );
+            })}
+          </div>
 
-          {/* Mentor Dropdown */}
+          {/* Mentor Dropdown with Multi-select and Search */}
           {selectedRole === 'ALL' || selectedRole === 'MENTEE' ? (
             <MultiSelectDropdown
               label="Mentor"
-              singleSelect
               options={mentorOptions}
-              selectedValues={selectedMentor === 'ALL' ? [] : [selectedMentor]}
+              selectedValues={selectedMentorIds}
               onChange={(vals) => {
-                const nextVal = vals[0] ?? 'ALL';
-                setSelectedMentor(nextVal);
+                setSelectedMentorIds(vals);
                 setPage(1);
-                handleFilterUpdate({ mentorId: nextVal, page: 1 });
+                handleFilterUpdate({ mentorIds: vals, page: 1 });
               }}
             />
           ) : null}
@@ -581,13 +625,7 @@ export function UsersTable() {
               <TableHead className="w-24 text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody
-            className={
-              isFetching && !isInitialLoading
-                ? 'opacity-60 transition-opacity'
-                : 'transition-opacity'
-            }
-          >
+          <TableBody>
             {isInitialLoading ? (
               // Loading Skeleton Rows - calibrated to exact data row dimensions
               Array.from({ length: limit }).map((_, i) => (
@@ -654,7 +692,7 @@ export function UsersTable() {
                       variant="primary"
                       size="sm"
                       onClick={() => {
-                        handleFilterUpdate();
+                        void fetchUsers();
                       }}
                     >
                       Retry Fetch
@@ -725,8 +763,8 @@ export function UsersTable() {
                           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-[#0044D3] shadow-xs transition-colors group-hover:bg-[#0044D3] group-hover:text-white">
                             {initials}
                           </div>
-                          <div className="max-w-[180px] min-w-0 sm:max-w-[220px]">
-                            <Span className="block text-base leading-snug font-semibold break-words text-slate-900 transition-colors group-hover:text-[#0044D3]">
+                          <div className="min-w-0">
+                            <Span className="block text-base leading-snug font-semibold text-slate-900 transition-colors group-hover:text-[#0044D3]">
                               {u.name || '—'}
                             </Span>
                           </div>
@@ -754,7 +792,7 @@ export function UsersTable() {
                     </TableCell>
 
                     {/* Email Column */}
-                    <TableCell className="max-w-[200px] font-mono text-sm break-all text-slate-600 select-all sm:max-w-[240px]">
+                    <TableCell className="max-w-[200px] text-sm break-all text-slate-600 select-all sm:max-w-[240px]">
                       {u.email}
                     </TableCell>
 
@@ -877,9 +915,21 @@ export function UsersTable() {
         isOpen={Boolean(userToEdit)}
         onClose={() => setUserToEdit(null)}
         onSuccess={handleEditUserSuccess}
-        onChangeRoleClick={() => {
-          if (userToEdit) {
-            setUserToChangeRole(userToEdit);
+        onChangeRoleClick={(selectedUser) => {
+          if (selectedUser?.role) {
+            setUserToChangeRole({
+              id: selectedUser.id,
+              name: selectedUser.name,
+              email: selectedUser.email,
+              role: selectedUser.role as UserRole,
+            });
+          } else if (userToEdit) {
+            setUserToChangeRole({
+              id: userToEdit.id,
+              name: userToEdit.name,
+              email: userToEdit.email,
+              role: userToEdit.role,
+            });
           }
         }}
         canChangeRole={

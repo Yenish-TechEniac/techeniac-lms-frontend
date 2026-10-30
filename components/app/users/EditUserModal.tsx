@@ -134,7 +134,7 @@ function EditUserModalContent({
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="font-mono text-sm"
+            className="text-sm"
             required
           />
         </div>

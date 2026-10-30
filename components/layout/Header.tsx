@@ -522,12 +522,23 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
       >
         {/* Drawer Header: TL Logo + Techeniac LMS Title + Mobile/Tablet Close Button */}
         <div className="flex h-20 items-center justify-between border-b border-[#E1E6EC] px-6">
-          <div className="flex items-center gap-3.5">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0044D3] text-base font-black text-white shadow-xs">
+          <Link
+            href={homeUrl}
+            onClick={() => {
+              if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                setIsMobileNavOpen(false);
+              }
+            }}
+            className="group flex cursor-pointer items-center gap-3.5 transition-opacity hover:opacity-85"
+            title="Techeniac LMS Home"
+          >
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0044D3] text-base font-black text-white shadow-xs transition-transform group-hover:scale-105">
               TL
             </div>
-            <Span className="text-xl font-bold tracking-tight text-[#111827]">Techeniac LMS</Span>
-          </div>
+            <Span className="text-xl font-bold tracking-tight text-[#111827] group-hover:text-[#0044D3]">
+              Techeniac LMS
+            </Span>
+          </Link>
           <Button
             type="button"
             variant="ghost"
@@ -554,7 +565,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
           {isLoading || !user ? (
             <Skeleton className="h-3.5 w-24 rounded-md" />
           ) : (
-            <Span className="font-mono text-xs font-bold tracking-wider text-[#667085] uppercase">
+            <Span className="text-xs font-bold tracking-wider text-[#667085] uppercase">
               {panelTitle}
             </Span>
           )}
