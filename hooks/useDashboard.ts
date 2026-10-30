@@ -9,6 +9,14 @@ import type {
   MentorDashboardData,
 } from '@/types/dashboard';
 
+/**
+ * Role Dashboard Query Keys & Hooks
+ *
+ * Cache Invalidation Trade-off:
+ * Dashboard statistics are aggregate summary queries configured with 60-second staleTime.
+ * They trade real-time precision for reduced load on heavy aggregation endpoints.
+ * Specific mutations may invalidate `dashboardKeys.all` when immediate UI synchronization is required.
+ */
 export const dashboardKeys = {
   all: ['dashboard'] as const,
   admin: () => [...dashboardKeys.all, 'admin'] as const,

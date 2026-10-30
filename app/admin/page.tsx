@@ -7,6 +7,8 @@ import { ADMIN_PORTAL_NAV } from '@/components/app/navigation/portal-nav.config'
 import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
 import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
+import { Alert } from '@/components/ui/Alert';
+import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { H1, H2, H3, P, Span } from '@/components/ui/Typography';
 import { useAdminDashboard } from '@/hooks/useDashboard';
@@ -14,7 +16,13 @@ import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 
 export default function AdminPage() {
   const { user, isAuthorized, sessionError } = useRoleRedirect({ allowedRoles: ['SUPER_ADMIN'] });
-  const { data: dashboard, isLoading: isLoadingDashboard } = useAdminDashboard({
+  const {
+    data: dashboard,
+    isLoading: isLoadingDashboard,
+    isError: isErrorDashboard,
+    error: dashboardError,
+    refetch: refetchDashboard,
+  } = useAdminDashboard({
     enabled: isAuthorized,
   });
 
@@ -56,6 +64,31 @@ export default function AdminPage() {
           </div>
         </div>
 
+        {/* Admin Dashboard Error Alert */}
+        {isErrorDashboard ? (
+          <div className="mb-6">
+            <Alert
+              variant="error"
+              title="Error Loading System KPIs"
+              message={
+                dashboardError?.message ||
+                'Failed to load admin KPI metrics. Please check your connection and retry.'
+              }
+            >
+              <div className="mt-3">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => void refetchDashboard()}
+                  className="h-8 rounded-lg text-xs"
+                >
+                  Retry
+                </Button>
+              </div>
+            </Alert>
+          </div>
+        ) : null}
+
         {/* Live System KPIs */}
         <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
           <div className="rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
@@ -69,10 +102,14 @@ export default function AdminPage() {
                 {dashboard?.users.totalUsers ?? 0}
               </P>
             )}
-            <Span className="mt-1 block text-xs text-[#667085]">
-              {dashboard?.users.menteesCount ?? 0} Mentees • {dashboard?.users.mentorsCount ?? 0}{' '}
-              Mentors
-            </Span>
+            {isLoadingDashboard ? (
+              <Skeleton className="mt-2 h-4 w-32" />
+            ) : (
+              <Span className="mt-1 block text-xs text-[#667085]">
+                {dashboard?.users.menteesCount ?? 0} Mentees • {dashboard?.users.mentorsCount ?? 0}{' '}
+                Mentors
+              </Span>
+            )}
           </div>
 
           <div className="rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
@@ -86,9 +123,13 @@ export default function AdminPage() {
                 {dashboard?.batches.liveBatches ?? 0}
               </P>
             )}
-            <Span className="mt-1 block text-xs text-[#667085]">
-              {dashboard?.batches.totalBatches ?? 0} total batches registered
-            </Span>
+            {isLoadingDashboard ? (
+              <Skeleton className="mt-2 h-4 w-36" />
+            ) : (
+              <Span className="mt-1 block text-xs text-[#667085]">
+                {dashboard?.batches.totalBatches ?? 0} total batches registered
+              </Span>
+            )}
           </div>
 
           <div className="rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
@@ -102,9 +143,13 @@ export default function AdminPage() {
                 {dashboard?.courses.publishedCourses ?? 0}
               </P>
             )}
-            <Span className="mt-1 block text-xs text-[#667085]">
-              {dashboard?.courses.totalCourses ?? 0} total courses created
-            </Span>
+            {isLoadingDashboard ? (
+              <Skeleton className="mt-2 h-4 w-36" />
+            ) : (
+              <Span className="mt-1 block text-xs text-[#667085]">
+                {dashboard?.courses.totalCourses ?? 0} total courses created
+              </Span>
+            )}
           </div>
 
           <div className="rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
@@ -118,9 +163,13 @@ export default function AdminPage() {
                 {dashboard?.submissions.pendingReviewCount ?? 0}
               </P>
             )}
-            <Span className="mt-1 block text-xs text-[#667085]">
-              {dashboard?.submissions.gradedCount ?? 0} submissions graded
-            </Span>
+            {isLoadingDashboard ? (
+              <Skeleton className="mt-2 h-4 w-36" />
+            ) : (
+              <Span className="mt-1 block text-xs text-[#667085]">
+                {dashboard?.submissions.gradedCount ?? 0} submissions graded
+              </Span>
+            )}
           </div>
         </div>
 

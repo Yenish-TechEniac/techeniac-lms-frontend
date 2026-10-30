@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/Table';
 import { H1, H2, H3, P, Span } from '@/components/ui/Typography';
 import { useMentorBatches, useMentorMentees } from '@/hooks/useBatches';
+import { useMentorDashboard } from '@/hooks/useDashboard';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 import type { ApiBatchSummary } from '@/services/batches.service';
 
@@ -217,6 +218,12 @@ export default function MentorPage() {
     error: menteesError,
   } = useMentorMentees();
 
+  const {
+    data: mentorDashboard,
+    isLoading: isLoadingDashboard,
+    error: dashboardError,
+  } = useMentorDashboard({ enabled: isAuthorized });
+
   if (!isAuthorized || !user) {
     return (
       <PortalSessionState
@@ -226,6 +233,11 @@ export default function MentorPage() {
       />
     );
   }
+
+  const isZeroState =
+    mentorDashboard?.isZeroState ??
+    (batches.filter((b) => !['COMPLETED', 'ARCHIVED'].includes(b.status)).length === 0 &&
+      mentees.length === 0);
 
   const liveBatchesCount = batches.filter((b) => b.status === 'LIVE').length;
 
@@ -254,7 +266,7 @@ export default function MentorPage() {
         </div>
 
         {/* Global Error Banner */}
-        {batchesError || menteesError ? (
+        {batchesError || menteesError || dashboardError ? (
           <div className="mb-6">
             <Alert
               variant="error"
@@ -262,6 +274,7 @@ export default function MentorPage() {
               message={
                 batchesError?.message ||
                 menteesError?.message ||
+                dashboardError?.message ||
                 'An error occurred while fetching your assigned cohort information.'
               }
             />
@@ -269,11 +282,23 @@ export default function MentorPage() {
         ) : null}
 
         {/* Empty-State Guidance for New Mentors (DSH-08) */}
-        {batches.length === 0 && mentees.length === 0 && !isLoadingBatches && !isLoadingMentees ? (
+        {isZeroState &&
+        !isLoadingBatches &&
+        !isLoadingMentees &&
+        !isLoadingDashboard &&
+        !batchesError &&
+        !menteesError &&
+        !dashboardError ? (
           <div className="mb-8 rounded-2xl border border-blue-200 bg-blue-50/70 p-6 sm:p-8">
             <div className="flex items-start gap-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#0044D3] text-white">
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -287,10 +312,9 @@ export default function MentorPage() {
                   Welcome to Techeniac LMS, Mentor!
                 </H2>
                 <P className="mt-1 text-sm leading-relaxed text-[#667085]">
-                  You are not currently assigned to any cohorts or mapped to mentees. Once an
-                  administrator adds you to an active batch or pairs you with learners, you will be
-                  able to review their assignment submissions, track syllabus progress, and evaluate
-                  grades directly from this dashboard.
+                  Once an administrator assigns you to an active batch or pairs you with learners,
+                  you will be able to review assignment submissions, track syllabus progress, and
+                  evaluate grades directly from this dashboard.
                 </P>
                 <div className="mt-4 flex flex-wrap gap-3">
                   <Link

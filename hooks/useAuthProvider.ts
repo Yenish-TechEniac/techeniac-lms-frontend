@@ -61,6 +61,7 @@ export function useAuthProvider(): AuthContextValue {
     async (credentials: { email: string; password: string }) => {
       setIsLoading(true);
       try {
+        // Reset in-memory query cache for current tab session upon login
         queryClient.clear();
         const data = await authService.login(credentials);
         setUser(data.user);
@@ -76,6 +77,7 @@ export function useAuthProvider(): AuthContextValue {
   const logout = useCallback(async () => {
     // Note: Do NOT set shared isLoading(true) to avoid page spinner flash
     await authService.logout();
+    // Reset in-memory query cache for current tab session upon logout
     queryClient.clear();
     setUser(null);
     setSessionError(null);
