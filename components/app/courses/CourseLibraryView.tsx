@@ -13,6 +13,7 @@ import {
 } from '@/components/app/navigation/portal-nav.config';
 import { Header } from '@/components/layout/Header';
 import { Modal } from '@/components/patterns/Modal';
+import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
@@ -35,34 +36,42 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
+      setPage(1);
     }, 300);
     return () => clearTimeout(timer);
   }, [search]);
 
   const courseQuery = useMemo(
     () => ({
-      page: 1,
-      limit: 50,
+      page,
+      limit,
       search: debouncedSearch.trim() || undefined,
       isActive: activeFilter === 'all' ? ('all' as const) : activeFilter === 'active',
     }),
-    [debouncedSearch, activeFilter],
+    [page, limit, debouncedSearch, activeFilter],
   );
 
   const {
     courses,
+    pagination,
     total,
     isLoading: loadingCourses,
+    isFetching,
     createCourse,
     deleteCourse,
     toggleCourseStatus,
     cloneCourse,
     getCourseImpact,
   } = useCourses(courseQuery);
+
+  const { total: totalActiveTracks } = useCourses({ isActive: true, limit: 1 });
+  const { total: totalDraftTracks } = useCourses({ isActive: false, limit: 1 });
 
   // Create Course Modal State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -205,8 +214,8 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
     );
   }
 
-  const activeCount = courses.filter((c) => c.isActive).length;
-  const draftCount = courses.filter((c) => !c.isActive).length;
+  const activeCount = totalActiveTracks;
+  const draftCount = totalDraftTracks;
 
   const navConfig = portal === 'mentor' ? MENTOR_COURSES_NAV : ADMIN_COURSES_NAV;
   const breadcrumbRoot = portal === 'mentor' ? 'Mentor' : 'Admin';
@@ -368,7 +377,10 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                   key={st}
                   type="button"
                   variant="ghost"
-                  onClick={() => setActiveFilter(st)}
+                  onClick={() => {
+                    setActiveFilter(st);
+                    setPage(1);
+                  }}
                   className={`h-auto rounded-lg px-4 py-1.5 text-xs font-semibold transition-colors ${
                     activeFilter === st
                       ? 'bg-white text-slate-900 shadow-xs hover:bg-white active:bg-white'
@@ -397,27 +409,50 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
               </P>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {courses.map((c) => (
-                <CourseCard
-                  key={c.id}
-                  course={c}
-                  basePath={`/${portal}/courses`}
-                  onCloneCourse={async (targetCourse) => {
-                    await cloneCourse(targetCourse.id);
+            <>
+              <div
+                className={`grid grid-cols-1 gap-6 transition-opacity duration-150 md:grid-cols-2 lg:grid-cols-3 ${
+                  isFetching && !loadingCourses ? 'opacity-70' : 'opacity-100'
+                }`}
+              >
+                {courses.map((c) => (
+                  <CourseCard
+                    key={c.id}
+                    course={c}
+                    basePath={`/${portal}/courses`}
+                    onCloneCourse={async (targetCourse) => {
+                      await cloneCourse(targetCourse.id);
+                    }}
+                    onRequestDelete={(targetCourse) => {
+                      void onRequestDelete(targetCourse);
+                    }}
+                    onRequestToggleStatus={(targetCourse) => {
+                      void onRequestToggleStatus(targetCourse);
+                    }}
+                    onAssignCourse={(targetCourse) => {
+                      setAssignModalCourse(targetCourse);
+                    }}
+                  />
+                ))}
+              </div>
+
+              {/* Pagination Controls */}
+              <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs">
+                <PaginationControls
+                  page={pagination.page}
+                  limit={pagination.limit}
+                  total={pagination.total}
+                  totalPages={pagination.totalPages}
+                  onPageChange={setPage}
+                  onLimitChange={(newLimit) => {
+                    setLimit(newLimit);
+                    setPage(1);
                   }}
-                  onRequestDelete={(targetCourse) => {
-                    void onRequestDelete(targetCourse);
-                  }}
-                  onRequestToggleStatus={(targetCourse) => {
-                    void onRequestToggleStatus(targetCourse);
-                  }}
-                  onAssignCourse={(targetCourse) => {
-                    setAssignModalCourse(targetCourse);
-                  }}
+                  itemLabel="courses"
+                  pageSizeOptions={[10, 20, 50, 100]}
                 />
-              ))}
-            </div>
+              </div>
+            </>
           )}
         </div>
       </main>
