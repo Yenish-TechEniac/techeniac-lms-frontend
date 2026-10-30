@@ -80,7 +80,7 @@ export const coursesService = {
       return res.data;
     }
     if (res.data && Array.isArray(res.data)) {
-      const meta = res.meta ?? (res as unknown as { pagination?: CoursePagination }).pagination;
+      const meta = res.meta;
       return {
         courses: res.data,
         pagination: meta ?? {

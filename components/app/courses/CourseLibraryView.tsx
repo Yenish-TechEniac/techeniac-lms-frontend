@@ -60,7 +60,6 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
   const {
     courses,
     pagination,
-    total,
     isLoading: loadingCourses,
     isFetching,
     createCourse,
@@ -70,8 +69,19 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
     getCourseImpact,
   } = useCourses(courseQuery);
 
-  const { total: totalActiveTracks } = useCourses({ isActive: true, limit: 1 });
-  const { total: totalDraftTracks } = useCourses({ isActive: false, limit: 1 });
+  const { total: totalAllCourses, error: totalCoursesError } = useCourses({ limit: 1 });
+  const { total: totalActiveTracks, error: activeTracksError } = useCourses({
+    isActive: true,
+    limit: 1,
+  });
+  const { total: totalDraftTracks, error: draftTracksError } = useCourses({
+    isActive: false,
+    limit: 1,
+  });
+
+  if (pagination.totalPages > 0 && page > pagination.totalPages) {
+    setPage(pagination.totalPages);
+  }
 
   // Create Course Modal State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -214,8 +224,9 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
     );
   }
 
-  const activeCount = totalActiveTracks;
-  const draftCount = totalDraftTracks;
+  const totalCountDisplay = totalCoursesError ? '—' : totalAllCourses;
+  const activeCountDisplay = activeTracksError ? '—' : totalActiveTracks;
+  const draftCountDisplay = draftTracksError ? '—' : totalDraftTracks;
 
   const navConfig = portal === 'mentor' ? MENTOR_COURSES_NAV : ADMIN_COURSES_NAV;
   const breadcrumbRoot = portal === 'mentor' ? 'Mentor' : 'Admin';
@@ -271,7 +282,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                 Total Courses
               </Span>
               <div className="mt-1.5 text-3xl font-extrabold tracking-tight text-slate-900">
-                {total}
+                {totalCountDisplay}
               </div>
             </div>
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
@@ -296,7 +307,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                 Active Tracks
               </Span>
               <div className="mt-1.5 text-3xl font-extrabold tracking-tight text-emerald-600">
-                {activeCount}
+                {activeCountDisplay}
               </div>
             </div>
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
@@ -321,7 +332,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                 Draft / Inactive
               </Span>
               <div className="mt-1.5 text-3xl font-extrabold tracking-tight text-slate-700">
-                {draftCount}
+                {draftCountDisplay}
               </div>
             </div>
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
@@ -400,47 +411,49 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
             <div className="flex h-64 items-center justify-center rounded-2xl border border-slate-200 bg-white">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
             </div>
-          ) : courses.length === 0 ? (
-            <div className="flex h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
-              <H3 className="text-base font-bold text-slate-800">No courses found</H3>
-              <P className="mt-1 text-sm text-slate-500">
-                Try modifying your search or filter settings, or click &quot;Create New
-                Course&quot;.
-              </P>
-            </div>
           ) : (
             <>
-              <div
-                className={`grid grid-cols-1 gap-6 transition-opacity duration-150 md:grid-cols-2 lg:grid-cols-3 ${
-                  isFetching && !loadingCourses ? 'opacity-70' : 'opacity-100'
-                }`}
-              >
-                {courses.map((c) => (
-                  <CourseCard
-                    key={c.id}
-                    course={c}
-                    basePath={`/${portal}/courses`}
-                    onCloneCourse={async (targetCourse) => {
-                      await cloneCourse(targetCourse.id);
-                    }}
-                    onRequestDelete={(targetCourse) => {
-                      void onRequestDelete(targetCourse);
-                    }}
-                    onRequestToggleStatus={(targetCourse) => {
-                      void onRequestToggleStatus(targetCourse);
-                    }}
-                    onAssignCourse={(targetCourse) => {
-                      setAssignModalCourse(targetCourse);
-                    }}
-                  />
-                ))}
-              </div>
+              {courses.length === 0 ? (
+                <div className="flex h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
+                  <H3 className="text-base font-bold text-slate-800">No courses found</H3>
+                  <P className="mt-1 text-sm text-slate-500">
+                    Try modifying your search or filter settings, or click &quot;Create New
+                    Course&quot;.
+                  </P>
+                </div>
+              ) : (
+                <div
+                  className={`grid grid-cols-1 gap-6 transition-opacity duration-150 md:grid-cols-2 lg:grid-cols-3 ${
+                    isFetching && !loadingCourses ? 'opacity-70' : 'opacity-100'
+                  }`}
+                >
+                  {courses.map((c) => (
+                    <CourseCard
+                      key={c.id}
+                      course={c}
+                      basePath={`/${portal}/courses`}
+                      onCloneCourse={async (targetCourse) => {
+                        await cloneCourse(targetCourse.id);
+                      }}
+                      onRequestDelete={(targetCourse) => {
+                        void onRequestDelete(targetCourse);
+                      }}
+                      onRequestToggleStatus={(targetCourse) => {
+                        void onRequestToggleStatus(targetCourse);
+                      }}
+                      onAssignCourse={(targetCourse) => {
+                        setAssignModalCourse(targetCourse);
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
 
               {/* Pagination Controls */}
-              <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs">
+              {pagination.total > 0 && (
                 <PaginationControls
-                  page={pagination.page}
-                  limit={pagination.limit}
+                  page={page}
+                  limit={limit}
                   total={pagination.total}
                   totalPages={pagination.totalPages}
                   onPageChange={setPage}
@@ -450,8 +463,9 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                   }}
                   itemLabel="courses"
                   pageSizeOptions={[10, 20, 50, 100]}
+                  className="mt-8 rounded-2xl border border-slate-200/80 shadow-xs"
                 />
-              </div>
+              )}
             </>
           )}
         </div>
