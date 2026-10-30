@@ -14,7 +14,11 @@ export interface AuditQueryFilters {
 
 export const auditService = {
   async getAuditLogs(filters: AuditQueryFilters = {}): Promise<AuditLogsResponse> {
-    const validated = auditLogFilterSchema.parse(filters);
+    const result = auditLogFilterSchema.safeParse(filters);
+    if (!result.success) {
+      throw new Error(result.error.issues[0]?.message || 'Invalid audit log filters');
+    }
+    const validated = result.data;
     const params: Record<string, string | number | undefined> = {};
 
     if (validated.page !== undefined) params.page = validated.page;
