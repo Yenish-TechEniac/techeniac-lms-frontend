@@ -193,6 +193,7 @@ export function useMentorBatches(filters: BatchQueryFilters = {}, options?: { en
   return useQuery({
     queryKey: batchKeys.mentorBatches(filters),
     queryFn: () => batchesService.listMentorBatches(filters),
+    placeholderData: keepPreviousData,
     ...options,
   });
 }

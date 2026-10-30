@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query';
 
 import {
   type LearningHistoryResult,
@@ -19,6 +19,7 @@ export function usePerformanceQuery(params?: PerformanceFilterParams) {
   return useQuery<PaginatedPerformanceData, Error>({
     queryKey: PERFORMANCE_QUERY_KEYS.list(params),
     queryFn: () => performanceService.getPerformance(params),
+    placeholderData: keepPreviousData,
     staleTime: 60 * 1000,
   });
 }

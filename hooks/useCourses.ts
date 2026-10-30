@@ -107,6 +107,7 @@ export function useCourseDetail(courseId: string) {
     queryKey: ['course', courseId],
     queryFn: () => coursesService.getCourseById(courseId, true),
     enabled: Boolean(courseId),
+    staleTime: 5 * 60 * 1000,
   });
 }
 

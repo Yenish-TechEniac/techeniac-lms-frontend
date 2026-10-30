@@ -14,6 +14,7 @@ interface PerformanceTableProps {
   readonly onPageChange: (page: number) => void;
   readonly onLimitChange: (limit: number) => void;
   readonly isLoading?: boolean;
+  readonly isFetching?: boolean;
   readonly isError?: boolean;
   readonly error?: unknown;
   readonly onRetry?: () => void;
@@ -28,6 +29,7 @@ export function PerformanceTable({
   onPageChange,
   onLimitChange,
   isLoading = false,
+  isFetching = false,
   isError = false,
   error,
   onRetry,
@@ -105,7 +107,11 @@ export function PerformanceTable({
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody
+            className={`divide-y divide-slate-100 ${
+              isFetching && !isLoading ? 'opacity-60 transition-opacity' : ''
+            }`}
+          >
             {mentees.map((row) => (
               <tr key={row.menteeId} className="transition-colors hover:bg-slate-50/60">
                 {/* Mentee Identity */}
