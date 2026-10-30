@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 
 import { coursesService } from '@/services/courses.service';
@@ -32,6 +32,7 @@ export function useCourses(initialQuery?: ListCoursesQuery) {
   } = useQuery({
     queryKey: ['courses', initialQuery],
     queryFn: ({ signal }) => coursesService.listCourses(initialQuery, { signal }),
+    placeholderData: keepPreviousData,
   });
 
   const courses = data?.courses ?? [];
@@ -95,6 +96,7 @@ export function useCourseDetail(courseId: string) {
     queryKey: ['course', courseId],
     queryFn: () => coursesService.getCourseById(courseId, true),
     enabled: Boolean(courseId),
+    staleTime: 5 * 60 * 1000,
   });
 }
 

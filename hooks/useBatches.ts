@@ -1,6 +1,12 @@
 'use client';
 
-import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import type { BatchStatus, CreateBatchFormData } from '@/lib/validation';
@@ -31,6 +37,7 @@ export function useBatchesList(filters: BatchQueryFilters = {}, options?: { enab
   return useQuery<ApiBatchListResponse>({
     queryKey: batchKeys.list(filters),
     queryFn: () => batchesService.listBatches(filters),
+    placeholderData: keepPreviousData,
     ...options,
   });
 }
@@ -186,6 +193,7 @@ export function useMentorBatches(filters: BatchQueryFilters = {}, options?: { en
   return useQuery({
     queryKey: batchKeys.mentorBatches(filters),
     queryFn: () => batchesService.listMentorBatches(filters),
+    placeholderData: keepPreviousData,
     ...options,
   });
 }
@@ -194,6 +202,7 @@ export function useMentorMentees(batchId?: string) {
   return useQuery({
     queryKey: batchKeys.mentorMentees(batchId),
     queryFn: () => batchesService.getMentorMentees(batchId),
+    staleTime: 60_000,
   });
 }
 
@@ -201,6 +210,7 @@ export function useMenteeBatch() {
   return useQuery({
     queryKey: batchKeys.menteeBatch(),
     queryFn: () => batchesService.getMyBatch(),
+    staleTime: 5 * 60_000,
   });
 }
 
