@@ -4,14 +4,16 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
+import { DEFAULT_PAGE_SIZE_OPTIONS } from '@/components/app/batches/batchStatus';
 import { BulkImportModal, type CsvUserRowWithLine } from '@/components/app/users/BulkImportModal';
 import { ChangeRoleModal } from '@/components/app/users/ChangeRoleModal';
 import { CreateUserDrawer } from '@/components/app/users/CreateUserDrawer';
 import { EditUserModal } from '@/components/app/users/EditUserModal';
+import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
 import { PageHeader } from '@/components/patterns/PageHeader';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
+import { SortableColumnHeader } from '@/components/patterns/SortableColumnHeader';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import { MultiSelectDropdown, type MultiSelectOption } from '@/components/ui/MultiSelectDropdown';
 import { Skeleton } from '@/components/ui/Skeleton';
 import {
@@ -25,6 +27,7 @@ import {
 } from '@/components/ui/Table';
 import { P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
+import { useAllBatchMembers } from '@/hooks/useBatches';
 import { useUsers } from '@/hooks/useUsers';
 import {
   type ChangeRoleFormData,
@@ -81,81 +84,6 @@ function ToggleSwitch({ checked, disabled, onChange, title, ariaLabel }: ToggleS
         }`}
       />
     </Button>
-  );
-}
-
-interface UserSearchInputProps {
-  value: string;
-  onSearchChange: (val: string) => void;
-}
-
-function UserSearchInput({ value, onSearchChange }: Readonly<UserSearchInputProps>) {
-  const [localValue, setLocalValue] = useState(value);
-  const [prevValue, setPrevValue] = useState(value);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const onSearchChangeRef = useRef(onSearchChange);
-
-  useEffect(() => {
-    onSearchChangeRef.current = onSearchChange;
-  });
-
-  if (prevValue !== value) {
-    setPrevValue(value);
-    setLocalValue(value);
-  }
-
-  useEffect(() => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-  }, [value]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const nextVal = e.target.value;
-    setLocalValue(nextVal);
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
-    timerRef.current = setTimeout(() => {
-      onSearchChangeRef.current(nextVal);
-    }, 300);
-  };
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-    };
-  }, []);
-
-  return (
-    <div className="relative w-full">
-      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
-        <svg
-          className="h-4 w-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-          aria-hidden="true"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          />
-        </svg>
-      </div>
-      <Input
-        type="text"
-        value={localValue}
-        onChange={handleChange}
-        placeholder="Search by name or email..."
-        className="h-11 w-full rounded-xl pl-10 text-sm font-medium"
-      />
-    </div>
   );
 }
 
@@ -240,7 +168,10 @@ export function UsersTable() {
     resendInvite,
   } = useUsers();
 
-  const isTableLoading = Boolean(isLoading || isFetching);
+  const { userBatchMap, userMentorMap } = useAllBatchMembers();
+
+  const isInitialLoading = isLoading && apiUsers.length === 0;
+  const isTableLoading = isInitialLoading;
 
   // Sorting state for Name and Email columns
   const [sortField, setSortField] = useState<'name' | 'email' | null>(null);
@@ -299,13 +230,13 @@ export function UsersTable() {
       email: u.email,
       role: u.role,
       status: u.isActive ? 'ACTIVE' : 'INACTIVE',
-      batch: '—',
-      mentorName: '—',
+      batch: userBatchMap.get(u.id) || '—',
+      mentorName: userMentorMap.get(u.id) || '—',
       hasLoggedIn: u.lastLoginAt !== null,
       mustChangePassword: u.mustChangePassword,
       isLastSuperAdmin: u.role === 'SUPER_ADMIN' && activeAdminsCount <= 1,
     }));
-  }, [apiUsers, activeAdminsCount]);
+  }, [apiUsers, activeAdminsCount, userBatchMap, userMentorMap]);
 
   const sortedUsers = useMemo(() => {
     if (!sortField) return users;
@@ -558,7 +489,11 @@ export function UsersTable() {
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#E1E6EC] bg-white p-3.5 shadow-xs">
         {/* Expanded Search Input */}
         <div className="w-full flex-1 sm:max-w-md lg:max-w-lg">
-          <UserSearchInput value={search} onSearchChange={handleSearchChange} />
+          <DebouncedSearchInput
+            value={search}
+            onSearchChange={handleSearchChange}
+            placeholder="Search by name or email..."
+          />
         </div>
 
         {/* Rounded Dropdowns at the End */}
@@ -600,82 +535,22 @@ export function UsersTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>
-                <button
-                  type="button"
-                  onClick={() => handleSort('name')}
-                  className="group inline-flex items-center gap-1.5 font-semibold text-inherit hover:text-slate-900 focus:outline-none"
-                >
-                  <span>Name</span>
-                  <svg
-                    className={`h-3.5 w-3.5 transition-colors ${
-                      sortField === 'name'
-                        ? 'text-[#0044D3]'
-                        : 'text-slate-400 group-hover:text-slate-600'
-                    }`}
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    {sortField === 'name' && sortOrder === 'desc' ? (
-                      <path
-                        fillRule="evenodd"
-                        d="M10 3a.75.75 0 01.75.75v10.69l3.22-3.22a.75.75 0 111.06 1.06l-4.5 4.5a.75.75 0 01-1.06 0l-4.5-4.5a.75.75 0 111.06-1.06l3.22 3.22V3.75A.75.75 0 0110 3z"
-                        clipRule="evenodd"
-                      />
-                    ) : sortField === 'name' && sortOrder === 'asc' ? (
-                      <path
-                        fillRule="evenodd"
-                        d="M10 17a.75.75 0 01-.75-.75V5.56l-3.22 3.22a.75.75 0 11-1.06-1.06l4.5-4.5a.75.75 0 011.06 0l4.5 4.5a.75.75 0 11-1.06 1.06l-3.22-3.22V16.25a.75.75 0 01-.75.75z"
-                        clipRule="evenodd"
-                      />
-                    ) : (
-                      <path
-                        fillRule="evenodd"
-                        d="M10 3a.75.75 0 01.55.24l3.25 3.5a.75.75 0 11-1.1 1.02L10 4.852 7.3 7.76a.75.75 0 01-1.1-1.02l3.25-3.5A.75.75 0 0110 3zm-3.25 9.5a.75.75 0 011.1 0L10 15.148l2.7-2.648a.75.75 0 111.1 1.02l-3.25 3.5a.75.75 0 01-1.1 0l-3.25-3.5a.75.75 0 010-1.02z"
-                        clipRule="evenodd"
-                      />
-                    )}
-                  </svg>
-                </button>
-              </TableHead>
-              <TableHead>
-                <button
-                  type="button"
-                  onClick={() => handleSort('email')}
-                  className="group inline-flex items-center gap-1.5 font-semibold text-inherit hover:text-slate-900 focus:outline-none"
-                >
-                  <span>Email</span>
-                  <svg
-                    className={`h-3.5 w-3.5 transition-colors ${
-                      sortField === 'email'
-                        ? 'text-[#0044D3]'
-                        : 'text-slate-400 group-hover:text-slate-600'
-                    }`}
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    {sortField === 'email' && sortOrder === 'desc' ? (
-                      <path
-                        fillRule="evenodd"
-                        d="M10 3a.75.75 0 01.75.75v10.69l3.22-3.22a.75.75 0 111.06 1.06l-4.5 4.5a.75.75 0 01-1.06 0l-4.5-4.5a.75.75 0 111.06-1.06l3.22 3.22V3.75A.75.75 0 0110 3z"
-                        clipRule="evenodd"
-                      />
-                    ) : sortField === 'email' && sortOrder === 'asc' ? (
-                      <path
-                        fillRule="evenodd"
-                        d="M10 17a.75.75 0 01-.75-.75V5.56l-3.22 3.22a.75.75 0 11-1.06-1.06l4.5-4.5a.75.75 0 011.06 0l4.5 4.5a.75.75 0 11-1.06 1.06l-3.22-3.22V16.25a.75.75 0 01-.75.75z"
-                        clipRule="evenodd"
-                      />
-                    ) : (
-                      <path
-                        fillRule="evenodd"
-                        d="M10 3a.75.75 0 01.55.24l3.25 3.5a.75.75 0 11-1.1 1.02L10 4.852 7.3 7.76a.75.75 0 01-1.1-1.02l3.25-3.5A.75.75 0 0110 3zm-3.25 9.5a.75.75 0 011.1 0L10 15.148l2.7-2.648a.75.75 0 111.1 1.02l-3.25 3.5a.75.75 0 01-1.1 0l-3.25-3.5a.75.75 0 010-1.02z"
-                        clipRule="evenodd"
-                      />
-                    )}
-                  </svg>
-                </button>
-              </TableHead>
+              <SortableColumnHeader<'name' | 'email'>
+                field="name"
+                label="Name"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                tooltip="Sort visible page by Name"
+              />
+              <SortableColumnHeader<'name' | 'email'>
+                field="email"
+                label="Email"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                tooltip="Sort visible page by Email"
+              />
               {selectedRole === 'ALL' ? <TableHead>Role</TableHead> : null}
               <TableHead>
                 {selectedRole === 'MENTEE'
@@ -690,8 +565,14 @@ export function UsersTable() {
               <TableHead className="w-24 text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {isTableLoading ? (
+          <TableBody
+            className={
+              isFetching && !isInitialLoading
+                ? 'opacity-60 transition-opacity'
+                : 'transition-opacity'
+            }
+          >
+            {isInitialLoading ? (
               // Loading Skeleton Rows - calibrated to exact data row dimensions
               Array.from({ length: limit }).map((_, i) => (
                 <TableRow key={`loading-skel-${i}`} className="h-14">
@@ -798,13 +679,24 @@ export function UsersTable() {
                 return (
                   <TableRow
                     key={u.id}
+                    tabIndex={0}
+                    role="link"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        const target = e.target as HTMLElement;
+                        if (!target.closest('button, input, [role="switch"], a')) {
+                          e.preventDefault();
+                          router.push(`/admin/users/${u.id}`);
+                        }
+                      }
+                    }}
                     onClick={(e) => {
                       const target = e.target as HTMLElement;
                       if (!target.closest('button, input, [role="switch"], a')) {
                         router.push(`/admin/users/${u.id}`);
                       }
                     }}
-                    className="h-14 cursor-pointer transition-colors hover:bg-slate-50/70"
+                    className="h-14 cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:bg-slate-50 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none focus-visible:ring-inset"
                   >
                     {/* User Column (Avatar + Name - Clean non-nested Link with wrapping) */}
                     <TableCell>
@@ -871,9 +763,26 @@ export function UsersTable() {
                       </TableCell>
                     ) : null}
 
-                    {/* Dynamic Role-Specific Column: Showing — for now */}
+                    {/* Dynamic Role-Specific Column */}
                     <TableCell className="text-sm font-medium">
-                      <Span className="text-xs text-slate-400">—</Span>
+                      {selectedRole === 'MENTEE' ? (
+                        <Span className="text-slate-700">{u.mentorName || '—'}</Span>
+                      ) : selectedRole === 'MENTOR' || selectedRole === 'SUPER_ADMIN' ? (
+                        <Span className="text-slate-700">{u.batch || '—'}</Span>
+                      ) : u.role === 'MENTEE' ? (
+                        u.batch && u.batch !== '—' ? (
+                          <div className="flex flex-col">
+                            <Span className="text-slate-700">{u.batch}</Span>
+                            {u.mentorName && u.mentorName !== '—' ? (
+                              <Span className="text-xs text-slate-400">Mentor: {u.mentorName}</Span>
+                            ) : null}
+                          </div>
+                        ) : (
+                          <Span className="text-slate-700">{u.mentorName || '—'}</Span>
+                        )
+                      ) : (
+                        <Span className="text-slate-700">{u.batch || '—'}</Span>
+                      )}
                     </TableCell>
 
                     {/* Status Column with Switch Only (Tag Removed) */}
@@ -935,7 +844,7 @@ export function UsersTable() {
             onLimitChange={handleLimitChange}
             isLoading={isTableLoading}
             itemLabel="entries"
-            pageSizeOptions={[10, 20, 50, 100]}
+            pageSizeOptions={DEFAULT_PAGE_SIZE_OPTIONS}
           />
         )}
       </TableContainer>

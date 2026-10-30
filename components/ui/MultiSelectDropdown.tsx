@@ -2,48 +2,61 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
+import { Checkbox } from '@/components/ui/Checkbox';
+import { Span } from '@/components/ui/Typography';
 import { cn } from '@/lib/cn';
+import { useClickOutside } from '@/lib/useClickOutside';
 
-export interface MultiSelectOption {
-  value: string;
-  label: string;
+export interface MultiSelectOption<T extends string = string> {
+  readonly value: T;
+  readonly label: string;
 }
 
-export interface MultiSelectDropdownProps {
-  label: string;
-  options: MultiSelectOption[];
-  selectedValues: string[];
-  onChange: (values: string[]) => void;
-  singleSelect?: boolean | undefined;
-  placeholder?: string | undefined;
-  className?: string | undefined;
+export interface MultiSelectDropdownProps<T extends string = string> {
+  readonly label: string;
+  readonly options: readonly MultiSelectOption<T>[];
+  readonly selectedValues: readonly T[];
+  readonly onChange: (values: T[]) => void;
+  readonly singleSelect?: boolean | undefined;
+  readonly placeholder?: string | undefined;
+  readonly className?: string | undefined;
 }
 
-export function MultiSelectDropdown({
+export function MultiSelectDropdown<T extends string = string>({
   label,
   options,
   selectedValues,
   onChange,
   singleSelect = false,
   className,
-}: Readonly<MultiSelectDropdownProps>) {
+}: Readonly<MultiSelectDropdownProps<T>>) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   // Close when clicking outside
+  useClickOutside(containerRef, () => setIsOpen(false), isOpen);
+
+  // Escape to close and refocus trigger
   useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+    if (!isOpen) return;
+
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        e.preventDefault();
         setIsOpen(false);
+        triggerRef.current?.focus();
       }
     }
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [isOpen]);
 
-  const toggleOption = (val: string) => {
+  const toggleOption = (val: T) => {
     if (singleSelect) {
       if (selectedValues.includes(val)) {
         onChange([]);
@@ -51,6 +64,7 @@ export function MultiSelectDropdown({
         onChange([val]);
       }
       setIsOpen(false);
+      triggerRef.current?.focus();
       return;
     }
 
@@ -78,7 +92,7 @@ export function MultiSelectDropdown({
 
   return (
     <div className="relative inline-block w-44 sm:w-48" ref={containerRef}>
-      {/* Trigger Button with Rounded Border & Hover Effect (No Cross Button) */}
+      {/* Trigger Button with Rounded Border & Hover Effect */}
       <div
         className={cn(
           'flex h-11 w-full items-center justify-between gap-2 rounded-xl border border-[#E1E6EC] bg-white px-3.5 text-xs font-semibold text-slate-700 shadow-xs transition-all hover:border-slate-300 hover:bg-slate-50/70',
@@ -88,11 +102,14 @@ export function MultiSelectDropdown({
         )}
       >
         <button
+          ref={triggerRef}
           type="button"
+          aria-haspopup="listbox"
+          aria-expanded={isOpen}
           onClick={() => setIsOpen((prev) => !prev)}
           className="flex flex-1 items-center justify-between gap-2 text-left focus:outline-none"
         >
-          <span className="truncate">{triggerLabel}</span>
+          <Span className="truncate">{triggerLabel}</Span>
           <svg
             className={cn(
               'h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-200',
@@ -111,17 +128,20 @@ export function MultiSelectDropdown({
 
       {/* Popover Dropdown matching trigger width */}
       {isOpen ? (
-        <div className="animate-in fade-in zoom-in-95 absolute left-0 z-40 mt-1.5 w-full min-w-[200px] rounded-2xl border border-[#E1E6EC] bg-white p-2.5 shadow-xl duration-100">
+        <div
+          role="listbox"
+          className="animate-in fade-in zoom-in-95 absolute left-0 z-40 mt-1.5 w-full min-w-[200px] rounded-2xl border border-[#E1E6EC] bg-white p-2.5 shadow-xl duration-100"
+        >
           {/* Header Row: Title & Optional Clear */}
           <div className="flex items-center justify-between border-b border-slate-100 px-2 pb-2">
-            <span className="text-xs font-bold text-slate-800">{label}</span>
+            <Span className="text-xs font-bold text-slate-800">{label}</Span>
             {selectedValues.length > 0 ? (
               <button
                 type="button"
                 onClick={handleClear}
                 className="cursor-pointer text-[11px] font-semibold text-[#0044D3] hover:underline"
               >
-                Clear
+                <Span>Clear</Span>
               </button>
             ) : null}
           </div>
@@ -135,13 +155,15 @@ export function MultiSelectDropdown({
                   <button
                     key={opt.value}
                     type="button"
+                    role="option"
+                    aria-selected={isChecked}
                     onClick={() => toggleOption(opt.value)}
                     className={cn(
                       'flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-left text-xs font-medium transition-colors hover:bg-slate-50',
                       isChecked ? 'bg-blue-50/50 font-semibold text-[#0044D3]' : 'text-slate-700',
                     )}
                   >
-                    <span className="truncate">{opt.label}</span>
+                    <Span className="truncate">{opt.label}</Span>
                     {isChecked ? (
                       <svg
                         className="h-4 w-4 shrink-0 text-[#0044D3]"
@@ -158,21 +180,23 @@ export function MultiSelectDropdown({
               }
 
               return (
-                <label
+                <div
                   key={opt.value}
+                  role="option"
+                  aria-selected={isChecked}
+                  onClick={() => toggleOption(opt.value)}
                   className={cn(
                     'flex cursor-pointer items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-medium transition-colors hover:bg-slate-50',
                     isChecked ? 'bg-blue-50/50 font-semibold text-[#0044D3]' : 'text-slate-700',
                   )}
                 >
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={isChecked}
-                    onChange={() => toggleOption(opt.value)}
-                    className="h-4 w-4 rounded border-slate-300 text-[#0044D3] accent-[#0044D3] focus:ring-[#0044D3]"
+                    onChange={() => {}} // handled by parent container click
+                    className="pointer-events-none"
                   />
-                  <span className="truncate">{opt.label}</span>
-                </label>
+                  <Span className="truncate">{opt.label}</Span>
+                </div>
               );
             })}
           </div>

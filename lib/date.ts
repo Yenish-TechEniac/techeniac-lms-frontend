@@ -106,8 +106,15 @@ export function formatDateDMY(dateInput: string | Date | null | undefined): stri
   const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
   if (isNaN(date.getTime())) return '-';
 
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = date.getFullYear();
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: IST_TIMEZONE,
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).formatToParts(date);
+
+  const day = parts.find((p) => p.type === 'day')?.value ?? '01';
+  const month = parts.find((p) => p.type === 'month')?.value ?? '01';
+  const year = parts.find((p) => p.type === 'year')?.value ?? '1970';
   return `${day}-${month}-${year}`;
 }

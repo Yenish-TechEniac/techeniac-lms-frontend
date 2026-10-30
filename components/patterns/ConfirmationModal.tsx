@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useEffect, useId } from 'react';
+import React, { useId, useRef } from 'react';
 
 import { Button, type ButtonVariant } from '@/components/ui/Button';
 import { H3, P, Span } from '@/components/ui/Typography';
+import { useDialogAccessibility } from '@/hooks/useDialogAccessibility';
+import { cn } from '@/lib/cn';
 
 export interface ConfirmationModalProps {
   isOpen: boolean;
@@ -15,6 +17,7 @@ export interface ConfirmationModalProps {
   cancelLabel?: string | undefined;
   confirmVariant?: ButtonVariant | undefined;
   isLoading?: boolean | undefined;
+  errorMessage?: string | null | undefined;
 }
 
 export function ConfirmationModal({
@@ -27,22 +30,21 @@ export function ConfirmationModal({
   cancelLabel = 'Cancel',
   confirmVariant = 'primary',
   isLoading = false,
+  errorMessage,
 }: Readonly<ConfirmationModalProps>) {
   const titleId = useId();
   const descId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !isLoading) {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, isLoading, onClose]);
+  useDialogAccessibility({
+    isOpen,
+    onClose,
+    dialogRef,
+  });
 
   if (!isOpen) return null;
+
+  const isDanger = confirmVariant === 'danger';
 
   return (
     <div
@@ -54,14 +56,21 @@ export function ConfirmationModal({
       }}
     >
       <div
+        ref={dialogRef}
         role="alertdialog"
+        tabIndex={-1}
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={descId}
-        className="animate-in fade-in zoom-in-95 w-full max-w-sm rounded-3xl border border-[#E1E6EC] bg-white p-6 text-center shadow-xl duration-150 sm:p-7"
+        className="animate-in fade-in zoom-in-95 w-full max-w-sm rounded-3xl border border-[#E1E6EC] bg-white p-6 text-center shadow-xl duration-150 focus:outline-none sm:p-7"
       >
-        {/* Red Circular Question Icon */}
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-600 text-2xl font-bold text-white shadow-xs">
+        {/* Semantic Icon Circle (Amber for standard warning, Red for destructive danger) */}
+        <div
+          className={cn(
+            'mx-auto flex h-14 w-14 items-center justify-center rounded-full text-2xl font-bold text-white shadow-xs',
+            isDanger ? 'bg-[#D92D20]' : 'bg-[#F79009]',
+          )}
+        >
           ?
         </div>
 
@@ -77,6 +86,16 @@ export function ConfirmationModal({
         >
           {description}
         </P>
+
+        {/* Optional Error Alert */}
+        {errorMessage ? (
+          <div
+            role="alert"
+            className="mt-3 rounded-xl border border-red-200 bg-red-50 p-2 text-xs font-semibold text-[#D92D20]"
+          >
+            {errorMessage}
+          </div>
+        ) : null}
 
         {/* Actions */}
         <div className="mt-6 flex items-center justify-center gap-3">
@@ -99,11 +118,10 @@ export function ConfirmationModal({
               void onConfirm();
             }}
             isLoading={isLoading}
-            className={`h-10 rounded-full px-6 text-xs font-semibold text-white ${
-              confirmVariant === 'danger'
-                ? 'bg-red-600 hover:bg-red-700'
-                : 'bg-[#0044D3] hover:bg-[#0039B3]'
-            }`}
+            className={cn(
+              'h-10 rounded-full px-6 text-xs font-semibold text-white',
+              isDanger ? 'bg-[#D92D20] hover:bg-[#B42318]' : 'bg-[#0044D3] hover:bg-[#0036AB]',
+            )}
           >
             <Span>{confirmLabel}</Span>
           </Button>

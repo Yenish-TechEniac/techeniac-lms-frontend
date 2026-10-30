@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import React from 'react';
 
-import { PageTitle, Span } from '@/components/ui/Typography';
+import { P, PageTitle, Span } from '@/components/ui/Typography';
 
 export interface BreadcrumbItem {
   readonly label: string;
@@ -9,6 +9,11 @@ export interface BreadcrumbItem {
   readonly active?: boolean;
 }
 
+/**
+ * Standard PageHeader pattern props.
+ * `breadcrumbs` and `subtitle` are standard forward-compatible design props
+ * for modular navigation across LMS pages.
+ */
 export interface PageHeaderProps {
   readonly breadcrumbs?: readonly BreadcrumbItem[];
   readonly title: string;
@@ -45,7 +50,7 @@ export function PageHeader({
             </div>
           ) : null}
           <PageTitle>{title}</PageTitle>
-          {subtitle ? <p className="mt-1 text-sm text-slate-500">{subtitle}</p> : null}
+          {subtitle ? <P className="mt-1 text-sm text-slate-500">{subtitle}</P> : null}
         </div>
         {actions ? (
           <div className="flex shrink-0 flex-wrap items-center gap-2.5 sm:gap-3">{actions}</div>

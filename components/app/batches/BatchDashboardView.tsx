@@ -37,6 +37,8 @@ import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 import { formatDateDMY } from '@/lib/date';
 import { type BatchStatus, isBatchLocked } from '@/lib/validation';
 
+import { getBatchStatusBadgeClass } from './batchStatus';
+
 export interface BatchMemberItem {
   id: string;
   name: string;
@@ -74,19 +76,6 @@ export interface BatchDetailData {
   members: BatchMemberItem[];
   courses: AllocatedCourseItem[];
   history: StatusHistoryEntry[];
-}
-
-function getBatchStatusBadgeClass(status: BatchStatus): string {
-  switch (status) {
-    case 'LIVE':
-      return 'bg-emerald-100 text-emerald-800';
-    case 'DRAFT':
-      return 'bg-blue-100 text-blue-800';
-    case 'ON_HOLD':
-      return 'bg-amber-100 text-amber-800';
-    default:
-      return 'bg-slate-200 text-slate-800';
-  }
 }
 
 function MentorMappingCell({

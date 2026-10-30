@@ -1,14 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { CreateBatchModal } from '@/components/app/batches/CreateBatchModal';
+import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
 import { PageHeader } from '@/components/patterns/PageHeader';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import { MultiSelectDropdown, type MultiSelectOption } from '@/components/ui/MultiSelectDropdown';
 import { Skeleton } from '@/components/ui/Skeleton';
 import {
@@ -27,105 +27,15 @@ import { formatDateDMY } from '@/lib/date';
 import { type BatchStatus } from '@/lib/validation';
 import type { ApiBatchSummary } from '@/services/batches.service';
 
-const BATCH_STATUS_FILTER_OPTIONS: MultiSelectOption[] = [
+import { DEFAULT_PAGE_SIZE_OPTIONS, getBatchStatusBadgeClass } from './batchStatus';
+
+const BATCH_STATUS_FILTER_OPTIONS: MultiSelectOption<BatchStatus>[] = [
   { value: 'LIVE', label: 'Live' },
   { value: 'DRAFT', label: 'Draft' },
   { value: 'ON_HOLD', label: 'On Hold' },
   { value: 'COMPLETED', label: 'Completed' },
   { value: 'ARCHIVED', label: 'Archived' },
 ];
-
-function getStatusBadge(status: BatchStatus): string {
-  switch (status) {
-    case 'LIVE':
-      return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-    case 'DRAFT':
-      return 'bg-blue-50 text-blue-700 border-blue-200';
-    case 'ON_HOLD':
-      return 'bg-amber-50 text-amber-700 border-amber-200';
-    case 'COMPLETED':
-      return 'bg-slate-100 text-slate-700 border-slate-200';
-    case 'ARCHIVED':
-      return 'bg-slate-50 text-slate-500 border-slate-200';
-    default:
-      return 'bg-slate-100 text-slate-700 border-slate-200';
-  }
-}
-
-interface BatchSearchInputProps {
-  value: string;
-  onSearchChange: (val: string) => void;
-}
-
-function BatchSearchInput({ value, onSearchChange }: Readonly<BatchSearchInputProps>) {
-  const [localValue, setLocalValue] = useState(value);
-  const [prevValue, setPrevValue] = useState(value);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const onSearchChangeRef = useRef(onSearchChange);
-
-  useEffect(() => {
-    onSearchChangeRef.current = onSearchChange;
-  });
-
-  if (prevValue !== value) {
-    setPrevValue(value);
-    setLocalValue(value);
-  }
-
-  useEffect(() => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-  }, [value]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const nextVal = e.target.value;
-    setLocalValue(nextVal);
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
-    timerRef.current = setTimeout(() => {
-      onSearchChangeRef.current(nextVal);
-    }, 300);
-  };
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-    };
-  }, []);
-
-  return (
-    <div className="relative w-full">
-      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
-        <svg
-          className="h-4 w-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-          aria-hidden="true"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          />
-        </svg>
-      </div>
-      <Input
-        type="text"
-        value={localValue}
-        onChange={handleChange}
-        placeholder="Search batches by name or code..."
-        className="h-11 w-full rounded-xl pl-10 text-sm font-medium"
-      />
-    </div>
-  );
-}
 
 function BatchesTableRow({ batch }: Readonly<{ batch: ApiBatchSummary }>) {
   const totalMembers = (batch.menteesCount ?? 0) + (batch.mentorsCount ?? 0);
@@ -145,7 +55,7 @@ function BatchesTableRow({ batch }: Readonly<{ batch: ApiBatchSummary }>) {
       </TableCell>
       <TableCell>
         <Span
-          className={`inline-block rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getStatusBadge(
+          className={`inline-block rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getBatchStatusBadgeClass(
             batch.status,
           )}`}
         >
@@ -258,19 +168,14 @@ export function BatchesPageSkeleton() {
 export function BatchesTable() {
   const { user, isAuthorized, sessionError } = useRoleRedirect({ allowedRoles: ['SUPER_ADMIN'] });
   const [search, setSearch] = useState('');
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<BatchStatus[]>([]);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [isCreateOpen, setIsCreateOpen] = useState(
     () => typeof window !== 'undefined' && window.location.search.includes('create=true'),
   );
 
-  const filterStatus = useMemo(() => {
-    if (selectedStatuses.length > 0) {
-      return selectedStatuses as BatchStatus[];
-    }
-    return undefined;
-  }, [selectedStatuses]);
+  const filterStatus = selectedStatuses.length > 0 ? selectedStatuses : undefined;
 
   const {
     data: batchesResponse,
@@ -284,7 +189,7 @@ export function BatchesTable() {
     limit,
   });
 
-  const isTableLoading = Boolean(isLoading || isFetching);
+  const isInitialLoading = isLoading && !batchesResponse;
   const batches = useMemo(() => batchesResponse?.items ?? [], [batchesResponse]);
   const pagination = useMemo(
     () =>
@@ -350,7 +255,11 @@ export function BatchesTable() {
       {/* Filter Row with Search Input and Status MultiSelect Filter */}
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#E1E6EC] bg-white p-3.5 shadow-xs">
         <div className="w-full flex-1 sm:max-w-md lg:max-w-lg">
-          <BatchSearchInput value={search} onSearchChange={handleSearchChange} />
+          <DebouncedSearchInput
+            value={search}
+            onSearchChange={handleSearchChange}
+            placeholder="Search batches by name or code..."
+          />
         </div>
         <div className="w-full sm:w-auto">
           <MultiSelectDropdown
@@ -386,8 +295,14 @@ export function BatchesTable() {
               <TableHead className="text-right">Overall Progress</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {isTableLoading ? (
+          <TableBody
+            className={
+              isFetching && !isInitialLoading
+                ? 'opacity-60 transition-opacity'
+                : 'transition-opacity'
+            }
+          >
+            {isInitialLoading ? (
               <BatchesTableSkeleton count={limit} />
             ) : batches.length === 0 ? (
               <TableRow>
@@ -409,9 +324,9 @@ export function BatchesTable() {
           totalPages={pagination.totalPages}
           onPageChange={handlePageChange}
           onLimitChange={handleLimitChange}
-          isLoading={isTableLoading}
+          isLoading={isInitialLoading}
           itemLabel="cohorts"
-          pageSizeOptions={[10, 20, 50]}
+          pageSizeOptions={DEFAULT_PAGE_SIZE_OPTIONS}
         />
       </TableContainer>
 
