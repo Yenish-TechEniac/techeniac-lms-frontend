@@ -3,28 +3,40 @@
 import { useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
 
+import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
 import { useAuth } from '@/hooks/useAuth';
+import { getRoleProfilePath } from '@/hooks/useRoleRedirect';
 
 export default function ProfileRedirectPage() {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, sessionError } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (isLoading) return;
 
     if (!isAuthenticated || !user) {
+      if (sessionError) return;
       router.replace('/login');
       return;
     }
 
-    if (user.role === 'SUPER_ADMIN') {
-      router.replace('/admin/profile');
-    } else if (user.role === 'MENTOR') {
-      router.replace('/mentor/profile');
-    } else {
-      router.replace('/mentee/profile');
+    if (user.mustChangePassword) {
+      router.replace('/change-password');
+      return;
     }
-  }, [user, isAuthenticated, isLoading, router]);
+
+    router.replace(getRoleProfilePath(user.role));
+  }, [user, isAuthenticated, isLoading, sessionError, router]);
+
+  if (sessionError && (!isAuthenticated || !user)) {
+    return (
+      <PortalSessionState
+        sessionError={sessionError}
+        loadingMessage="Loading profile..."
+        variant="admin"
+      />
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-1 items-center justify-center bg-[#F6F8FC]">

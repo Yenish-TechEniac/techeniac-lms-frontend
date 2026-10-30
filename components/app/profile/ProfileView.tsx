@@ -16,21 +16,11 @@ import { usePasswordCriteria } from '@/hooks/usePasswordCriteria';
 import { formatDateIST } from '@/lib/date';
 import { ApiError } from '@/lib/errors';
 import { formatRoleLabel } from '@/lib/roles';
+import { getUserInitials } from '@/lib/user';
 import { changePasswordSchema, extractZodErrors } from '@/lib/validation';
-import type { AuthUser } from '@/services/auth.service';
+import type { AuthUser, UserRole } from '@/services/auth.service';
 
-function getUserInitials(name?: string): string {
-  if (!name) return 'U';
-  const parts = name.trim().split(/\s+/);
-  if (parts.length >= 2) {
-    const first = parts[0]?.charAt(0) ?? '';
-    const last = parts[parts.length - 1]?.charAt(0) ?? '';
-    return `${first}${last}`.toUpperCase();
-  }
-  return name.slice(0, 2).toUpperCase();
-}
-
-function getRoleBadgeColor(role?: string): string {
+function getRoleBadgeColor(role: UserRole): string {
   switch (role) {
     case 'SUPER_ADMIN':
       return 'bg-purple-50 text-purple-700 border-purple-200';
@@ -38,9 +28,59 @@ function getRoleBadgeColor(role?: string): string {
       return 'bg-emerald-50 text-emerald-700 border-emerald-200';
     case 'MENTEE':
       return 'bg-blue-50 text-blue-700 border-blue-200';
-    default:
-      return 'bg-slate-50 text-slate-700 border-slate-200';
   }
+}
+
+interface ProfilePasswordFieldProps {
+  readonly id: string;
+  readonly name: string;
+  readonly label: string;
+  readonly value: string;
+  readonly onChange: (val: string) => void;
+  readonly placeholder: string;
+  readonly error?: string | undefined;
+  readonly isVisible: boolean;
+  readonly onToggleVisibility: () => void;
+  readonly disabled?: boolean | undefined;
+  readonly autoComplete?: string | undefined;
+}
+
+function ProfilePasswordField({
+  id,
+  name,
+  label,
+  value,
+  onChange,
+  placeholder,
+  error,
+  isVisible,
+  onToggleVisibility,
+  disabled,
+  autoComplete,
+}: Readonly<ProfilePasswordFieldProps>) {
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor={id} required>
+        {label}
+      </Label>
+      <div className="relative">
+        <Input
+          id={id}
+          name={name}
+          type={isVisible ? 'text' : 'password'}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          hasError={Boolean(error)}
+          errorId={`${id}-error`}
+          disabled={disabled}
+          autoComplete={autoComplete}
+        />
+        <PasswordVisibilityToggle isVisible={isVisible} onToggle={onToggleVisibility} />
+      </div>
+      {error ? <FieldError id={`${id}-error`} error={error} /> : null}
+    </div>
+  );
 }
 
 export interface ProfileViewProps {
@@ -65,6 +105,17 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
   const criteria = usePasswordCriteria(newPassword);
   const userInitials = getUserInitials(user.name);
   const roleBadgeStyle = getRoleBadgeColor(user.role);
+
+  const handleFieldChange =
+    (setter: React.Dispatch<React.SetStateAction<string>>, fieldKey: string) => (val: string) => {
+      setter(val);
+      if (successMessage) {
+        setSuccessMessage(null);
+      }
+      if (errors[fieldKey]) {
+        setErrors((prev) => ({ ...prev, [fieldKey]: '' }));
+      }
+    };
 
   const handlePasswordSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -123,18 +174,27 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
               <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-[#0044D3] text-2xl font-black text-white shadow-md shadow-[#0044D3]/20">
                 {userInitials}
               </div>
-              <H2 className="mt-4 text-xl font-bold text-[#111827]">{user.name}</H2>
-              <P className="text-sm text-[#667085]">{user.email}</P>
+              <H2 className="mt-4 max-w-full truncate text-xl font-bold text-[#111827]">
+                {user.name || 'User'}
+              </H2>
+              <P className="max-w-full truncate text-sm text-[#667085]">{user.email}</P>
               <div className="mt-3 flex items-center gap-2">
                 <Span
                   className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${roleBadgeStyle}`}
                 >
                   {formatRoleLabel(user.role)}
                 </Span>
-                <Span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                  <Span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  Active
-                </Span>
+                {user.isActive !== false ? (
+                  <Span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                    <Span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    Active
+                  </Span>
+                ) : (
+                  <Span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700">
+                    <Span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+                    Inactive
+                  </Span>
+                )}
               </div>
             </div>
 
@@ -143,27 +203,33 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
                 Account Information
               </H3>
               <dl className="mt-4 space-y-4 text-sm">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <dt className="text-[#667085]">Full Name</dt>
-                  <dd className="font-semibold text-[#111827]">{user.name}</dd>
+                <div className="flex min-w-0 items-center justify-between gap-4 border-b border-slate-100 pb-3">
+                  <dt className="shrink-0 text-[#667085]">Full Name</dt>
+                  <dd className="truncate font-semibold text-[#111827]">{user.name || 'User'}</dd>
                 </div>
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <dt className="text-[#667085]">Email Address</dt>
-                  <dd className="font-semibold text-[#111827]">{user.email}</dd>
+                <div className="flex min-w-0 items-center justify-between gap-4 border-b border-slate-100 pb-3">
+                  <dt className="shrink-0 text-[#667085]">Email Address</dt>
+                  <dd className="truncate font-semibold text-[#111827]">{user.email}</dd>
                 </div>
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <dt className="text-[#667085]">Role</dt>
-                  <dd className="font-semibold text-[#111827]">{formatRoleLabel(user.role)}</dd>
-                </div>
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <dt className="text-[#667085]">Member Since</dt>
-                  <dd className="font-semibold text-[#111827]">
-                    {user.createdAt ? formatDateIST(user.createdAt) : 'Platform Active'}
+                <div className="flex min-w-0 items-center justify-between gap-4 border-b border-slate-100 pb-3">
+                  <dt className="shrink-0 text-[#667085]">Role</dt>
+                  <dd className="truncate font-semibold text-[#111827]">
+                    {formatRoleLabel(user.role)}
                   </dd>
                 </div>
-                <div className="flex items-center justify-between">
-                  <dt className="text-[#667085]">Account Status</dt>
-                  <dd className="font-semibold text-emerald-600">Active & Verified</dd>
+                <div className="flex min-w-0 items-center justify-between gap-4 border-b border-slate-100 pb-3">
+                  <dt className="shrink-0 text-[#667085]">Member Since</dt>
+                  <dd className="truncate font-semibold text-[#111827]">
+                    {user.createdAt ? formatDateIST(user.createdAt) : '—'}
+                  </dd>
+                </div>
+                <div className="flex min-w-0 items-center justify-between gap-4">
+                  <dt className="shrink-0 text-[#667085]">Account Status</dt>
+                  <dd
+                    className={`truncate font-semibold ${user.isActive !== false ? 'text-emerald-600' : 'text-slate-500'}`}
+                  >
+                    {user.isActive !== false ? 'Active & Verified' : 'Inactive'}
+                  </dd>
                 </div>
               </dl>
             </div>
@@ -199,106 +265,52 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
               className="mt-6 space-y-5"
             >
               {/* Current Password Field */}
-              <div className="space-y-1.5">
-                <Label htmlFor="currentPassword" required>
-                  Current Password
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="currentPassword"
-                    name="currentPassword"
-                    type={showCurrentPassword ? 'text' : 'password'}
-                    value={currentPassword}
-                    onChange={(e) => {
-                      setCurrentPassword(e.target.value);
-                      if (errors.currentPassword) {
-                        setErrors((prev) => ({ ...prev, currentPassword: '' }));
-                      }
-                    }}
-                    placeholder="Enter current password"
-                    hasError={Boolean(errors.currentPassword)}
-                    errorId="currentPassword-error"
-                    disabled={isSubmitting}
-                    autoComplete="current-password"
-                  />
-                  <PasswordVisibilityToggle
-                    isVisible={showCurrentPassword}
-                    onToggle={() => setShowCurrentPassword((prev) => !prev)}
-                  />
-                </div>
-                {errors.currentPassword ? (
-                  <FieldError id="currentPassword-error" error={errors.currentPassword} />
-                ) : null}
-              </div>
+              <ProfilePasswordField
+                id="currentPassword"
+                name="currentPassword"
+                label="Current Password"
+                value={currentPassword}
+                onChange={handleFieldChange(setCurrentPassword, 'currentPassword')}
+                placeholder="Enter current password"
+                error={errors.currentPassword}
+                isVisible={showCurrentPassword}
+                onToggleVisibility={() => setShowCurrentPassword((prev) => !prev)}
+                disabled={isSubmitting}
+                autoComplete="current-password"
+              />
 
               {/* New Password Field */}
-              <div className="space-y-1.5">
-                <Label htmlFor="newPassword" required>
-                  New Password
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="newPassword"
-                    name="newPassword"
-                    type={showNewPassword ? 'text' : 'password'}
-                    value={newPassword}
-                    onChange={(e) => {
-                      setNewPassword(e.target.value);
-                      if (errors.newPassword) {
-                        setErrors((prev) => ({ ...prev, newPassword: '' }));
-                      }
-                    }}
-                    placeholder="Enter new strong password"
-                    hasError={Boolean(errors.newPassword)}
-                    errorId="newPassword-error"
-                    disabled={isSubmitting}
-                    autoComplete="new-password"
-                  />
-                  <PasswordVisibilityToggle
-                    isVisible={showNewPassword}
-                    onToggle={() => setShowNewPassword((prev) => !prev)}
-                  />
-                </div>
-                {errors.newPassword ? (
-                  <FieldError id="newPassword-error" error={errors.newPassword} />
-                ) : null}
-              </div>
+              <ProfilePasswordField
+                id="newPassword"
+                name="newPassword"
+                label="New Password"
+                value={newPassword}
+                onChange={handleFieldChange(setNewPassword, 'newPassword')}
+                placeholder="Enter new strong password"
+                error={errors.newPassword}
+                isVisible={showNewPassword}
+                onToggleVisibility={() => setShowNewPassword((prev) => !prev)}
+                disabled={isSubmitting}
+                autoComplete="new-password"
+              />
 
               {/* Password Requirements Checklist */}
               {newPassword.length > 0 ? <PasswordCriteriaChecklist criteria={criteria} /> : null}
 
               {/* Confirm Password Field */}
-              <div className="space-y-1.5">
-                <Label htmlFor="confirmPassword" required>
-                  Confirm New Password
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    value={confirmPassword}
-                    onChange={(e) => {
-                      setConfirmPassword(e.target.value);
-                      if (errors.confirmPassword) {
-                        setErrors((prev) => ({ ...prev, confirmPassword: '' }));
-                      }
-                    }}
-                    placeholder="Re-enter new password"
-                    hasError={Boolean(errors.confirmPassword)}
-                    errorId="confirmPassword-error"
-                    disabled={isSubmitting}
-                    autoComplete="new-password"
-                  />
-                  <PasswordVisibilityToggle
-                    isVisible={showConfirmPassword}
-                    onToggle={() => setShowConfirmPassword((prev) => !prev)}
-                  />
-                </div>
-                {errors.confirmPassword ? (
-                  <FieldError id="confirmPassword-error" error={errors.confirmPassword} />
-                ) : null}
-              </div>
+              <ProfilePasswordField
+                id="confirmPassword"
+                name="confirmPassword"
+                label="Confirm New Password"
+                value={confirmPassword}
+                onChange={handleFieldChange(setConfirmPassword, 'confirmPassword')}
+                placeholder="Re-enter new password"
+                error={errors.confirmPassword}
+                isVisible={showConfirmPassword}
+                onToggleVisibility={() => setShowConfirmPassword((prev) => !prev)}
+                disabled={isSubmitting}
+                autoComplete="new-password"
+              />
 
               {/* Submit Button */}
               <div className="flex justify-end pt-2">
