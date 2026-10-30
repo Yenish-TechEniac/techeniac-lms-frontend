@@ -71,11 +71,13 @@ export function DatePicker({
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const spaceBelow = window.innerHeight - rect.bottom;
-    const isUp = placement === 'top' || (placement === 'auto' && spaceBelow < 330);
     const popoverHeight = 310;
+    const isUp =
+      placement === 'top' || (placement === 'auto' && spaceBelow < 330 && rect.top > 330);
 
     const left = Math.max(12, Math.min(rect.left, window.innerWidth - 300));
-    const top = isUp ? rect.top - popoverHeight - 6 : rect.bottom + 6;
+    let top = isUp ? rect.top - popoverHeight - 6 : rect.bottom + 6;
+    top = Math.max(12, Math.min(top, window.innerHeight - popoverHeight - 12));
 
     setCoords({ top, left });
   }, [placement]);
