@@ -8,6 +8,11 @@ export interface SidebarContextValue {
   readonly toggleDrawer: () => void;
   readonly openDrawer: () => void;
   readonly closeDrawer: () => void;
+  readonly isMobileNavOpen: boolean;
+  readonly setIsMobileNavOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  readonly toggleMobileNav: () => void;
+  readonly openMobileNav: () => void;
+  readonly closeMobileNav: () => void;
   readonly contentMarginClass: string;
 }
 
@@ -18,14 +23,21 @@ export interface SidebarProviderProps {
 }
 
 export function SidebarProvider({ children }: SidebarProviderProps) {
-  // Collapsed by default on desktop to showcase the icon rail matching LeadNest Figma design
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  // Desktop persistent drawer: expanded by default (true)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(true);
+  // Mobile / Tablet overlay drawer: closed by default (false)
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   const toggleDrawer = () => setIsDrawerOpen((prev) => !prev);
   const openDrawer = () => setIsDrawerOpen(true);
   const closeDrawer = () => setIsDrawerOpen(false);
 
-  const contentMarginClass = isDrawerOpen ? 'md:ml-72' : 'md:ml-20';
+  const toggleMobileNav = () => setIsMobileNavOpen((prev) => !prev);
+  const openMobileNav = () => setIsMobileNavOpen(true);
+  const closeMobileNav = () => setIsMobileNavOpen(false);
+
+  // Desktop (lg): w-72 (expanded) or w-20 (rail). Tablet (md): w-20 rail. Mobile: ml-0.
+  const contentMarginClass = isDrawerOpen ? 'lg:ml-72 md:ml-20' : 'lg:ml-20 md:ml-20';
 
   const value = useMemo<SidebarContextValue>(
     () => ({
@@ -34,9 +46,14 @@ export function SidebarProvider({ children }: SidebarProviderProps) {
       toggleDrawer,
       openDrawer,
       closeDrawer,
+      isMobileNavOpen,
+      setIsMobileNavOpen,
+      toggleMobileNav,
+      openMobileNav,
+      closeMobileNav,
       contentMarginClass,
     }),
-    [isDrawerOpen, contentMarginClass],
+    [isDrawerOpen, isMobileNavOpen, contentMarginClass],
   );
 
   return <SidebarContext.Provider value={value}>{children}</SidebarContext.Provider>;
@@ -46,12 +63,17 @@ export function useSidebar(): SidebarContextValue {
   const ctx = useContext(SidebarContext);
   if (!ctx) {
     return {
-      isDrawerOpen: false,
+      isDrawerOpen: true,
       setIsDrawerOpen: () => {},
       toggleDrawer: () => {},
       openDrawer: () => {},
       closeDrawer: () => {},
-      contentMarginClass: 'md:ml-20',
+      isMobileNavOpen: false,
+      setIsMobileNavOpen: () => {},
+      toggleMobileNav: () => {},
+      openMobileNav: () => {},
+      closeMobileNav: () => {},
+      contentMarginClass: 'lg:ml-72 md:ml-20',
     };
   }
   return ctx;

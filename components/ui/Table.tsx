@@ -48,7 +48,7 @@ export const TableHeader = React.forwardRef<HTMLTableSectionElement, TableHeader
     <thead
       ref={ref}
       className={cn(
-        'border-b border-[#E1E6EC] bg-[#F6F8FC] text-xs font-semibold text-[#667085] sm:text-sm',
+        'sticky top-0 z-10 border-b border-[#E1E6EC] bg-[#F6F8FC] text-sm font-semibold text-[#667085]',
         className,
       )}
       {...props}
@@ -114,7 +114,7 @@ export const TableHead = React.forwardRef<HTMLTableCellElement, TableHeadProps>(
     <th
       ref={ref}
       scope={scope}
-      className={cn('px-6 py-4 font-semibold text-[#667085]', className)}
+      className={cn('px-4 py-2.5 font-semibold text-[#667085] sm:px-5 sm:py-2.5', className)}
       {...props}
     >
       {children}
@@ -129,7 +129,11 @@ export interface TableCellProps extends React.TdHTMLAttributes<HTMLTableCellElem
 
 export const TableCell = React.forwardRef<HTMLTableCellElement, TableCellProps>(
   ({ className, children, ...props }, ref) => (
-    <td ref={ref} className={cn('px-6 py-4 align-middle text-[#111827]', className)} {...props}>
+    <td
+      ref={ref}
+      className={cn('px-4 py-2 align-middle text-[#111827] sm:px-5 sm:py-2.5', className)}
+      {...props}
+    >
       {children}
     </td>
   ),
