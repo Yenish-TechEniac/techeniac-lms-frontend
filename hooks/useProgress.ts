@@ -1,6 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 
 import {
   type AllocationProgressResponse,
@@ -54,6 +55,21 @@ export function useAllocationProgress(allocationId: string | undefined) {
     },
     enabled: isValidUuid,
   });
+}
+
+export function usePrefetchAllocationProgress() {
+  const queryClient = useQueryClient();
+  return useCallback(
+    (allocationId: string | undefined) => {
+      if (!allocationId || !UUID_REGEX.test(allocationId)) return;
+      void queryClient.prefetchQuery({
+        queryKey: progressKeys.allocation(allocationId),
+        queryFn: () => progressService.getAllocationProgress(allocationId),
+        staleTime: 30 * 1000,
+      });
+    },
+    [queryClient],
+  );
 }
 
 export function useProgressTrackers(filters: ProgressTrackerFilters = {}) {

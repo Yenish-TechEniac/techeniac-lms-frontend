@@ -1,6 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 
 import {
   type AddMenteesPayload,
@@ -57,6 +58,21 @@ export function useAllocationsList(filters: AllocationFilters = {}) {
     queryKey: allocationKeys.list(filters),
     queryFn: () => allocationsService.listAllocations(filters),
   });
+}
+
+export function usePrefetchAllocation() {
+  const queryClient = useQueryClient();
+  return useCallback(
+    (id: string) => {
+      if (!id || !UUID_REGEX.test(id)) return;
+      void queryClient.prefetchQuery({
+        queryKey: allocationKeys.detail(id),
+        queryFn: () => allocationsService.getAllocationById(id),
+        staleTime: 30 * 1000,
+      });
+    },
+    [queryClient],
+  );
 }
 
 export function useAllocationDetail(id: string) {

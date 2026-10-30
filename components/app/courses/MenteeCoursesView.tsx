@@ -14,8 +14,10 @@ import {
   type CourseAllocation,
   isTerminalAllocationStatus,
   useAllocationsList,
+  usePrefetchAllocation,
 } from '@/hooks/useAllocations';
 import { useAuth } from '@/hooks/useAuth';
+import { usePrefetchAllocationProgress } from '@/hooks/useProgress';
 
 export function MenteeCoursesView() {
   const { user } = useAuth();
@@ -219,12 +221,19 @@ export function MenteeCoursesView() {
 }
 
 function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAllocation }>) {
+  const prefetchProgress = usePrefetchAllocationProgress();
+  const prefetchAllocation = usePrefetchAllocation();
   const isCompleted = allocation.status === 'COMPLETED';
   const isRevokedOrClosed = isTerminalAllocationStatus(allocation.status) && !isCompleted;
 
   const isOverdue = Boolean(allocation.isOverdue) && !isCompleted && !isRevokedOrClosed;
 
   const formattedDueDate = new Date(allocation.dueDate).toLocaleDateString();
+
+  const prefetchCourseProgress = () => {
+    prefetchProgress(allocation.id);
+    prefetchAllocation(allocation.id);
+  };
 
   return (
     <div
@@ -265,7 +274,12 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
         </div>
 
         {/* Title & Description */}
-        <Link href={`/mentee/courses/${allocation.id}`} className="group">
+        <Link
+          href={`/mentee/courses/${allocation.id}`}
+          onMouseEnter={prefetchCourseProgress}
+          onFocus={prefetchCourseProgress}
+          className="group"
+        >
           <H3 className="line-clamp-1 text-lg font-bold tracking-tight text-slate-900 transition-colors group-hover:text-blue-600">
             {allocation.course?.title ?? 'Course Track'}
           </H3>
@@ -329,6 +343,8 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
         {isRevokedOrClosed ? (
           <Link
             href={`/mentee/courses/${allocation.id}`}
+            onMouseEnter={prefetchCourseProgress}
+            onFocus={prefetchCourseProgress}
             className="flex items-center justify-center rounded-xl bg-slate-100 p-2.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-200"
           >
             <Span>Course Closed • View Syllabus</Span>
@@ -336,6 +352,8 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
         ) : isCompleted ? (
           <Link
             href={`/mentee/courses/${allocation.id}`}
+            onMouseEnter={prefetchCourseProgress}
+            onFocus={prefetchCourseProgress}
             className="flex items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 p-2.5 text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-100"
           >
             <Span>✓ Track Completed • Review Material</Span>
@@ -343,6 +361,8 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
         ) : (
           <Link
             href={`/mentee/courses/${allocation.id}`}
+            onMouseEnter={prefetchCourseProgress}
+            onFocus={prefetchCourseProgress}
             className="flex items-center justify-center rounded-xl bg-blue-600 p-2.5 text-xs font-bold text-white shadow-xs transition-colors hover:bg-blue-700"
           >
             <Span>Continue Learning →</Span>

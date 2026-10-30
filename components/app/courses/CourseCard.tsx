@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import { formatDurationMinutes } from '@/components/app/courses/types';
 import { Button } from '@/components/ui/Button';
 import { H3, P, Span } from '@/components/ui/Typography';
+import { usePrefetchCourse } from '@/hooks/useCourses';
 import type { Course } from '@/types/courses';
 
 interface CourseCardProps {
@@ -25,6 +26,7 @@ export function CourseCard({
   onRequestToggleStatus,
   onAssignCourse,
 }: Readonly<CourseCardProps>) {
+  const prefetchCourse = usePrefetchCourse();
   const [isCloning, setIsCloning] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -145,6 +147,8 @@ export function CourseCard({
         <div className="flex items-center gap-2">
           <Link
             href={`${basePath}/${course.id}/builder`}
+            onMouseEnter={() => prefetchCourse(course.id)}
+            onFocus={() => prefetchCourse(course.id)}
             className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-slate-800"
           >
             <Span>Builder</Span>

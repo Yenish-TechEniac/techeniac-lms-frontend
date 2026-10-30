@@ -1,6 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 
 import { submissionsService } from '@/services/submissions.service';
 import type {
@@ -72,6 +73,22 @@ export function useAssignmentSubmissionDetails(assignmentId: string) {
     error: queryError?.message ?? null,
     refetch,
   };
+}
+
+export function usePrefetchAssignmentDetails() {
+  const queryClient = useQueryClient();
+  return useCallback(
+    (assignmentId: string) => {
+      if (!assignmentId) return;
+      void queryClient.prefetchQuery({
+        queryKey: SUBMISSION_QUERY_KEYS.assignmentDetails(assignmentId),
+        queryFn: ({ signal }) =>
+          submissionsService.getAssignmentSubmissionDetails(assignmentId, signal),
+        staleTime: 30 * 1000,
+      });
+    },
+    [queryClient],
+  );
 }
 
 export function useSubmitAssignment() {

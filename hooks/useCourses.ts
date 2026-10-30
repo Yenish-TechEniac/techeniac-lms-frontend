@@ -98,6 +98,21 @@ export function useCourseDetail(courseId: string) {
   });
 }
 
+export function usePrefetchCourse() {
+  const queryClient = useQueryClient();
+  return useCallback(
+    (courseId: string) => {
+      if (!courseId) return;
+      void queryClient.prefetchQuery({
+        queryKey: ['course', courseId],
+        queryFn: () => coursesService.getCourseById(courseId, true),
+        staleTime: 5 * 60 * 1000,
+      });
+    },
+    [queryClient],
+  );
+}
+
 export function useCourseBuilder(courseId: string) {
   const queryClient = useQueryClient();
 
