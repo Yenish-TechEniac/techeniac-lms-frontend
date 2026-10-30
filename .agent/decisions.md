@@ -225,3 +225,25 @@
 - **Consequences**:
   - Status types must be exported as string enums in `types/`.
   - API response and payload translation must occur within `services/` rather than leaking into React components.
+
+---
+
+## ADR-013: Strict Role Transition Modal Constraints and Action Disablement
+
+- **Date**: 2026-10-30
+- **Status**: Accepted
+- **Context**: In alignment with backend business logic (ADR-019), user role modification must adhere to a strict progression: Mentees can only transition to Mentors, Mentors can only transition to Super Admins, and Super Admin accounts cannot be changed. The frontend UI must reflect these constraints across modals and directory tables.
+- **Options**:
+  1. Display all roles in dropdowns and rely on backend API rejection errors.
+  2. Filter target role options dynamically via `ALLOWED_ROLE_TRANSITIONS` in `ChangeRoleModal`, display an informational alert banner for Super Admin accounts, and disable the "Change Role" table action for Super Admin rows.
+- **Choice**: Option 2.
+- **Reasons**:
+  - **Error Prevention & UX Clarity**: Pre-filtering options prevents users from attempting invalid transitions (e.g. Mentee $\rightarrow$ Super Admin or Mentor $\rightarrow$ Mentee).
+  - **Visual Feedback**: Super Admin accounts display a clear "Role Modification Restricted" notice, and directory table action buttons are explicitly disabled with descriptive tooltips.
+  - **Architectural Parity**: Keeps frontend form validation and dropdown values 100% synchronized with the backend state machine without contract drift.
+- **Consequences**:
+  - `ChangeRoleModal` filters dropdown options based on `ALLOWED_ROLE_TRANSITIONS`:
+    - Mentee $\rightarrow$ `['MENTOR']` only.
+    - Mentor $\rightarrow$ `['SUPER_ADMIN']` only.
+    - Super Admin $\rightarrow$ `[]` (selection and submit disabled).
+  - In `UsersTable`, the "Change Role" button is disabled for `SUPER_ADMIN` rows with tooltip `"Super Admin role cannot be changed"`.
