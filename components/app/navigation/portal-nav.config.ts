@@ -143,7 +143,23 @@ export const MENTOR_PORTAL_NAV: PortalNavConfig = {
   badgeColor: 'bg-emerald-100 text-emerald-800',
   nav: [
     { label: 'Dashboard', href: '/mentor', active: true },
-    { label: 'My Mentees', href: '#', active: false },
+    { label: 'My Mentees', href: '/mentor/mentees', active: false },
+    { label: 'Reviews', href: '/mentor/submissions', active: false },
+    { label: 'Courses', href: '/mentor/courses', active: false },
+    { label: 'Allocations', href: '/mentor/allocations', active: false },
+    { label: 'Progress Tracker', href: '/mentor/progress', active: false },
+    { label: "Mentees' Performance", href: '/mentor/performance', active: false },
+    { label: 'My Performance', href: '/mentor/my-performance', active: false },
+  ],
+};
+
+export const MENTOR_MENTEES_NAV: PortalNavConfig = {
+  subtitle: 'Mentor Portal',
+  homeUrl: '/mentor',
+  badgeColor: 'bg-emerald-100 text-emerald-800',
+  nav: [
+    { label: 'Dashboard', href: '/mentor', active: false },
+    { label: 'My Mentees', href: '/mentor/mentees', active: true },
     { label: 'Reviews', href: '/mentor/submissions', active: false },
     { label: 'Courses', href: '/mentor/courses', active: false },
     { label: 'Allocations', href: '/mentor/allocations', active: false },
@@ -159,7 +175,7 @@ export const MENTOR_COURSES_NAV: PortalNavConfig = {
   badgeColor: 'bg-emerald-100 text-emerald-800',
   nav: [
     { label: 'Dashboard', href: '/mentor', active: false },
-    { label: 'My Mentees', href: '#', active: false },
+    { label: 'My Mentees', href: '/mentor/mentees', active: false },
     { label: 'Reviews', href: '/mentor/submissions', active: false },
     { label: 'Courses', href: '/mentor/courses', active: true },
     { label: 'Allocations', href: '/mentor/allocations', active: false },
@@ -175,7 +191,7 @@ export const MENTOR_ALLOCATIONS_NAV: PortalNavConfig = {
   badgeColor: 'bg-emerald-100 text-emerald-800',
   nav: [
     { label: 'Dashboard', href: '/mentor', active: false },
-    { label: 'My Mentees', href: '#', active: false },
+    { label: 'My Mentees', href: '/mentor/mentees', active: false },
     { label: 'Reviews', href: '/mentor/submissions', active: false },
     { label: 'Courses', href: '/mentor/courses', active: false },
     { label: 'Allocations', href: '/mentor/allocations', active: true },
@@ -191,7 +207,7 @@ export const MENTOR_REVIEWS_NAV: PortalNavConfig = {
   badgeColor: 'bg-emerald-100 text-emerald-800',
   nav: [
     { label: 'Dashboard', href: '/mentor', active: false },
-    { label: 'My Mentees', href: '#', active: false },
+    { label: 'My Mentees', href: '/mentor/mentees', active: false },
     { label: 'Reviews', href: '/mentor/submissions', active: true },
     { label: 'Courses', href: '/mentor/courses', active: false },
     { label: 'Allocations', href: '/mentor/allocations', active: false },
@@ -207,7 +223,7 @@ export const MENTOR_PROGRESS_NAV: PortalNavConfig = {
   badgeColor: 'bg-emerald-100 text-emerald-800',
   nav: [
     { label: 'Dashboard', href: '/mentor', active: false },
-    { label: 'My Mentees', href: '#', active: false },
+    { label: 'My Mentees', href: '/mentor/mentees', active: false },
     { label: 'Reviews', href: '/mentor/submissions', active: false },
     { label: 'Courses', href: '/mentor/courses', active: false },
     { label: 'Allocations', href: '/mentor/allocations', active: false },
@@ -223,7 +239,7 @@ export const MENTOR_PERFORMANCE_NAV: PortalNavConfig = {
   badgeColor: 'bg-emerald-100 text-emerald-800',
   nav: [
     { label: 'Dashboard', href: '/mentor', active: false },
-    { label: 'My Mentees', href: '#', active: false },
+    { label: 'My Mentees', href: '/mentor/mentees', active: false },
     { label: 'Reviews', href: '/mentor/submissions', active: false },
     { label: 'Courses', href: '/mentor/courses', active: false },
     { label: 'Allocations', href: '/mentor/allocations', active: false },
@@ -239,7 +255,7 @@ export const MENTOR_MY_PERFORMANCE_NAV: PortalNavConfig = {
   badgeColor: 'bg-emerald-100 text-emerald-800',
   nav: [
     { label: 'Dashboard', href: '/mentor', active: false },
-    { label: 'My Mentees', href: '#', active: false },
+    { label: 'My Mentees', href: '/mentor/mentees', active: false },
     { label: 'Reviews', href: '/mentor/submissions', active: false },
     { label: 'Courses', href: '/mentor/courses', active: false },
     { label: 'Allocations', href: '/mentor/allocations', active: false },
