@@ -1,6 +1,12 @@
 'use client';
 
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  noop,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { useCallback } from 'react';
 
 import {
@@ -63,11 +69,13 @@ export function usePrefetchAllocationProgress() {
   return useCallback(
     (allocationId: string | undefined) => {
       if (!allocationId || !UUID_REGEX.test(allocationId)) return;
-      void queryClient.prefetchQuery({
-        queryKey: progressKeys.allocation(allocationId),
-        queryFn: () => progressService.getAllocationProgress(allocationId),
-        staleTime: 30 * 1000,
-      });
+      void queryClient
+        .query({
+          queryKey: progressKeys.allocation(allocationId),
+          queryFn: () => progressService.getAllocationProgress(allocationId),
+          staleTime: 30 * 1000,
+        })
+        .catch(noop);
     },
     [queryClient],
   );

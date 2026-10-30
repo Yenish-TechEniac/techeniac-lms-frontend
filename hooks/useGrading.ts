@@ -1,6 +1,12 @@
 'use client';
 
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  noop,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { useCallback } from 'react';
 
 import { gradingService } from '@/services/grading.service';
@@ -75,11 +81,13 @@ export function usePrefetchSubmissionReview() {
   return useCallback(
     (submissionId: string) => {
       if (!submissionId) return;
-      void queryClient.prefetchQuery({
-        queryKey: GRADING_QUERY_KEYS.review(submissionId),
-        queryFn: ({ signal }) => gradingService.getReviewDetails(submissionId, signal),
-        staleTime: 30 * 1000,
-      });
+      void queryClient
+        .query({
+          queryKey: GRADING_QUERY_KEYS.review(submissionId),
+          queryFn: ({ signal }) => gradingService.getReviewDetails(submissionId, signal),
+          staleTime: 30 * 1000,
+        })
+        .catch(noop);
     },
     [queryClient],
   );

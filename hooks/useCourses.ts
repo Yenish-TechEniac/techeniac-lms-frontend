@@ -1,6 +1,6 @@
 'use client';
 
-import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, noop, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 
 import { coursesService } from '@/services/courses.service';
@@ -116,11 +116,20 @@ export function usePrefetchCourse() {
   return useCallback(
     (courseId: string) => {
       if (!courseId) return;
-      void queryClient.prefetchQuery({
-        queryKey: ['course', courseId],
-        queryFn: () => coursesService.getCourseById(courseId, true),
-        staleTime: 5 * 60 * 1000,
-      });
+      void queryClient
+        .query({
+          queryKey: ['course', courseId],
+          queryFn: () => coursesService.getCourseById(courseId, true),
+          staleTime: 5 * 60 * 1000,
+        })
+        .catch(noop);
+      void queryClient
+        .query({
+          queryKey: ['course-impact', courseId],
+          queryFn: () => coursesService.getCourseImpact(courseId),
+          staleTime: 5 * 60 * 1000,
+        })
+        .catch(noop);
     },
     [queryClient],
   );

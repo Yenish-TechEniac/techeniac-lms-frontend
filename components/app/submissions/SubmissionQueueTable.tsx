@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { H3, Muted, P, Span } from '@/components/ui/Typography';
 import { usePrefetchSubmissionReview, useSubmissionQueue } from '@/hooks/useGrading';
+import { useHoverPrefetch } from '@/hooks/useHoverPrefetch';
 import { formatDateIST } from '@/lib/date';
 import { SubmissionStatus } from '@/types/grading';
 
@@ -16,6 +17,7 @@ import { SubmissionStatusBadge } from './SubmissionStatusBadge';
 
 export function SubmissionQueueTable() {
   const prefetchReview = usePrefetchSubmissionReview();
+  const { getHoverHandlers } = useHoverPrefetch();
   const searchInputId = useId();
 
   const [search, setSearch] = useState<string>('');
@@ -240,8 +242,7 @@ export function SubmissionQueueTable() {
                         type="button"
                         variant="primary"
                         size="sm"
-                        onMouseEnter={() => prefetchReview(sub.id)}
-                        onFocus={() => prefetchReview(sub.id)}
+                        {...getHoverHandlers(() => prefetchReview(sub.id))}
                         onClick={() => setSelectedSubmissionId(sub.id)}
                         className="bg-blue-600 text-xs hover:bg-blue-700"
                       >

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Input } from '@/components/ui/Input';
 import { Code, H3, P, Span } from '@/components/ui/Typography';
+import { useHoverPrefetch } from '@/hooks/useHoverPrefetch';
 import { usePrefetchAssignmentDetails } from '@/hooks/useSubmissions';
 import { formatDateTimeIST } from '@/lib/date';
 import { AssignmentDerivedStatus, type AssignmentWithSubmissionStatus } from '@/types/submissions';
@@ -55,6 +56,7 @@ export function MyAssignmentsTable({
   pagination,
 }: Readonly<MyAssignmentsTableProps>) {
   const prefetchAssignment = usePrefetchAssignmentDetails();
+  const { getHoverHandlers } = useHoverPrefetch();
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredAssignments = assignments.filter((item) => {
@@ -181,8 +183,7 @@ export function MyAssignmentsTable({
                       <div className="space-y-1">
                         <Link
                           href={`/mentee/assignments/${assignment.id}`}
-                          onMouseEnter={() => prefetchAssignment(assignment.id)}
-                          onFocus={() => prefetchAssignment(assignment.id)}
+                          {...getHoverHandlers(() => prefetchAssignment(assignment.id))}
                           className="line-clamp-1 font-semibold text-slate-900 hover:text-blue-600 dark:text-slate-100 dark:hover:text-blue-400"
                         >
                           {assignment.title}
@@ -249,8 +250,7 @@ export function MyAssignmentsTable({
                     <td className="px-5 py-4 text-right whitespace-nowrap">
                       <Link
                         href={`/mentee/assignments/${assignment.id}`}
-                        onMouseEnter={() => prefetchAssignment(assignment.id)}
-                        onFocus={() => prefetchAssignment(assignment.id)}
+                        {...getHoverHandlers(() => prefetchAssignment(assignment.id))}
                       >
                         <Button
                           variant={
