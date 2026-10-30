@@ -3,15 +3,15 @@
 import Link from 'next/link';
 import React, { useMemo, useState } from 'react';
 
+import { MenteeTableRow } from '@/components/app/mentees/MenteeTableRow';
 import { Alert } from '@/components/ui/Alert';
-import { Button } from '@/components/ui/Button';
+import { Button, getButtonClassName } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Skeleton } from '@/components/ui/Skeleton';
 import {
   Table,
   TableBody,
-  TableCell,
   TableContainer,
   TableHead,
   TableHeader,
@@ -28,21 +28,23 @@ export function MentorMenteesView() {
     data: batches = [],
     isLoading: isLoadingBatches,
     error: batchesError,
+    refetch: refetchBatches,
   } = useMentorBatches();
 
   const {
     data: mentees = [],
     isLoading: isLoadingMentees,
     error: menteesError,
-    refetch,
-  } = useMentorMentees(selectedBatchId || undefined);
+    refetch: refetchMentees,
+  } = useMentorMentees();
 
-  // Client-side filtering by name / email / batch code
+  // Client-side filtering by batch ID, name, email, or batch details
   const filteredMentees = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    if (!q) return mentees;
-
     return mentees.filter((m) => {
+      if (selectedBatchId && m.batchId !== selectedBatchId) return false;
+      if (!q) return true;
+
       const name = m.name?.toLowerCase() ?? '';
       const email = m.email?.toLowerCase() ?? '';
       const batchName = m.batchName?.toLowerCase() ?? '';
@@ -51,7 +53,7 @@ export function MentorMenteesView() {
         name.includes(q) || email.includes(q) || batchName.includes(q) || batchCode.includes(q)
       );
     });
-  }, [mentees, searchQuery]);
+  }, [mentees, searchQuery, selectedBatchId]);
 
   const hasActiveFilters = Boolean(selectedBatchId || searchQuery.trim());
 
@@ -82,7 +84,15 @@ export function MentorMenteesView() {
           }
         >
           <div className="mt-3">
-            <Button type="button" variant="outline" size="sm" onClick={() => void refetch()}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (batchesError) void refetchBatches();
+                if (menteesError) void refetchMentees();
+              }}
+            >
               Retry Loading
             </Button>
           </div>
@@ -126,7 +136,7 @@ export function MentorMenteesView() {
           <div className="w-full sm:max-w-xs">
             <Input
               type="search"
-              placeholder="Search by name or email..."
+              placeholder="Search by name, email, or cohort..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               aria-label="Search mentees"
@@ -184,8 +194,8 @@ export function MentorMenteesView() {
               </div>
             ))}
           </div>
-        ) : mentees.length === 0 ? (
-          /* Empty State: Mentor has no mentees mapped in total (or in selected batch) */
+        ) : menteesError ? null : mentees.length === 0 ? (
+          /* Empty State: Mentor has no mentees mapped in total */
           <div className="p-12 text-center">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-[#0044D3]">
               <svg
@@ -203,32 +213,19 @@ export function MentorMenteesView() {
                 />
               </svg>
             </div>
-            <H2 className="mt-4 text-base font-bold text-[#111827]">
-              {selectedBatchId ? 'No Mentees in This Cohort' : 'No Mentees Mapped'}
-            </H2>
+            <H2 className="mt-4 text-base font-bold text-[#111827]">No Mentees Mapped</H2>
             <P className="mx-auto mt-1 max-w-md text-sm text-[#667085]">
-              {selectedBatchId
-                ? 'You do not have any mentees mapped to you in the selected cohort. An administrator can map learners to you.'
-                : 'You are not currently paired with any mentees. Once an administrator maps mentees to you within an active batch, they will appear here.'}
+              You are not currently paired with any mentees. Once an administrator maps mentees to
+              you within an active batch, they will appear here.
             </P>
-            {selectedBatchId ? (
-              <div className="mt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSelectedBatchId('')}
-                >
-                  View All Cohorts
-                </Button>
-              </div>
-            ) : null}
           </div>
         ) : filteredMentees.length === 0 ? (
-          /* Empty State: Search filter yielded zero results */
+          /* Empty State: Filter yielded zero results */
           <div className="p-12 text-center">
             <P className="text-base font-semibold text-[#111827]">
-              No mentees match &ldquo;{searchQuery}&rdquo;
+              {searchQuery
+                ? `No mentees match \u201C${searchQuery}\u201D`
+                : 'No mentees found in the selected cohort'}
             </P>
             <P className="mt-1 text-sm text-[#667085]">
               Try adjusting your search criteria or resetting filters.
@@ -254,43 +251,28 @@ export function MentorMenteesView() {
               </TableHeader>
               <TableBody>
                 {filteredMentees.map((mentee) => (
-                  <TableRow key={mentee.id}>
-                    <TableCell>
-                      <P className="text-base font-bold text-[#111827]">
-                        {mentee.name ?? 'Assigned Mentee'}
-                      </P>
-                      <P className="font-mono text-xs text-[#667085]">{mentee.email ?? '—'}</P>
-                    </TableCell>
-                    <TableCell className="text-sm font-semibold text-[#111827]">
-                      {mentee.batchName ?? 'Cohort'}
-                    </TableCell>
-                    <TableCell>
-                      <Span className="inline-block rounded-md border border-[#E1E6EC] bg-[#F6F8FC] px-2.5 py-1 font-mono text-xs font-bold text-[#111827]">
-                        {mentee.batchCode ?? '—'}
-                      </Span>
-                    </TableCell>
-                    <TableCell className="font-mono text-sm text-[#667085]">
-                      {mentee.startDate ? mentee.startDate.slice(0, 10) : '—'}
-                    </TableCell>
-                    <TableCell className="text-right">
+                  <MenteeTableRow
+                    key={mentee.id}
+                    mentee={mentee}
+                    actions={
                       <div className="inline-flex items-center gap-2">
                         <Link
                           href="/mentor/progress"
-                          className="inline-flex items-center rounded-lg border border-[#E1E6EC] bg-white px-2.5 py-1.5 text-xs font-semibold text-[#111827] shadow-2xs transition-colors hover:border-[#0044D3] hover:text-[#0044D3]"
+                          className={getButtonClassName('outline', 'sm')}
                           title="View Progress Tracker"
                         >
                           Progress
                         </Link>
                         <Link
                           href="/mentor/submissions"
-                          className="inline-flex items-center rounded-lg border border-[#E1E6EC] bg-white px-2.5 py-1.5 text-xs font-semibold text-[#111827] shadow-2xs transition-colors hover:border-[#0044D3] hover:text-[#0044D3]"
+                          className={getButtonClassName('outline', 'sm')}
                           title="View Submission Queue"
                         >
                           Reviews
                         </Link>
                       </div>
-                    </TableCell>
-                  </TableRow>
+                    }
+                  />
                 ))}
               </TableBody>
             </Table>
