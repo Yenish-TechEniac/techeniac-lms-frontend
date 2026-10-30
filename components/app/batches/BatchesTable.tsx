@@ -189,8 +189,8 @@ export function BatchesTable() {
     limit,
   });
 
-  const isInitialLoading = isLoading && !batchesResponse;
   const batches = useMemo(() => batchesResponse?.items ?? [], [batchesResponse]);
+  const isInitialLoading = isLoading && batches.length === 0;
   const pagination = useMemo(
     () =>
       batchesResponse?.pagination ?? {

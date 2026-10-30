@@ -1,13 +1,6 @@
 'use client';
 
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from 'react';
+import React, { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 
 import { Button } from '@/components/ui/Button';
@@ -15,6 +8,7 @@ import { Span } from '@/components/ui/Typography';
 import { cn } from '@/lib/cn';
 import { formatDateDMY } from '@/lib/date';
 import { useClickOutside } from '@/lib/useClickOutside';
+import { useDatePickerPosition } from '@/lib/useDatePickerPosition';
 
 export interface DatePickerProps {
   readonly id?: string | undefined;
@@ -27,8 +21,8 @@ export interface DatePickerProps {
   readonly className?: string | undefined;
 }
 
-const POPOVER_WIDTH_PX = 288;
-const POPOVER_HEIGHT_PX = 320;
+const POPOVER_WIDTH_PX = 340;
+const POPOVER_HEIGHT_PX = 380;
 const POPOVER_GUTTER_PX = 6;
 const POPOVER_Z_INDEX = 9999;
 
@@ -153,20 +147,20 @@ function CalendarPopover({
         zIndex: POPOVER_Z_INDEX,
         width: POPOVER_WIDTH_PX,
       }}
-      className="animate-in fade-in zoom-in-95 rounded-2xl border border-[#E1E6EC] bg-white p-3.5 shadow-2xl duration-100"
+      className="animate-in fade-in zoom-in-95 rounded-2xl border border-[#E1E6EC] bg-white p-4 shadow-2xl duration-100"
     >
-      {/* Header with Navigation */}
+      {/* Header with Navigation - 44px Accessible Touch Targets */}
       <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
         <Button
           type="button"
           variant="ghost"
           size="sm"
           onClick={onPrevMonth}
-          className="flex h-8 w-8 items-center justify-center rounded-full p-0 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+          className="flex h-11 min-h-[44px] w-11 min-w-[44px] items-center justify-center rounded-full p-0 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
           aria-label="Previous month"
         >
           <svg
-            className="h-4 w-4"
+            className="h-5 w-5"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -177,7 +171,7 @@ function CalendarPopover({
           </svg>
         </Button>
 
-        <Span className="text-xs font-bold text-slate-900 sm:text-sm">
+        <Span className="text-sm font-bold text-slate-900 sm:text-base">
           {MONTH_NAMES[viewMonth]} {viewYear}
         </Span>
 
@@ -186,11 +180,11 @@ function CalendarPopover({
           variant="ghost"
           size="sm"
           onClick={onNextMonth}
-          className="flex h-8 w-8 items-center justify-center rounded-full p-0 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+          className="flex h-11 min-h-[44px] w-11 min-w-[44px] items-center justify-center rounded-full p-0 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
           aria-label="Next month"
         >
           <svg
-            className="h-4 w-4"
+            className="h-5 w-5"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -203,7 +197,7 @@ function CalendarPopover({
       </div>
 
       {/* Weekday Row */}
-      <div className="mt-2 grid grid-cols-7 text-center text-[11px] font-semibold text-slate-400">
+      <div className="mt-2 grid grid-cols-7 text-center text-xs font-semibold text-slate-400">
         {WEEKDAY_NAMES.map((w) => (
           <Span key={w} className="py-1">
             {w}
@@ -211,8 +205,8 @@ function CalendarPopover({
         ))}
       </div>
 
-      {/* Day Grid with Accessible 36px Touch Targets */}
-      <div className="mt-1 grid grid-cols-7 gap-1 text-center text-xs">
+      {/* Day Grid with Accessible 44px Touch Targets */}
+      <div className="mt-1 grid grid-cols-7 gap-0.5 text-center text-sm">
         {calendarDays.map((cell) => {
           return (
             <Button
@@ -222,7 +216,7 @@ function CalendarPopover({
               size="sm"
               onClick={() => onSelectDay(cell.dateString)}
               className={cn(
-                'mx-auto flex h-8 w-8 items-center justify-center rounded-full p-0 text-xs transition-colors',
+                'mx-auto flex h-11 min-h-[44px] w-11 min-w-[44px] items-center justify-center rounded-full p-0 text-sm font-semibold transition-colors',
                 cell.isSelected
                   ? 'bg-[#0044D3] font-bold text-white shadow-xs hover:bg-[#0036AB]'
                   : cell.isCurrentMonth
@@ -257,29 +251,18 @@ export function DatePicker({
     () => true,
     () => false,
   );
-  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
-  const updatePosition = useCallback(() => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const isUp =
-      placement === 'top' ||
-      (placement === 'auto' &&
-        spaceBelow < POPOVER_HEIGHT_PX + POPOVER_GUTTER_PX &&
-        rect.top > POPOVER_HEIGHT_PX);
-
-    const left = Math.max(12, Math.min(rect.left, window.innerWidth - POPOVER_WIDTH_PX - 12));
-    let top = isUp
-      ? rect.top - POPOVER_HEIGHT_PX - POPOVER_GUTTER_PX
-      : rect.bottom + POPOVER_GUTTER_PX;
-    top = Math.max(12, Math.min(top, window.innerHeight - POPOVER_HEIGHT_PX - 12));
-
-    setCoords({ top, left });
-  }, [placement]);
+  const { coords, updatePosition } = useDatePickerPosition({
+    containerRef,
+    placement,
+    popoverWidth: POPOVER_WIDTH_PX,
+    popoverHeight: POPOVER_HEIGHT_PX,
+    gutter: POPOVER_GUTTER_PX,
+  });
 
   const handleToggle = () => {
     if (disabled) return;
@@ -294,9 +277,25 @@ export function DatePicker({
   // Close when clicking outside container or popover
   useClickOutside([containerRef, popoverRef], () => setIsOpen(false), isOpen);
 
-  // Stop Escape propagation when popover is open to protect host modals
+  // Focus trap and keyboard handling: trap Tab and Escape inside popover to protect host modals
   useEffect(() => {
     if (!isOpen) return;
+
+    // Move initial focus into popover (selected day or first focusable button)
+    const focusTimer = setTimeout(() => {
+      if (popoverRef.current) {
+        const selectedBtn = popoverRef.current.querySelector<HTMLElement>(
+          'button[class*="bg-[#0044D3]"]',
+        );
+        if (selectedBtn) {
+          selectedBtn.focus();
+        } else {
+          const firstFocusable =
+            popoverRef.current.querySelector<HTMLElement>('button:not([disabled])');
+          firstFocusable?.focus();
+        }
+      }
+    }, 40);
 
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
@@ -304,6 +303,40 @@ export function DatePicker({
         e.preventDefault();
         setIsOpen(false);
         triggerRef.current?.focus();
+        return;
+      }
+
+      if (e.key === 'Tab' && popoverRef.current) {
+        const focusables = Array.from(
+          popoverRef.current.querySelectorAll<HTMLElement>(
+            'button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+          ),
+        );
+        if (focusables.length === 0) {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        const currentIndex = focusables.indexOf(document.activeElement as HTMLElement);
+
+        if (e.shiftKey) {
+          if (document.activeElement === first || currentIndex === -1) {
+            e.preventDefault();
+            e.stopPropagation();
+            last?.focus();
+          }
+        } else {
+          if (document.activeElement === last || currentIndex === -1) {
+            e.preventDefault();
+            e.stopPropagation();
+            first?.focus();
+          }
+        }
+        // Stop Tab from bubbling to host modal's focus-trap listener
+        e.stopPropagation();
       }
     }
 
@@ -312,6 +345,7 @@ export function DatePicker({
     window.addEventListener('scroll', updatePosition, true);
 
     return () => {
+      clearTimeout(focusTimer);
       document.removeEventListener('keydown', handleKeyDown, true);
       window.removeEventListener('resize', updatePosition);
       window.removeEventListener('scroll', updatePosition, true);
@@ -367,19 +401,19 @@ export function DatePicker({
 
   return (
     <div className="relative w-full" ref={containerRef}>
-      {/* Trigger Button with Design System Styling and Accessibility Attributes */}
-      <button
+      {/* Trigger Button using shared Button primitive with Design System Styling and Accessibility Attributes */}
+      <Button
         ref={triggerRef}
         id={id}
         type="button"
+        variant="outline"
         disabled={disabled}
         onClick={handleToggle}
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         className={cn(
-          'flex h-11 w-full items-center justify-between rounded-xl border bg-white px-3.5 text-left text-sm transition-colors focus:ring-2 focus:ring-[#0044D3] focus:outline-none',
+          'flex h-11 w-full items-center justify-between rounded-xl border bg-white px-3.5 text-left text-sm font-normal transition-colors focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none',
           hasError ? 'border-red-500 text-red-900' : 'border-[#E1E6EC] text-slate-900',
-          disabled && 'cursor-not-allowed bg-slate-50 opacity-60',
           className,
         )}
       >
@@ -400,7 +434,7 @@ export function DatePicker({
             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
           />
         </svg>
-      </button>
+      </Button>
 
       {/* Calendar Popover */}
       {isOpen && !disabled && mounted && coords && typeof document !== 'undefined'

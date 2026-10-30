@@ -99,6 +99,8 @@ interface FilterUpdateOptions {
   mentorId?: string | undefined;
   page?: number | undefined;
   limit?: number | undefined;
+  sortBy?: 'name' | 'email' | undefined;
+  sortOrder?: 'asc' | 'desc' | undefined;
 }
 
 export function UsersTable() {
@@ -121,6 +123,10 @@ export function UsersTable() {
     }));
   }, [mentorRoster]);
 
+  // Sorting state for Name and Email columns
+  const [sortField, setSortField] = useState<'name' | 'email' | null>(null);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
   const filtersRef = useRef({
     role: selectedRole,
     status: selectedStatus,
@@ -128,6 +134,8 @@ export function UsersTable() {
     mentorId: selectedMentor,
     page,
     limit,
+    sortBy: sortField ?? undefined,
+    sortOrder: sortField ? sortOrder : undefined,
   });
 
   useEffect(() => {
@@ -138,8 +146,10 @@ export function UsersTable() {
       mentorId: selectedMentor,
       page,
       limit,
+      sortBy: sortField ?? undefined,
+      sortOrder: sortField ? sortOrder : undefined,
     };
-  }, [selectedRole, selectedStatus, search, selectedMentor, page, limit]);
+  }, [selectedRole, selectedStatus, search, selectedMentor, page, limit, sortField, sortOrder]);
 
   useEffect(() => {
     if (!isAuthLoading) {
@@ -173,17 +183,28 @@ export function UsersTable() {
   const isInitialLoading = isLoading && apiUsers.length === 0;
   const isTableLoading = isInitialLoading;
 
-  // Sorting state for Name and Email columns
-  const [sortField, setSortField] = useState<'name' | 'email' | null>(null);
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-
   const handleSort = (field: 'name' | 'email') => {
+    let nextField: 'name' | 'email' | null = field;
+    let nextOrder: 'asc' | 'desc' = 'asc';
+
     if (sortField === field) {
-      setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setSortField(field);
-      setSortOrder('asc');
+      if (sortOrder === 'asc') {
+        nextOrder = 'desc';
+      } else {
+        nextField = null;
+        nextOrder = 'asc';
+      }
     }
+
+    setSortField(nextField);
+    setSortOrder(nextOrder);
+    setPage(1);
+
+    handleFilterUpdate({
+      page: 1,
+      sortBy: nextField ?? undefined,
+      sortOrder: nextField ? nextOrder : undefined,
+    });
   };
 
   // Modal controls
@@ -238,17 +259,6 @@ export function UsersTable() {
     }));
   }, [apiUsers, activeAdminsCount, userBatchMap, userMentorMap]);
 
-  const sortedUsers = useMemo(() => {
-    if (!sortField) return users;
-    return [...users].sort((a, b) => {
-      const aVal = (a[sortField] || '').toLowerCase();
-      const bVal = (b[sortField] || '').toLowerCase();
-      if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
-      if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
-      return 0;
-    });
-  }, [users, sortField, sortOrder]);
-
   const totalPages = Math.max(1, Math.ceil(totalCount / limit));
 
   const handleFilterUpdate = ({
@@ -258,6 +268,8 @@ export function UsersTable() {
     mentorId = filtersRef.current.mentorId,
     page: newPage = filtersRef.current.page,
     limit: newLimit = filtersRef.current.limit,
+    sortBy = filtersRef.current.sortBy,
+    sortOrder: newSortOrder = filtersRef.current.sortOrder,
   }: FilterUpdateOptions = {}) => {
     filtersRef.current = {
       role,
@@ -266,6 +278,8 @@ export function UsersTable() {
       mentorId,
       page: newPage,
       limit: newLimit,
+      sortBy,
+      sortOrder: newSortOrder,
     };
 
     void fetchUsers({
@@ -275,6 +289,8 @@ export function UsersTable() {
       status: status !== 'ALL' ? status : undefined,
       search: searchVal.trim() || undefined,
       mentorId: mentorId !== 'ALL' ? mentorId : undefined,
+      sortBy,
+      sortOrder: newSortOrder,
     });
   };
 
@@ -656,7 +672,7 @@ export function UsersTable() {
                 </TableCell>
               </TableRow>
             ) : (
-              sortedUsers.map((u) => {
+              users.map((u) => {
                 const initials =
                   (u.name || 'User')
                     .split(' ')

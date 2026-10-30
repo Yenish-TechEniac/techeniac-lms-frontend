@@ -36,7 +36,7 @@ export function SortableColumnHeader<T extends string>({
         variant="ghost"
         size="sm"
         onClick={() => onSort(field)}
-        title={tooltip ?? `Sort visible page by ${label}`}
+        title={tooltip ?? `Sort by ${label}`}
         className="group inline-flex items-center gap-1.5 p-0 font-bold hover:bg-transparent focus-visible:ring-2 focus-visible:ring-[#0044D3]"
       >
         <Span className="text-slate-700 transition-colors group-hover:text-slate-900">{label}</Span>
