@@ -30,12 +30,20 @@ export interface ChangeRoleModalProps {
   onSuccess: (userId: string, data: ChangeRoleFormData) => Promise<void>;
 }
 
-const ALL_ROLES: UserRole[] = ['SUPER_ADMIN', 'MENTOR', 'MENTEE'];
+export const SUPER_ADMIN_ROLE_IMMUTABLE_MESSAGE = 'Super Admin role cannot be changed';
+
+const ALLOWED_ROLE_TRANSITIONS: Record<UserRole, UserRole[]> = {
+  MENTEE: ['MENTOR'],
+  MENTOR: ['SUPER_ADMIN'],
+  SUPER_ADMIN: [],
+};
 
 function getDefaultTargetRole(currentRole: UserRole): UserRole {
-  if (currentRole === 'MENTEE') return 'MENTOR';
-  if (currentRole === 'MENTOR') return 'MENTEE';
-  return 'MENTOR';
+  const allowed = ALLOWED_ROLE_TRANSITIONS[currentRole];
+  if (allowed && allowed.length > 0) {
+    return allowed[0] ?? currentRole;
+  }
+  return currentRole;
 }
 
 function getRoleLabel(role: UserRole): string {
@@ -59,6 +67,9 @@ function ChangeRoleModalContent({
   onSuccess: (userId: string, data: ChangeRoleFormData) => Promise<void>;
 }) {
   const currentRole: UserRole = user.currentRole ?? user.role;
+  const isSuperAdmin = currentRole === 'SUPER_ADMIN';
+  const availableTargetRoles = ALLOWED_ROLE_TRANSITIONS[currentRole] ?? [];
+  const hasAvailableTransitions = availableTargetRoles.length > 0;
   const [newRole, setNewRole] = useState<UserRole>(getDefaultTargetRole(currentRole));
   const [reason, setReason] = useState('');
   const [confirmed, setConfirmed] = useState(false);
@@ -70,17 +81,15 @@ function ChangeRoleModalContent({
   const { roleImpact, isLoadingImpact } = useRoleImpact({
     userId: user.id,
     newRole,
-    enabled: currentRole !== newRole,
+    enabled: currentRole !== newRole && availableTargetRoles.includes(newRole),
   });
 
-  const availableTargetRoles = ALL_ROLES.filter((r) => r !== currentRole);
-
-  const isBlocked = roleImpact?.isBlocked ?? false;
+  const isBlocked = isSuperAdmin || (roleImpact?.isBlocked ?? false);
   const blockReason = roleImpact?.blockReason;
-  const hasActiveMentees = isBlocked && blockReason === 'ACTIVE_MENTEES';
-  const isLastSuperAdmin = isBlocked && blockReason === 'LAST_SUPER_ADMIN';
+  const hasActiveMentees = !isSuperAdmin && isBlocked && blockReason === 'ACTIVE_MENTEES';
 
   const canSubmit =
+    hasAvailableTransitions &&
     !isLoadingImpact &&
     !isBlocked &&
     confirmed &&
@@ -134,18 +143,20 @@ function ChangeRoleModalContent({
         footer={
           <div className="flex w-full items-center justify-end gap-3">
             <Button variant="outline" size="md" onClick={onClose} disabled={isSubmitting}>
-              Cancel
+              {hasAvailableTransitions ? 'Cancel' : 'Close'}
             </Button>
-            <Button
-              type="button"
-              variant="primary"
-              size="md"
-              isLoading={isSubmitting}
-              disabled={!canSubmit}
-              onClick={() => void handleSubmit()}
-            >
-              Change Role
-            </Button>
+            {hasAvailableTransitions && (
+              <Button
+                type="button"
+                variant="primary"
+                size="md"
+                isLoading={isSubmitting}
+                disabled={!canSubmit}
+                onClick={() => void handleSubmit()}
+              >
+                Change Role
+              </Button>
+            )}
           </div>
         }
       >
@@ -176,27 +187,41 @@ function ChangeRoleModalContent({
             </Span>
           </div>
 
+          {/* Super Admin Immutable Alert */}
+          {isSuperAdmin && (
+            <div className="rounded-xl border border-blue-200 bg-blue-50 p-3.5 text-xs text-blue-950">
+              <P className="font-bold text-blue-900">Role Modification Restricted</P>
+              <P className="mt-1 text-slate-700">{SUPER_ADMIN_ROLE_IMMUTABLE_MESSAGE}.</P>
+            </div>
+          )}
+
           {/* Target Role Selector */}
-          <div className="space-y-1.5">
-            <Label htmlFor="target-role" required className="text-sm font-semibold text-slate-900">
-              New Assigned Role
-            </Label>
-            <Select
-              id="target-role"
-              value={newRole}
-              onChange={(e) => {
-                setNewRole(e.target.value as UserRole);
-                setConfirmed(false);
-              }}
-              className="h-11 font-semibold"
-            >
-              {availableTargetRoles.map((role) => (
-                <option key={role} value={role}>
-                  {getRoleLabel(role)}
-                </option>
-              ))}
-            </Select>
-          </div>
+          {hasAvailableTransitions ? (
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="target-role"
+                required
+                className="text-sm font-semibold text-slate-900"
+              >
+                New Assigned Role
+              </Label>
+              <Select
+                id="target-role"
+                value={newRole}
+                onChange={(e) => {
+                  setNewRole(e.target.value as UserRole);
+                  setConfirmed(false);
+                }}
+                className="h-11 font-semibold"
+              >
+                {availableTargetRoles.map((role) => (
+                  <option key={role} value={role}>
+                    {getRoleLabel(role)}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          ) : null}
 
           {/* Blocked Alert: Active Mentees requiring Wizard */}
           {hasActiveMentees && (
@@ -219,43 +244,35 @@ function ChangeRoleModalContent({
             </div>
           )}
 
-          {/* Blocked Alert: Last Super Admin */}
-          {isLastSuperAdmin && (
-            <div className="rounded-xl border border-red-300 bg-red-50 p-3.5 text-xs text-red-900">
-              <P className="font-bold text-red-800">Role Demotion Prohibited</P>
-              <P className="mt-1 text-slate-700">
-                Cannot demote the last active Super Admin on the platform.
-              </P>
-            </div>
-          )}
-
           {/* Reason Field */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <Label
-                htmlFor="role-reason"
-                required
-                className="text-sm font-semibold text-slate-900"
-              >
-                Reason
-              </Label>
-              <Span
-                className={`font-mono text-xs ${
-                  reason.length < 10 ? 'font-semibold text-amber-800' : 'text-slate-400'
-                }`}
-              >
-                {reason.length} / 500 (min 10)
-              </Span>
+          {hasAvailableTransitions ? (
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label
+                  htmlFor="role-reason"
+                  required
+                  className="text-sm font-semibold text-slate-900"
+                >
+                  Reason
+                </Label>
+                <Span
+                  className={`font-mono text-xs ${
+                    reason.length < 10 ? 'font-semibold text-amber-800' : 'text-slate-400'
+                  }`}
+                >
+                  {reason.length} / 500 (min 10)
+                </Span>
+              </div>
+              <Textarea
+                id="role-reason"
+                rows={2}
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Reason for role change (minimum 10 characters)..."
+                className="text-sm"
+              />
             </div>
-            <Textarea
-              id="role-reason"
-              rows={2}
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder="Reason for role change (minimum 10 characters)..."
-              className="text-sm"
-            />
-          </div>
+          ) : null}
 
           {/* Confirmation Checkbox */}
           {!isBlocked && (
