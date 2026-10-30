@@ -19,6 +19,10 @@ export function getRolePortalPath(role: UserRole): string {
   }
 }
 
+export function getRoleProfilePath(role: UserRole): string {
+  return `${getRolePortalPath(role)}/profile`;
+}
+
 export function redirectUserByRole(
   router: { push: (url: string) => void; replace: (url: string) => void },
   user: AuthUser,
