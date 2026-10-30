@@ -16,6 +16,7 @@ import {
   useAllocationsList,
 } from '@/hooks/useAllocations';
 import { useMenteeBatch } from '@/hooks/useBatches';
+import { useMenteeDashboard } from '@/hooks/useDashboard';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 import type { ApiBatchSummary } from '@/services/batches.service';
 
@@ -212,6 +213,7 @@ export default function MenteePage() {
     menteeId: user?.id,
     limit: 100,
   });
+  const { data: menteeDashboard } = useMenteeDashboard({ enabled: isAuthorized });
 
   const allocations = useMemo<readonly CourseAllocation[]>(
     () => allocationsData?.items ?? [],
@@ -367,6 +369,53 @@ export default function MenteePage() {
             </div>
           </Link>
         </div>
+
+        {/* Upcoming Deadlines Widget */}
+        {menteeDashboard?.upcomingDeadlines && menteeDashboard.upcomingDeadlines.length > 0 ? (
+          <div className="mt-8 rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <H2 className="text-base font-bold text-[#111827]">
+                  Upcoming Milestones & Deadlines
+                </H2>
+                <P className="text-xs text-[#667085]">
+                  Scheduled completion dates for your active curriculum allocations
+                </P>
+              </div>
+              <Link
+                href="/mentee/courses"
+                className="text-xs font-semibold text-[#0044D3] hover:underline"
+              >
+                View All Courses →
+              </Link>
+            </div>
+            <div className="space-y-3">
+              {menteeDashboard.upcomingDeadlines.map((item) => (
+                <div
+                  key={item.allocationId}
+                  className="flex items-center justify-between rounded-xl border border-[#E1E6EC] bg-[#F6F8FC] p-3.5"
+                >
+                  <div>
+                    <P className="text-sm font-bold text-[#111827]">{item.courseName}</P>
+                    <Span className="text-xs text-[#667085]">
+                      Progress: {item.progressPercent}%
+                    </Span>
+                  </div>
+                  <div className="text-right">
+                    <Span
+                      className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                        item.isOverdue ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-[#0044D3]'
+                      }`}
+                    >
+                      {item.isOverdue ? 'Overdue: ' : 'Due: '}
+                      {formatDate(item.dueDate)}
+                    </Span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </DashboardContent>
     </div>
   );
