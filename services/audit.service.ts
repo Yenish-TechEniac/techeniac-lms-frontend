@@ -41,6 +41,18 @@ export const auditService = {
       params,
     });
 
-    return res;
+    const pagination = res.pagination ??
+      res.meta ?? {
+        page: validated.page ?? 1,
+        limit: validated.limit ?? 20,
+        total: (res.data ?? []).length,
+        totalPages: Math.max(1, Math.ceil((res.data ?? []).length / (validated.limit ?? 20))),
+      };
+
+    return {
+      success: res.success,
+      data: res.data ?? [],
+      pagination,
+    };
   },
 };

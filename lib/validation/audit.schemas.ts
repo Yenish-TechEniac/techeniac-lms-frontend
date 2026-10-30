@@ -70,4 +70,5 @@ export interface AuditLogsResponse {
   success: boolean;
   data: ApiAuditItem[];
   pagination: AuditPagination;
+  meta?: AuditPagination;
 }
