@@ -3,15 +3,16 @@
 import React, { useState } from 'react';
 import type { z } from 'zod';
 
+import { ConfirmationModal } from '@/components/patterns/ConfirmationModal';
 import { Modal } from '@/components/patterns/Modal';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
+import { DatePicker } from '@/components/ui/DatePicker';
 import { FieldError } from '@/components/ui/FieldError';
 import { Form } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Textarea } from '@/components/ui/Textarea';
-import { P, Span } from '@/components/ui/Typography';
 import { useCreateBatchMutation } from '@/hooks/useBatches';
 import { ApiError } from '@/lib/errors';
 import { type CreateBatchFormData, createBatchSchema } from '@/lib/validation';
@@ -83,11 +84,15 @@ function CreateBatchFormFields({
     <>
       {/* Name */}
       <div className="space-y-1">
-        <Label htmlFor="batch-name" required>
-          Batch Name
-        </Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="batch-name" required>
+            Batch Name
+          </Label>
+          <span className="text-[11px] font-medium text-slate-400">{name.length}/100</span>
+        </div>
         <Input
           id="batch-name"
+          maxLength={100}
           value={name}
           onChange={(e) => onNameChange(e.target.value)}
           placeholder="e.g. Frontend Engineering Cohort 2025"
@@ -99,11 +104,15 @@ function CreateBatchFormFields({
 
       {/* Code */}
       <div className="space-y-1">
-        <Label htmlFor="batch-code" required>
-          Unique Code
-        </Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="batch-code" required>
+            Unique Code
+          </Label>
+          <span className="text-[11px] font-medium text-slate-400">{code.length}/20</span>
+        </div>
         <Input
           id="batch-code"
+          maxLength={20}
           value={code}
           onChange={(e) => onCodeChange(e.target.value.toUpperCase())}
           placeholder="e.g. FE-25Q1"
@@ -114,19 +123,20 @@ function CreateBatchFormFields({
         {errors.code ? <FieldError error={errors.code} /> : null}
       </div>
 
-      {/* Dates */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* Dates with Calendar Picker (opens upward in upper layer to prevent scrollable clipping) */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-1">
           <Label htmlFor="batch-start" required>
             Start Date
           </Label>
-          <Input
+          <DatePicker
             id="batch-start"
-            type="date"
             value={startDate}
-            onChange={(e) => onStartDateChange(e.target.value)}
+            onChange={onStartDateChange}
             hasError={Boolean(errors.startDate)}
             disabled={disabled}
+            placement="auto"
+            placeholder="Select start date"
           />
           {errors.startDate ? <FieldError error={errors.startDate} /> : null}
         </div>
@@ -135,13 +145,14 @@ function CreateBatchFormFields({
           <Label htmlFor="batch-end" required>
             End Date
           </Label>
-          <Input
+          <DatePicker
             id="batch-end"
-            type="date"
             value={endDate}
-            onChange={(e) => onEndDateChange(e.target.value)}
+            onChange={onEndDateChange}
             hasError={Boolean(errors.endDate)}
             disabled={disabled}
+            placement="auto"
+            placeholder="Select end date"
           />
           {errors.endDate ? <FieldError error={errors.endDate} /> : null}
         </div>
@@ -149,17 +160,20 @@ function CreateBatchFormFields({
 
       {/* Description */}
       <div className="space-y-1">
-        <Label htmlFor="batch-desc">
-          Description <Span className="text-xs font-normal text-slate-400">(optional)</Span>
-        </Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="batch-desc">Description</Label>
+          <span className="text-[11px] font-medium text-slate-400">{description.length}/500</span>
+        </div>
         <Textarea
           id="batch-desc"
+          maxLength={500}
           rows={2}
           value={description}
           onChange={(e) => onDescriptionChange(e.target.value)}
           placeholder="Brief objective of this training cohort..."
           disabled={disabled}
         />
+        {errors.description ? <FieldError error={errors.description} /> : null}
       </div>
     </>
   );
@@ -172,10 +186,32 @@ export function CreateBatchModal({ isOpen, onClose, onSuccess }: Readonly<Create
   const [endDate, setEndDate] = useState('');
   const [description, setDescription] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isDiscardConfirmOpen, setIsDiscardConfirmOpen] = useState(false);
 
   const { mutateAsync: createBatch, isPending: isSubmitting } = useCreateBatchMutation();
 
   if (!isOpen) return null;
+
+  const isDirty = Boolean(name.trim() || code.trim() || startDate || endDate || description.trim());
+
+  const handleRequestClose = () => {
+    if (isDirty) {
+      setIsDiscardConfirmOpen(true);
+    } else {
+      onClose();
+    }
+  };
+
+  const handleConfirmDiscard = () => {
+    setIsDiscardConfirmOpen(false);
+    setName('');
+    setCode('');
+    setStartDate('');
+    setEndDate('');
+    setDescription('');
+    setErrors({});
+    onClose();
+  };
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -204,64 +240,72 @@ export function CreateBatchModal({ isOpen, onClose, onSuccess }: Readonly<Create
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Create New Batch"
-      description="Set up a cohort for grouped course allocations and mentor mappings."
-      size="md"
-      footer={
-        <>
-          <Button variant="outline" size="sm" onClick={onClose} disabled={isSubmitting}>
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            form="create-batch-form"
-            variant="primary"
-            size="sm"
-            isLoading={isSubmitting}
-          >
-            Create Batch
-          </Button>
-        </>
-      }
-    >
-      <Form
-        id="create-batch-form"
-        onSubmit={(e) => {
-          void handleSubmit(e);
-        }}
-        className="space-y-4"
+    <>
+      <Modal
+        isOpen={isOpen}
+        onClose={handleRequestClose}
+        title="Create New Batch"
+        size="lg"
+        footer={
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRequestClose}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              form="create-batch-form"
+              variant="primary"
+              size="sm"
+              isLoading={isSubmitting}
+            >
+              Create Batch
+            </Button>
+          </>
+        }
       >
-        {errors.general ? (
-          <Alert variant="error" title="Batch Creation Failed" message={errors.general} />
-        ) : null}
+        <Form
+          id="create-batch-form"
+          onSubmit={(e) => {
+            void handleSubmit(e);
+          }}
+          className="min-h-[440px] space-y-4"
+        >
+          {errors.general ? (
+            <Alert variant="error" title="Batch Creation Failed" message={errors.general} />
+          ) : null}
 
-        <CreateBatchFormFields
-          name={name}
-          code={code}
-          startDate={startDate}
-          endDate={endDate}
-          description={description}
-          errors={errors}
-          disabled={isSubmitting}
-          onNameChange={setName}
-          onCodeChange={setCode}
-          onStartDateChange={setStartDate}
-          onEndDateChange={setEndDate}
-          onDescriptionChange={setDescription}
-        />
+          <CreateBatchFormFields
+            name={name}
+            code={code}
+            startDate={startDate}
+            endDate={endDate}
+            description={description}
+            errors={errors}
+            disabled={isSubmitting}
+            onNameChange={setName}
+            onCodeChange={setCode}
+            onStartDateChange={setStartDate}
+            onEndDateChange={setEndDate}
+            onDescriptionChange={setDescription}
+          />
+        </Form>
+      </Modal>
 
-        {/* Initial Status Notice */}
-        <div className="rounded-xl border border-blue-200 bg-blue-50 p-3.5 text-xs leading-relaxed text-blue-900">
-          <Span className="mb-0.5 block font-semibold">Initial Status: DRAFT</Span>
-          <P className="text-xs text-blue-900">
-            New batches begin in Draft status. You can configure mentor-mentee members and courses
-            before making the batch Live for mentees.
-          </P>
-        </div>
-      </Form>
-    </Modal>
+      {/* Confirmation before discard */}
+      <ConfirmationModal
+        isOpen={isDiscardConfirmOpen}
+        onClose={() => setIsDiscardConfirmOpen(false)}
+        onConfirm={handleConfirmDiscard}
+        title="Discard Changes?"
+        description="If you leave now, your changes to this batch will be lost. Would you like to discard your changes?"
+        confirmLabel="Discard Changes"
+        cancelLabel="Go Back"
+      />
+    </>
   );
 }

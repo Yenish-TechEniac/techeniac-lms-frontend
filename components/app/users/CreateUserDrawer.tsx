@@ -106,9 +106,17 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
               size="sm"
               onClick={handleResetAndClose}
               aria-label="Close drawer"
-              className="h-9 w-9 rounded-full border border-slate-200 p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
             >
-              ✕
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </Button>
           </div>
         </div>
@@ -146,7 +154,7 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
                   id="create-name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Kaustav Sen"
+                  placeholder="Amit Sharma"
                   hasError={Boolean(errors.name)}
                   disabled={isSubmitting}
                   className="h-12 rounded-full border border-slate-200 bg-[#F6F8FC] px-5 text-base font-medium transition-all focus:border-[#0044D3] focus:bg-white"
@@ -168,7 +176,7 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="kaustav@techeniac.com"
+                  placeholder="amit@techeniac.com"
                   hasError={Boolean(errors.email)}
                   disabled={isSubmitting}
                   className="h-12 rounded-full border border-slate-200 bg-[#F6F8FC] px-5 font-mono text-base font-medium transition-all focus:border-[#0044D3] focus:bg-white"

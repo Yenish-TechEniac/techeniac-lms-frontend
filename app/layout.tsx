@@ -1,20 +1,22 @@
 import './globals.css';
 
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import localFont from 'next/font/local';
 
 import { AuthProvider } from '@/context/AuthContext';
 import { QueryProvider } from '@/context/QueryProvider';
 import { SidebarProvider } from '@/context/SidebarContext';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
+const plusJakartaSans = localFont({
+  src: [
+    {
+      path: '../public/fonts/plus-jakarta-sans-latin.woff2',
+      weight: '200 800',
+      style: 'normal',
+    },
+  ],
+  variable: '--font-plus-jakarta-sans',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -28,8 +30,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col">
+    <html
+      lang="en"
+      className={`${plusJakartaSans.variable} ${plusJakartaSans.className} h-full font-sans antialiased`}
+    >
+      <body className={`${plusJakartaSans.className} flex min-h-full flex-col font-sans`}>
         <QueryProvider>
           <AuthProvider>
             <SidebarProvider>{children}</SidebarProvider>

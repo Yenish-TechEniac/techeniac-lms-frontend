@@ -79,6 +79,19 @@ export const H1 = React.forwardRef<HTMLHeadingElement, Omit<TypographyProps, 'as
 );
 H1.displayName = 'H1';
 
+export const PageTitle = React.forwardRef<HTMLHeadingElement, Omit<TypographyProps, 'as'>>(
+  ({ className, children, ...props }, ref) => (
+    <H1
+      ref={ref}
+      className={cn('text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl', className)}
+      {...props}
+    >
+      {children}
+    </H1>
+  ),
+);
+PageTitle.displayName = 'PageTitle';
+
 export const H2 = React.forwardRef<HTMLHeadingElement, Omit<TypographyProps, 'as'>>(
   ({ variant = 'h2', ...props }, ref) => (
     <Typography ref={ref} as="h2" variant={variant} {...props} />

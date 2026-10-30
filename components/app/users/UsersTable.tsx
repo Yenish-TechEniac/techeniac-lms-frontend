@@ -4,14 +4,17 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
+import { DEFAULT_PAGE_SIZE_OPTIONS } from '@/components/app/batches/batchStatus';
 import { BulkImportModal, type CsvUserRowWithLine } from '@/components/app/users/BulkImportModal';
 import { ChangeRoleModal } from '@/components/app/users/ChangeRoleModal';
 import { CreateUserDrawer } from '@/components/app/users/CreateUserDrawer';
 import { EditUserModal } from '@/components/app/users/EditUserModal';
+import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
+import { PageHeader } from '@/components/patterns/PageHeader';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
+import { SortableColumnHeader } from '@/components/patterns/SortableColumnHeader';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
+import { MultiSelectDropdown, type MultiSelectOption } from '@/components/ui/MultiSelectDropdown';
 import { Skeleton } from '@/components/ui/Skeleton';
 import {
   Table,
@@ -22,10 +25,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
-import { H1, P, Span } from '@/components/ui/Typography';
+import { P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { useAllBatchMembers } from '@/hooks/useBatches';
-import { DEFAULT_USERS_PAGE_SIZE, type UserQueryFilters, useUsers } from '@/hooks/useUsers';
+import { useUsers } from '@/hooks/useUsers';
 import {
   type ChangeRoleFormData,
   type CreateUserFormData,
@@ -84,104 +87,20 @@ function ToggleSwitch({ checked, disabled, onChange, title, ariaLabel }: ToggleS
   );
 }
 
-interface UserSearchInputProps {
-  value: string;
-  onSearchChange: (val: string) => void;
-  isSearching?: boolean;
-}
-
-function UserSearchInput({
-  value,
-  onSearchChange,
-  isSearching = false,
-}: Readonly<UserSearchInputProps>) {
-  const [localValue, setLocalValue] = useState(value);
-  const [prevValue, setPrevValue] = useState(value);
-  const [isDebouncing, setIsDebouncing] = useState(false);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const onSearchChangeRef = useRef(onSearchChange);
-
-  useEffect(() => {
-    onSearchChangeRef.current = onSearchChange;
-  });
-
-  if (prevValue !== value) {
-    setPrevValue(value);
-    setLocalValue(value);
-  }
-
-  useEffect(() => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-  }, [value]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const nextVal = e.target.value;
-    setLocalValue(nextVal);
-    setIsDebouncing(true);
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
-    timerRef.current = setTimeout(() => {
-      setIsDebouncing(false);
-      onSearchChangeRef.current(nextVal);
-    }, 300);
-  };
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-    };
-  }, []);
-
-  return (
-    <div className="relative w-full">
-      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
-        {isDebouncing || isSearching ? (
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#0044D3] border-t-transparent" />
-        ) : (
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-        )}
-      </div>
-      <Input
-        type="text"
-        value={localValue}
-        onChange={handleChange}
-        placeholder="Search by name or email..."
-        className="h-11 w-full rounded-xl pl-10 text-sm font-medium"
-      />
-    </div>
-  );
-}
-
-const MENTOR_ROSTER_FILTERS: UserQueryFilters = {
-  role: 'MENTOR',
-  limit: 100,
-};
+const USER_STATUS_OPTIONS: MultiSelectOption[] = [
+  { value: 'ACTIVE', label: 'Active Users' },
+  { value: 'INACTIVE', label: 'Inactive Users' },
+];
 
 interface FilterUpdateOptions {
-  role?: string;
-  status?: string;
-  search?: string;
-  mentorId?: string;
-  page?: number;
-  limit?: number;
+  role?: string | undefined;
+  status?: string | undefined;
+  search?: string | undefined;
+  mentorId?: string | undefined;
+  page?: number | undefined;
+  limit?: number | undefined;
+  sortBy?: 'name' | 'email' | undefined;
+  sortOrder?: 'asc' | 'desc' | undefined;
 }
 
 export function UsersTable() {
@@ -193,7 +112,20 @@ export function UsersTable() {
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
   const [selectedMentor, setSelectedMentor] = useState<string>('ALL');
   const [page, setPage] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(DEFAULT_USERS_PAGE_SIZE);
+  const [limit, setLimit] = useState<number>(10);
+
+  // Roster of mentors for the filter dropdown
+  const { users: mentorRoster } = useUsers({ role: 'MENTOR', limit: 100 });
+  const mentorOptions = useMemo<MultiSelectOption[]>(() => {
+    return mentorRoster.map((m) => ({
+      value: m.id,
+      label: m.name,
+    }));
+  }, [mentorRoster]);
+
+  // Sorting state for Name and Email columns
+  const [sortField, setSortField] = useState<'name' | 'email' | null>(null);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   const filtersRef = useRef({
     role: selectedRole,
@@ -202,6 +134,8 @@ export function UsersTable() {
     mentorId: selectedMentor,
     page,
     limit,
+    sortBy: sortField ?? undefined,
+    sortOrder: sortField ? sortOrder : undefined,
   });
 
   useEffect(() => {
@@ -212,8 +146,10 @@ export function UsersTable() {
       mentorId: selectedMentor,
       page,
       limit,
+      sortBy: sortField ?? undefined,
+      sortOrder: sortField ? sortOrder : undefined,
     };
-  }, [selectedRole, selectedStatus, search, selectedMentor, page, limit]);
+  }, [selectedRole, selectedStatus, search, selectedMentor, page, limit, sortField, sortOrder]);
 
   useEffect(() => {
     if (!isAuthLoading) {
@@ -230,7 +166,6 @@ export function UsersTable() {
   const {
     users: apiUsers,
     total: totalCount,
-    counts,
     isLoading,
     isFetching,
     error: usersError,
@@ -243,10 +178,34 @@ export function UsersTable() {
     resendInvite,
   } = useUsers();
 
-  const { users: mentorUsers } = useUsers(MENTOR_ROSTER_FILTERS);
+  const { userBatchMap, userMentorMap } = useAllBatchMembers();
 
-  // Load batch roster and live member mappings so batch and mentor are always displayed accurately
-  const { userBatchMap, userMentorMap, isLoading: isRosterLoading } = useAllBatchMembers();
+  const isInitialLoading = isLoading && apiUsers.length === 0;
+  const isTableLoading = isInitialLoading;
+
+  const handleSort = (field: 'name' | 'email') => {
+    let nextField: 'name' | 'email' | null = field;
+    let nextOrder: 'asc' | 'desc' = 'asc';
+
+    if (sortField === field) {
+      if (sortOrder === 'asc') {
+        nextOrder = 'desc';
+      } else {
+        nextField = null;
+        nextOrder = 'asc';
+      }
+    }
+
+    setSortField(nextField);
+    setSortOrder(nextOrder);
+    setPage(1);
+
+    handleFilterUpdate({
+      page: 1,
+      sortBy: nextField ?? undefined,
+      sortOrder: nextField ? nextOrder : undefined,
+    });
+  };
 
   // Modal controls
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -286,55 +245,19 @@ export function UsersTable() {
   );
 
   const users: UserItem[] = useMemo(() => {
-    return apiUsers.map((u) => {
-      const mappedBatch = userBatchMap.get(u.id);
-      const mappedMentor = userMentorMap.get(u.id);
-
-      let displayBatch: string;
-      if (mappedBatch) {
-        displayBatch = mappedBatch;
-      } else if (u.role === 'SUPER_ADMIN') {
-        displayBatch = 'System (All)';
-      } else {
-        displayBatch = 'Unassigned';
-      }
-
-      let displayMentor: string;
-      if (mappedMentor) {
-        displayMentor = mappedMentor;
-      } else if (u.role === 'SUPER_ADMIN') {
-        displayMentor = 'N/A (Admin)';
-      } else if (u.role === 'MENTOR') {
-        displayMentor = 'Self (Mentor)';
-      } else {
-        displayMentor = 'Unassigned';
-      }
-
-      return {
-        id: u.id,
-        name: u.name,
-        email: u.email,
-        role: u.role,
-        status: u.isActive ? 'ACTIVE' : 'INACTIVE',
-        batch: displayBatch,
-        mentorName: displayMentor,
-        hasLoggedIn: u.lastLoginAt !== null,
-        mustChangePassword: u.mustChangePassword,
-        isLastSuperAdmin: u.role === 'SUPER_ADMIN' && activeAdminsCount <= 1,
-      };
-    });
-  }, [apiUsers, userBatchMap, userMentorMap, activeAdminsCount]);
-
-  const mentors = useMemo(() => {
-    return mentorUsers.map((m) => ({
-      id: m.id,
-      name: m.name,
-      email: m.email,
-      isActive: m.isActive,
+    return apiUsers.map((u) => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      role: u.role,
+      status: u.isActive ? 'ACTIVE' : 'INACTIVE',
+      batch: userBatchMap.get(u.id) || '—',
+      mentorName: userMentorMap.get(u.id) || '—',
+      hasLoggedIn: u.lastLoginAt !== null,
+      mustChangePassword: u.mustChangePassword,
+      isLastSuperAdmin: u.role === 'SUPER_ADMIN' && activeAdminsCount <= 1,
     }));
-  }, [mentorUsers]);
-
-  const isMentorFilterDisabled = selectedRole === 'SUPER_ADMIN' || selectedRole === 'MENTOR';
+  }, [apiUsers, activeAdminsCount, userBatchMap, userMentorMap]);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / limit));
 
@@ -345,6 +268,8 @@ export function UsersTable() {
     mentorId = filtersRef.current.mentorId,
     page: newPage = filtersRef.current.page,
     limit: newLimit = filtersRef.current.limit,
+    sortBy = filtersRef.current.sortBy,
+    sortOrder: newSortOrder = filtersRef.current.sortOrder,
   }: FilterUpdateOptions = {}) => {
     filtersRef.current = {
       role,
@@ -353,6 +278,8 @@ export function UsersTable() {
       mentorId,
       page: newPage,
       limit: newLimit,
+      sortBy,
+      sortOrder: newSortOrder,
     };
 
     void fetchUsers({
@@ -362,18 +289,26 @@ export function UsersTable() {
       status: status !== 'ALL' ? status : undefined,
       search: searchVal.trim() || undefined,
       mentorId: mentorId !== 'ALL' ? mentorId : undefined,
+      sortBy,
+      sortOrder: newSortOrder,
     });
   };
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
     handleFilterUpdate({ page: newPage });
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const handleLimitChange = (newLimit: number) => {
     setLimit(newLimit);
     setPage(1);
     handleFilterUpdate({ page: 1, limit: newLimit });
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const handleSearchChange = (val: string) => {
@@ -381,8 +316,6 @@ export function UsersTable() {
     setPage(1);
     handleFilterUpdate({ search: val, page: 1 });
   };
-
-  const isInitialLoading = (isLoading || isRosterLoading) && apiUsers.length === 0;
 
   const handleCreateUser = async (data: CreateUserFormData) => {
     try {
@@ -494,271 +427,123 @@ export function UsersTable() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Top Header & Shifted Middle Buttons & Action Controls */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        {/* Left: Breadcrumbs & Title */}
-        <div>
-          <div className="mb-1 flex items-center gap-2 text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            <Link href="/admin" className="transition-colors hover:text-[#0044D3]">
-              Administration
-            </Link>
-            <Span>/</Span>
-            <Span className="text-[#0044D3]">User Directory</Span>
-          </div>
-          <H1 className="text-3xl font-extrabold tracking-tight text-slate-900">Users</H1>
-        </div>
-
-        {/* Middle: Shifted Status Telemetry Buttons */}
-        <div className="flex items-center justify-center gap-2 self-center rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-xs">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setSelectedStatus('ALL');
-              setPage(1);
-              handleFilterUpdate({ status: 'ALL', page: 1 });
-            }}
-            className={`h-9 gap-2 rounded-full px-4 text-xs font-semibold transition-all ${
-              selectedStatus === 'ALL'
-                ? 'bg-[#0044D3] text-white shadow-xs hover:bg-[#0039B3]'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-            }`}
-          >
-            <Span>Total Users</Span>
-            {isLoading ? (
-              <Skeleton className="inline-block h-4 w-6 rounded-md bg-slate-300" />
-            ) : (
-              <Span
-                className={`font-mono font-bold ${
-                  selectedStatus === 'ALL' ? 'text-white' : 'text-[#0044D3]'
-                }`}
-              >
-                {counts.total || totalCount}
-              </Span>
-            )}
-          </Button>
-
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setSelectedStatus('ACTIVE');
-              setPage(1);
-              handleFilterUpdate({ status: 'ACTIVE', page: 1 });
-            }}
-            className={`h-9 gap-2 rounded-full px-4 text-xs font-semibold transition-all ${
-              selectedStatus === 'ACTIVE'
-                ? 'bg-emerald-600 text-white shadow-xs hover:bg-emerald-700'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-            }`}
-          >
-            <Span
-              className={`h-2 w-2 rounded-full ${
-                selectedStatus === 'ACTIVE' ? 'bg-white' : 'bg-emerald-500'
-              }`}
-            />
-            <Span>Active</Span>
-            {isLoading ? (
-              <Skeleton className="inline-block h-4 w-6 rounded-md bg-slate-300" />
-            ) : (
-              <Span
-                className={`font-mono font-bold ${
-                  selectedStatus === 'ACTIVE' ? 'text-white' : 'text-slate-600'
-                }`}
-              >
-                {counts.active}
-              </Span>
-            )}
-          </Button>
-
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setSelectedStatus('INACTIVE');
-              setPage(1);
-              handleFilterUpdate({ status: 'INACTIVE', page: 1 });
-            }}
-            className={`h-9 gap-2 rounded-full px-4 text-xs font-semibold transition-all ${
-              selectedStatus === 'INACTIVE'
-                ? 'bg-slate-800 text-white shadow-xs hover:bg-slate-900'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-            }`}
-          >
-            <Span
-              className={`h-2 w-2 rounded-full ${
-                selectedStatus === 'INACTIVE' ? 'bg-white' : 'bg-slate-400'
-              }`}
-            />
-            <Span>Inactive</Span>
-            {isLoading ? (
-              <Skeleton className="inline-block h-4 w-6 rounded-md bg-slate-300" />
-            ) : (
-              <Span
-                className={`font-mono font-bold ${
-                  selectedStatus === 'INACTIVE' ? 'text-white' : 'text-slate-600'
-                }`}
-              >
-                {counts.inactive}
-              </Span>
-            )}
-          </Button>
-        </div>
-
-        {/* Right: Primary Action Buttons */}
-        <div className="flex items-center gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setIsBulkImportOpen(true)}
-            className="h-11 gap-2 rounded-full border-[#E1E6EC] px-5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-          >
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
+    <div className="space-y-4">
+      {/* Top Header via Global PageHeader with no breadcrumbs */}
+      <PageHeader
+        title="Users"
+        actions={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsBulkImportOpen(true)}
+              className="h-9 gap-2 rounded-full border-[#E1E6EC] px-4 text-xs font-semibold text-slate-700 hover:bg-slate-50 sm:h-10 sm:text-sm"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-              />
-            </svg>
-            <Span>Bulk Import CSV</Span>
-          </Button>
-          <Button
-            type="button"
-            variant="primary"
-            size="sm"
-            onClick={() => setIsCreateOpen(true)}
-            className="h-11 gap-2 rounded-full bg-[#0044D3] px-6 text-sm font-semibold text-white shadow-xs hover:bg-[#0039B3]"
-          >
-            <Span className="text-base font-bold">+</Span>
-            <Span>Create User</Span>
-          </Button>
-        </div>
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                />
+              </svg>
+              <Span>Bulk Import CSV</Span>
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              onClick={() => setIsCreateOpen(true)}
+              className="h-9 gap-2 rounded-full bg-[#0044D3] px-4 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] sm:h-10 sm:text-sm"
+            >
+              <Span className="text-base font-bold">+</Span>
+              <Span>Create User</Span>
+            </Button>
+          </>
+        }
+      />
+
+      {/* Role-Based Navigation Tabs */}
+      <div className="flex [scrollbar-width:none] items-center gap-6 overflow-x-auto overflow-y-hidden border-b border-[#E1E6EC] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        {[
+          { label: 'All Users', value: 'ALL' },
+          { label: 'Mentees', value: 'MENTEE' },
+          { label: 'Mentors', value: 'MENTOR' },
+          { label: 'Super Admins', value: 'SUPER_ADMIN' },
+        ].map((tab) => {
+          const isActive = selectedRole === tab.value;
+          return (
+            <Button
+              key={tab.value}
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setSelectedRole(tab.value);
+                setPage(1);
+                handleFilterUpdate({ role: tab.value, page: 1 });
+              }}
+              className={`-mb-px flex h-10 items-center rounded-none border-b-2 px-1 pb-2.5 text-sm transition-colors hover:bg-transparent ${
+                isActive
+                  ? 'border-[#0044D3] font-bold text-[#0044D3]'
+                  : 'border-transparent font-medium text-[#667085] hover:text-slate-900'
+              }`}
+            >
+              <Span>{tab.label}</Span>
+            </Button>
+          );
+        })}
       </div>
 
-      {/* Filter Row with Search, Role Dropdown, Status Dropdown, and Mentor Dropdown */}
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#E1E6EC] bg-white p-3.5 shadow-xs">
-        {/* Search Input */}
-        <div className="min-w-[240px] flex-1">
-          <UserSearchInput
+      {/* Filter Row with Expanded Search Input and Rounded Dropdowns at the End */}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#E1E6EC] bg-white p-3.5 shadow-xs">
+        {/* Expanded Search Input */}
+        <div className="w-full flex-1 sm:max-w-md lg:max-w-lg">
+          <DebouncedSearchInput
             value={search}
             onSearchChange={handleSearchChange}
-            isSearching={isLoading}
+            placeholder="Search by name or email..."
           />
         </div>
 
-        {/* Role Filter Dropdown */}
-        <div className="w-48">
-          <Select
-            value={selectedRole}
-            onChange={(e) => {
-              const val = e.target.value;
-              setSelectedRole(val);
+        {/* Rounded Dropdowns at the End */}
+        <div className="flex w-full flex-wrap items-center gap-3 sm:ml-auto sm:w-auto">
+          {/* Status Dropdown */}
+          <MultiSelectDropdown
+            label="Status"
+            singleSelect
+            options={USER_STATUS_OPTIONS}
+            selectedValues={selectedStatus === 'ALL' ? [] : [selectedStatus]}
+            onChange={(vals) => {
+              const nextVal = vals[0] ?? 'ALL';
+              setSelectedStatus(nextVal);
               setPage(1);
-              const isMentorRestricted = val === 'SUPER_ADMIN' || val === 'MENTOR';
-              if (isMentorRestricted && selectedMentor !== 'ALL') {
-                setSelectedMentor('ALL');
-                handleFilterUpdate({ role: val, mentorId: 'ALL', page: 1 });
-              } else {
-                handleFilterUpdate({ role: val, page: 1 });
-              }
+              handleFilterUpdate({ status: nextVal, page: 1 });
             }}
-            aria-label="Filter by role"
-            className="h-11 text-xs font-semibold"
-          >
-            <option value="ALL">All Roles</option>
-            <option value="SUPER_ADMIN">Super Admins</option>
-            <option value="MENTOR">Mentors</option>
-            <option value="MENTEE">Mentees</option>
-          </Select>
-        </div>
+          />
 
-        {/* Status Dropdown */}
-        <div className="w-40">
-          <Select
-            value={selectedStatus}
-            onChange={(e) => {
-              const val = e.target.value;
-              setSelectedStatus(val);
-              setPage(1);
-              handleFilterUpdate({ status: val, page: 1 });
-            }}
-            aria-label="Filter by status"
-            className="h-11 text-xs font-semibold"
-          >
-            <option value="ALL">All Status</option>
-            <option value="ACTIVE">Active Users</option>
-            <option value="INACTIVE">Inactive Users</option>
-          </Select>
-        </div>
-
-        {/* Mentor Dropdown (when applicable) */}
-        {!isMentorFilterDisabled ? (
-          <div className="w-48">
-            <Select
-              value={selectedMentor}
-              onChange={(e) => {
-                const val = e.target.value;
-                setSelectedMentor(val);
+          {/* Mentor Dropdown */}
+          {selectedRole === 'ALL' || selectedRole === 'MENTEE' ? (
+            <MultiSelectDropdown
+              label="Mentor"
+              singleSelect
+              options={mentorOptions}
+              selectedValues={selectedMentor === 'ALL' ? [] : [selectedMentor]}
+              onChange={(vals) => {
+                const nextVal = vals[0] ?? 'ALL';
+                setSelectedMentor(nextVal);
                 setPage(1);
-                handleFilterUpdate({ mentorId: val, page: 1 });
+                handleFilterUpdate({ mentorId: nextVal, page: 1 });
               }}
-              aria-label="Filter by assigned mentor"
-              className="h-11 text-xs font-semibold"
-            >
-              <option value="ALL">All Mentors</option>
-              {selectedMentor !== 'ALL' && !mentors.some((m) => m.id === selectedMentor) && (
-                <option value={selectedMentor} disabled>
-                  Selected Mentor
-                </option>
-              )}
-              {mentors.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name}
-                </option>
-              ))}
-            </Select>
-          </div>
-        ) : null}
-
-        {/* Reset Filter Button */}
-        {search ||
-        selectedRole !== 'ALL' ||
-        selectedStatus !== 'ALL' ||
-        selectedMentor !== 'ALL' ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setSearch('');
-              setSelectedRole('ALL');
-              setSelectedStatus('ALL');
-              setSelectedMentor('ALL');
-              setPage(1);
-              handleFilterUpdate({
-                role: 'ALL',
-                status: 'ALL',
-                search: '',
-                mentorId: 'ALL',
-                page: 1,
-              });
-            }}
-            className="h-11 px-3.5 text-xs font-semibold text-[#0044D3] hover:bg-blue-50"
-          >
-            Reset Filters
-          </Button>
-        ) : null}
+            />
+          ) : null}
+        </div>
       </div>
 
       {/* Users Data Table */}
@@ -766,60 +551,97 @@ export function UsersTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>User</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Batch</TableHead>
-              <TableHead>Mentor</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <SortableColumnHeader<'name' | 'email'>
+                field="name"
+                label="Name"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                tooltip="Sort visible page by Name"
+              />
+              <SortableColumnHeader<'name' | 'email'>
+                field="email"
+                label="Email"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                tooltip="Sort visible page by Email"
+              />
+              {selectedRole === 'ALL' ? <TableHead>Role</TableHead> : null}
+              <TableHead>
+                {selectedRole === 'MENTEE'
+                  ? 'Mentor'
+                  : selectedRole === 'MENTOR'
+                    ? 'Batches'
+                    : selectedRole === 'SUPER_ADMIN'
+                      ? 'Batches'
+                      : 'Batch / Mentor'}
+              </TableHead>
+              <TableHead className="w-20 text-center">Status</TableHead>
+              <TableHead className="w-24 text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody
             className={
-              (isFetching || isRosterLoading) && !isInitialLoading
+              isFetching && !isInitialLoading
                 ? 'opacity-60 transition-opacity'
-                : undefined
+                : 'transition-opacity'
             }
           >
             {isInitialLoading ? (
-              // Initial Loading Skeleton Rows
-              Array.from({ length: 5 }).map((_, i) => (
-                <TableRow key={`initial-skel-${i}`}>
+              // Loading Skeleton Rows - calibrated to exact data row dimensions
+              Array.from({ length: limit }).map((_, i) => (
+                <TableRow key={`loading-skel-${i}`} className="h-14">
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <Skeleton className="h-10 w-10 rounded-full" />
-                      <div className="space-y-1.5">
-                        <Skeleton className="h-4 w-32 rounded-md" />
+                      <Skeleton className="h-9 w-9 shrink-0 rounded-full" />
+                      <div className="space-y-1">
+                        <Skeleton className="h-4 w-36 rounded-md" />
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Skeleton className="h-4 w-40 rounded-md" />
+                    <Skeleton className="h-4 w-44 rounded-md" />
                   </TableCell>
+                  {selectedRole === 'ALL' ? (
+                    <TableCell>
+                      <Skeleton className="h-6 w-20 rounded-full" />
+                    </TableCell>
+                  ) : null}
                   <TableCell>
-                    <Skeleton className="h-6 w-20 rounded-lg" />
+                    <Skeleton className="h-5 w-28 rounded-md" />
                   </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-24 rounded-md" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-28 rounded-md" />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Skeleton className="h-8 w-8 rounded-lg" />
-                      <Skeleton className="h-8 w-20 rounded-lg" />
+                  <TableCell className="text-center">
+                    <div className="flex items-center justify-center">
                       <Skeleton className="h-6 w-11 rounded-full" />
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <div className="flex items-center justify-center">
+                      <Skeleton className="h-8 w-8 rounded-full" />
                     </div>
                   </TableCell>
                 </TableRow>
               ))
             ) : usersError ? (
               <TableRow>
-                <TableCell colSpan={6} className="py-12 text-center">
+                <TableCell colSpan={selectedRole === 'ALL' ? 6 : 5} className="py-12 text-center">
                   <div className="mx-auto flex max-w-sm flex-col items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-lg text-red-600">
-                      ⚠️
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-600">
+                      <svg
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        aria-hidden="true"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                        />
+                      </svg>
                     </div>
                     <div>
                       <P className="text-sm font-semibold text-slate-900">Failed to load users</P>
@@ -842,7 +664,10 @@ export function UsersTable() {
               </TableRow>
             ) : users.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="py-12 text-center text-slate-400">
+                <TableCell
+                  colSpan={selectedRole === 'ALL' ? 6 : 5}
+                  className="py-12 text-center text-slate-400"
+                >
                   <Span>No users match your filters.</Span>
                 </TableCell>
               </TableRow>
@@ -868,136 +693,130 @@ export function UsersTable() {
                     : undefined;
 
                 return (
-                  <TableRow key={u.id}>
-                    {/* User Column (Avatar + Name - Clickable button for future profile navigation) */}
-                    <TableCell>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
+                  <TableRow
+                    key={u.id}
+                    tabIndex={0}
+                    role="link"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        const target = e.target as HTMLElement;
+                        if (!target.closest('button, input, [role="switch"], a')) {
+                          e.preventDefault();
                           router.push(`/admin/users/${u.id}`);
-                        }}
-                        title={`View user profile for ${u.name}`}
-                        className="group flex h-auto items-center gap-3 rounded-2xl p-1.5 text-left transition-colors hover:bg-blue-50/60"
-                      >
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-[#0044D3] shadow-xs transition-colors group-hover:bg-[#0044D3] group-hover:text-white">
-                          {initials}
-                        </div>
-                        <div className="min-w-0">
-                          <Span className="block truncate text-base font-semibold text-slate-900 transition-colors group-hover:text-[#0044D3]">
-                            {u.name || '—'}
-                          </Span>
-                          {u.mustChangePassword ? (
-                            <div className="mt-0.5 flex items-center gap-2">
-                              <Span className="text-xs font-semibold text-amber-700">
-                                Invite pending
-                              </Span>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                disabled={inFlightAction[u.id] === 'resend'}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  void handleResendInvite(u.id, u.name);
-                                }}
-                                className="h-5 px-1.5 text-[11px] font-semibold text-[#0044D3] hover:bg-blue-100/70 disabled:opacity-50"
-                              >
-                                {inFlightAction[u.id] === 'resend' ? 'Sending...' : 'Resend'}
-                              </Button>
-                            </div>
-                          ) : null}
-                        </div>
-                      </Button>
+                        }
+                      }
+                    }}
+                    onClick={(e) => {
+                      const target = e.target as HTMLElement;
+                      if (!target.closest('button, input, [role="switch"], a')) {
+                        router.push(`/admin/users/${u.id}`);
+                      }
+                    }}
+                    className="h-14 cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:bg-slate-50 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none focus-visible:ring-inset"
+                  >
+                    {/* User Column (Avatar + Name - Clean non-nested Link with wrapping) */}
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Link
+                          href={`/admin/users/${u.id}`}
+                          title={`View user profile for ${u.name}`}
+                          className="group flex items-center gap-3 rounded-xl p-0.5 text-left transition-colors hover:opacity-85 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
+                        >
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-[#0044D3] shadow-xs transition-colors group-hover:bg-[#0044D3] group-hover:text-white">
+                            {initials}
+                          </div>
+                          <div className="max-w-[180px] min-w-0 sm:max-w-[220px]">
+                            <Span className="block text-base leading-snug font-semibold break-words text-slate-900 transition-colors group-hover:text-[#0044D3]">
+                              {u.name || '—'}
+                            </Span>
+                          </div>
+                        </Link>
+                        {u.mustChangePassword ? (
+                          <div className="flex shrink-0 items-center gap-1.5">
+                            <Span className="text-xs font-semibold text-amber-700">
+                              Invite pending
+                            </Span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              disabled={inFlightAction[u.id] === 'resend'}
+                              onClick={() => {
+                                void handleResendInvite(u.id, u.name);
+                              }}
+                              className="h-5.5 rounded-full border border-amber-300 bg-amber-50 px-2 text-[11px] font-semibold text-amber-800 hover:bg-amber-100 disabled:opacity-50"
+                            >
+                              {inFlightAction[u.id] === 'resend' ? 'Sending...' : 'Resend'}
+                            </Button>
+                          </div>
+                        ) : null}
+                      </div>
                     </TableCell>
 
                     {/* Email Column */}
-                    <TableCell className="font-mono text-sm text-slate-600 select-all">
+                    <TableCell className="max-w-[200px] font-mono text-sm break-all text-slate-600 select-all sm:max-w-[240px]">
                       {u.email}
                     </TableCell>
 
-                    {/* Role Column */}
-                    <TableCell>
-                      <Span
-                        className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-semibold ${
-                          u.role === 'SUPER_ADMIN'
-                            ? 'bg-purple-50 text-purple-700'
+                    {/* Role Column (only displayed on ALL filter) */}
+                    {selectedRole === 'ALL' ? (
+                      <TableCell>
+                        <Span
+                          className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-semibold ${
+                            u.role === 'SUPER_ADMIN'
+                              ? 'bg-purple-50 text-purple-700'
+                              : u.role === 'MENTOR'
+                                ? 'bg-blue-50 text-[#0044D3]'
+                                : 'bg-emerald-50 text-emerald-700'
+                          }`}
+                        >
+                          {u.role === 'SUPER_ADMIN'
+                            ? 'Super Admin'
                             : u.role === 'MENTOR'
-                              ? 'bg-blue-50 text-[#0044D3]'
-                              : 'bg-emerald-50 text-emerald-700'
-                        }`}
-                      >
-                        {u.role === 'SUPER_ADMIN'
-                          ? 'Super Admin'
-                          : u.role === 'MENTOR'
-                            ? 'Mentor'
-                            : 'Mentee'}
-                      </Span>
-                    </TableCell>
+                              ? 'Mentor'
+                              : 'Mentee'}
+                        </Span>
+                      </TableCell>
+                    ) : null}
 
-                    {/* Batch Column */}
+                    {/* Dynamic Role-Specific Column */}
                     <TableCell className="text-sm font-medium">
-                      {u.batch === 'Unassigned' ? (
-                        <Span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200/80 bg-amber-50/80 px-2.5 py-1 text-xs font-semibold text-amber-800">
-                          <Span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                          Unassigned
-                        </Span>
-                      ) : u.batch === 'System (All)' ? (
-                        <Span className="inline-flex items-center gap-1.5 rounded-lg border border-purple-200 bg-purple-50 px-2.5 py-1 text-xs font-semibold text-purple-700">
-                          <Span className="h-1.5 w-1.5 rounded-full bg-purple-500" />
-                          System (All)
-                        </Span>
-                      ) : (
-                        <div className="inline-flex items-center gap-1.5 rounded-lg border border-blue-100 bg-blue-50/70 px-2.5 py-1 text-xs font-semibold text-slate-900">
-                          <svg
-                            className="h-3.5 w-3.5 text-[#0044D3]"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                            />
-                          </svg>
-                          <Span className="font-semibold text-slate-800">{u.batch}</Span>
-                        </div>
-                      )}
-                    </TableCell>
-
-                    {/* Mentor Column */}
-                    <TableCell className="text-sm font-medium">
-                      {u.mentorName === 'Unassigned' ? (
-                        <Span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200/80 bg-amber-50/80 px-2.5 py-1 text-xs font-semibold text-amber-800">
-                          <Span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                          Unassigned
-                        </Span>
-                      ) : u.mentorName === 'N/A (Admin)' ? (
-                        <Span className="inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-500">
-                          N/A
-                        </Span>
-                      ) : u.mentorName === 'Self (Mentor)' ? (
-                        <Span className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-[#0044D3]">
-                          <Span className="h-1.5 w-1.5 rounded-full bg-[#0044D3]" />
-                          Mentor (Lead)
-                        </Span>
-                      ) : (
-                        <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-800 shadow-2xs">
-                          <div className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-100 text-[9px] font-bold text-[#0044D3]">
-                            {(u.mentorName || 'M').slice(0, 1).toUpperCase()}
+                      {selectedRole === 'MENTEE' ? (
+                        <Span className="text-slate-700">{u.mentorName || '—'}</Span>
+                      ) : selectedRole === 'MENTOR' || selectedRole === 'SUPER_ADMIN' ? (
+                        <Span className="text-slate-700">{u.batch || '—'}</Span>
+                      ) : u.role === 'MENTEE' ? (
+                        u.batch && u.batch !== '—' ? (
+                          <div className="flex flex-col">
+                            <Span className="text-slate-700">{u.batch}</Span>
+                            {u.mentorName && u.mentorName !== '—' ? (
+                              <Span className="text-xs text-slate-400">Mentor: {u.mentorName}</Span>
+                            ) : null}
                           </div>
-                          <Span className="font-semibold text-slate-800">{u.mentorName}</Span>
-                        </div>
+                        ) : (
+                          <Span className="text-slate-700">{u.mentorName || '—'}</Span>
+                        )
+                      ) : (
+                        <Span className="text-slate-700">{u.batch || '—'}</Span>
                       )}
                     </TableCell>
 
-                    {/* Actions Column (Pencil Edit Icon + Change Role + Toggle Switch) */}
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2.5">
-                        {/* Edit Action - Pencil SVG Icon */}
+                    {/* Status Column with Switch Only (Tag Removed) */}
+                    <TableCell className="text-center">
+                      <div className="flex items-center justify-center">
+                        <ToggleSwitch
+                          checked={u.status === 'ACTIVE'}
+                          disabled={isDeactivateDisabled || isRowPending}
+                          title={deactivateTooltip}
+                          ariaLabel={`${u.status === 'ACTIVE' ? 'Deactivate' : 'Activate'} account for ${u.name}`}
+                          onChange={() => void handleToggleStatus(u)}
+                        />
+                      </div>
+                    </TableCell>
+
+                    {/* Actions Column (Pencil Edit Icon Center-Aligned with Actions Title) */}
+                    <TableCell className="text-center">
+                      <div className="flex items-center justify-center">
                         <Button
                           type="button"
                           variant="ghost"
@@ -1005,7 +824,7 @@ export function UsersTable() {
                           onClick={() => setUserToEdit(u)}
                           title="Edit user"
                           aria-label={`Edit ${u.name}`}
-                          className="h-9 w-9 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                          className="h-8 w-8 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                         >
                           <svg
                             className="h-4 w-4"
@@ -1021,28 +840,6 @@ export function UsersTable() {
                             />
                           </svg>
                         </Button>
-
-                        {/* Change Role Button */}
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setUserToChangeRole(u)}
-                          className="h-9 rounded-full px-3 text-xs font-semibold text-[#0044D3] hover:bg-blue-50"
-                        >
-                          Change Role
-                        </Button>
-
-                        {/* Interactive Toggle Switch for Activate / Deactivate */}
-                        <div className="pl-1">
-                          <ToggleSwitch
-                            checked={u.status === 'ACTIVE'}
-                            disabled={isDeactivateDisabled || isRowPending}
-                            title={deactivateTooltip}
-                            ariaLabel={`${u.status === 'ACTIVE' ? 'Deactivate' : 'Activate'} account for ${u.name}`}
-                            onChange={() => void handleToggleStatus(u)}
-                          />
-                        </div>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -1052,7 +849,7 @@ export function UsersTable() {
           </TableBody>
         </Table>
 
-        {/* LeadNest-Style Pagination Controls */}
+        {/* LeadNest-Style Pagination Controls with Loading State */}
         {!usersError && (
           <PaginationControls
             page={page}
@@ -1061,8 +858,9 @@ export function UsersTable() {
             totalPages={totalPages}
             onPageChange={handlePageChange}
             onLimitChange={handleLimitChange}
+            isLoading={isTableLoading}
             itemLabel="entries"
-            pageSizeOptions={[10, 20, 50, 100]}
+            pageSizeOptions={DEFAULT_PAGE_SIZE_OPTIONS}
           />
         )}
       </TableContainer>
@@ -1079,6 +877,14 @@ export function UsersTable() {
         isOpen={Boolean(userToEdit)}
         onClose={() => setUserToEdit(null)}
         onSuccess={handleEditUserSuccess}
+        onChangeRoleClick={() => {
+          if (userToEdit) {
+            setUserToChangeRole(userToEdit);
+          }
+        }}
+        canChangeRole={
+          Boolean(userToEdit) && currentUser?.id !== userToEdit?.id && !userToEdit?.isLastSuperAdmin
+        }
       />
 
       <ChangeRoleModal
@@ -1104,7 +910,31 @@ export function UsersTable() {
               : 'bg-slate-900 text-white'
           }`}
         >
-          <Span>{toast.type === 'error' ? '⚠️' : '✅'}</Span>
+          {toast.type === 'error' ? (
+            <svg
+              className="h-4 w-4 shrink-0 text-red-200"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+          ) : (
+            <svg
+              className="h-4 w-4 shrink-0 text-emerald-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          )}
           <Span>{toast.message}</Span>
         </div>
       ) : null}

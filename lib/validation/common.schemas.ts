@@ -60,8 +60,9 @@ export const passwordSchema = z
 export const emailSchema = z
   .string({ required_error: 'Email is required' })
   .trim()
+  .min(1, 'Email is required')
   .toLowerCase()
-  .email('Invalid email address format')
+  .email('Please enter a valid email address')
   .max(254, 'Email must not exceed 254 characters');
 
 export const uuidSchema = z
