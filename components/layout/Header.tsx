@@ -29,25 +29,6 @@ export interface HeaderProps {
   readonly nav?: readonly HeaderNavItem[];
 }
 
-function ProfileNavIcon({ className }: { readonly className?: string }) {
-  return (
-    <svg
-      className={className ?? 'h-4 w-4 text-slate-400 group-hover:text-[#0044D3]'}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth="2"
-      aria-hidden="true"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-      />
-    </svg>
-  );
-}
-
 function formatRole(role?: string): string {
   return formatRoleLabel(role);
 }
@@ -241,6 +222,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
     if (user?.role === 'MENTEE') return 'MENTEE PANEL';
     return 'ADMIN PANEL';
   })();
+  const profileUrl = user?.role ? getRoleProfilePath(user.role) : '#';
 
   const activeNavItem = nav.find((item) => item.active);
   const navbarTitle =
@@ -359,7 +341,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
                 className="animate-in fade-in slide-in-from-top-2 absolute right-0 z-50 mt-2 w-48 rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-lg duration-150"
               >
                 <Link
-                  href={user?.role === 'SUPER_ADMIN' && user?.id ? `/admin/users/${user.id}` : '#'}
+                  href={profileUrl}
                   onClick={() => setIsProfileDropdownOpen(false)}
                   role="menuitem"
                   className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#111827] transition-colors hover:bg-slate-50"
@@ -390,78 +372,22 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
                   }}
                   className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#D92D20] transition-colors hover:bg-red-50"
                 >
-                  {userInitials}
-                </Button>
-
-                {/* Profile Popover / Dropdown Card */}
-                {isProfileOpen ? (
-                  <div className="absolute top-full right-0 z-50 w-72 origin-top-right pt-2">
-                    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xl ring-1 ring-black/5">
-                      {/* User Header */}
-                      <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#0044D3] text-sm font-bold text-white shadow-sm">
-                          {userInitials}
-                        </div>
-                        <div className="flex min-w-0 flex-1 flex-col">
-                          <Span className="truncate text-sm font-bold text-slate-900">
-                            {user.name}
-                          </Span>
-                          <Span className="truncate text-xs text-slate-500">{user.email}</Span>
-                        </div>
-                      </div>
-
-                      {/* Role Info */}
-                      <div className="my-3 flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
-                        <Span className="text-xs font-medium text-slate-600">Assigned Role</Span>
-                        <Span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-xs font-semibold text-[#0044D3]">
-                          {formattedRole}
-                        </Span>
-                      </div>
-
-                      {/* Popover Profile Navigation */}
-                      <div className="border-t border-slate-100 pt-2 pb-1">
-                        <Link
-                          href={profileUrl}
-                          onClick={() => setIsProfileOpen(false)}
-                          className="group flex min-h-[44px] w-full items-center gap-2.5 rounded-lg px-2 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-[#0044D3]"
-                        >
-                          <ProfileNavIcon />
-                          <Span>View Profile</Span>
-                        </Link>
-                      </div>
-
-                      {/* Popover Signout Action */}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setIsProfileOpen(false);
-                          void handleLogout();
-                        }}
-                        disabled={isLoggingOut}
-                        isLoading={isLoggingOut}
-                        className="w-full justify-start gap-2.5 text-red-600 hover:bg-red-50 hover:text-red-700"
-                      >
-                        <svg
-                          className="h-4 w-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          aria-hidden="true"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                          />
-                        </svg>
-                        Sign out
-                      </Button>
-                    </div>
-                  </div>
-                ) : null}
+                  <svg
+                    className="h-4 w-4 text-[#D92D20]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                    />
+                  </svg>
+                  <Span>Log out</Span>
+                </button>
               </div>
             )}
           </div>
@@ -689,14 +615,29 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
           </nav>
         </div>
 
-        {/* Dock / Collapse Button (Matching Reference Image Dock Icon) */}
-        <div className="flex items-center justify-end px-5 py-2">
+        {/* Drawer Footer: Separated with one line, read-only data and collapse button at the bottom */}
+        <div className="flex items-center justify-between border-t border-[#E1E6EC] px-6 py-4">
+          {isLoading || !user ? (
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-28 rounded-md" />
+              <Skeleton className="h-3 w-40 rounded-md" />
+            </div>
+          ) : (
+            <div className="min-w-0 flex-1">
+              <Span className="block truncate text-sm font-bold text-[#111827]">
+                {formattedRole}
+              </Span>
+              <Span className="mt-0.5 block truncate text-xs font-normal text-[#667085]">
+                {user.email}
+              </Span>
+            </div>
+          )}
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={() => setIsDrawerOpen(false)}
-            className="flex h-9 w-9 items-center justify-center rounded-full border-[#E1E6EC] p-0 text-[#667085] transition-colors hover:bg-[#F6F8FC] hover:text-[#111827]"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-[#E1E6EC] p-0 text-[#667085] transition-colors hover:bg-[#F6F8FC] hover:text-[#111827]"
             title="Collapse sidebar"
             aria-label="Collapse sidebar"
           >
@@ -710,52 +651,6 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
               <rect x="3" y="3" width="18" height="18" rx="2" />
               <path d="M9 3v18" />
             </svg>
-          </Button>
-        </div>
-
-        {/* Drawer Footer with Profile & Logout Actions */}
-        <div className="space-y-2 border-t border-[#E1E6EC] bg-[#F6F8FC]/50 p-4">
-          {user ? (
-            <Link
-              href={profileUrl}
-              onClick={() => {
-                if (typeof window !== 'undefined' && window.innerWidth < 768) {
-                  setIsDrawerOpen(false);
-                }
-              }}
-              className="flex h-11 w-full items-center justify-center gap-2 rounded-full border border-[#E1E6EC] bg-white text-sm font-semibold text-[#111827] transition-colors hover:bg-slate-50 hover:text-[#0044D3]"
-            >
-              <ProfileNavIcon className="h-4 w-4 text-[#667085]" />
-              <Span>My Profile</Span>
-            </Link>
-          ) : null}
-          <Button
-            type="button"
-            variant="outline"
-            size="md"
-            onClick={() => {
-              void handleLogout();
-            }}
-            disabled={isLoggingOut}
-            isLoading={isLoggingOut}
-            className="h-11 w-full justify-center gap-2 rounded-full border-[#E1E6EC] bg-white text-sm font-semibold text-[#667085] transition-colors hover:border-red-200 hover:bg-red-50 hover:text-[#D92D20]"
-          >
-            {!isLoggingOut ? (
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                />
-              </svg>
-            ) : null}
-            {isLoggingOut ? 'Signing out...' : 'Sign Out'}
           </Button>
         </div>
       </aside>
