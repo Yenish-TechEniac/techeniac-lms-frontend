@@ -30,6 +30,8 @@ export interface ChangeRoleModalProps {
   onSuccess: (userId: string, data: ChangeRoleFormData) => Promise<void>;
 }
 
+export const SUPER_ADMIN_ROLE_IMMUTABLE_MESSAGE = 'Super Admin role cannot be changed';
+
 const ALLOWED_ROLE_TRANSITIONS: Record<UserRole, UserRole[]> = {
   MENTEE: ['MENTOR'],
   MENTOR: ['SUPER_ADMIN'],
@@ -67,6 +69,7 @@ function ChangeRoleModalContent({
   const currentRole: UserRole = user.currentRole ?? user.role;
   const isSuperAdmin = currentRole === 'SUPER_ADMIN';
   const availableTargetRoles = ALLOWED_ROLE_TRANSITIONS[currentRole] ?? [];
+  const hasAvailableTransitions = availableTargetRoles.length > 0;
   const [newRole, setNewRole] = useState<UserRole>(getDefaultTargetRole(currentRole));
   const [reason, setReason] = useState('');
   const [confirmed, setConfirmed] = useState(false);
@@ -84,11 +87,9 @@ function ChangeRoleModalContent({
   const isBlocked = isSuperAdmin || (roleImpact?.isBlocked ?? false);
   const blockReason = roleImpact?.blockReason;
   const hasActiveMentees = !isSuperAdmin && isBlocked && blockReason === 'ACTIVE_MENTEES';
-  const isLastSuperAdmin = isBlocked && blockReason === 'LAST_SUPER_ADMIN';
 
   const canSubmit =
-    !isSuperAdmin &&
-    availableTargetRoles.length > 0 &&
+    hasAvailableTransitions &&
     !isLoadingImpact &&
     !isBlocked &&
     confirmed &&
@@ -142,9 +143,9 @@ function ChangeRoleModalContent({
         footer={
           <div className="flex w-full items-center justify-end gap-3">
             <Button variant="outline" size="md" onClick={onClose} disabled={isSubmitting}>
-              {availableTargetRoles.length === 0 ? 'Close' : 'Cancel'}
+              {hasAvailableTransitions ? 'Cancel' : 'Close'}
             </Button>
-            {availableTargetRoles.length > 0 && (
+            {hasAvailableTransitions && (
               <Button
                 type="button"
                 variant="primary"
@@ -190,12 +191,12 @@ function ChangeRoleModalContent({
           {isSuperAdmin && (
             <div className="rounded-xl border border-blue-200 bg-blue-50 p-3.5 text-xs text-blue-950">
               <P className="font-bold text-blue-900">Role Modification Restricted</P>
-              <P className="mt-1 text-slate-700">Super Admin role cannot be modified.</P>
+              <P className="mt-1 text-slate-700">{SUPER_ADMIN_ROLE_IMMUTABLE_MESSAGE}.</P>
             </div>
           )}
 
           {/* Target Role Selector */}
-          {availableTargetRoles.length > 0 ? (
+          {hasAvailableTransitions ? (
             <div className="space-y-1.5">
               <Label
                 htmlFor="target-role"
@@ -243,18 +244,8 @@ function ChangeRoleModalContent({
             </div>
           )}
 
-          {/* Blocked Alert: Last Super Admin */}
-          {isLastSuperAdmin && (
-            <div className="rounded-xl border border-red-300 bg-red-50 p-3.5 text-xs text-red-900">
-              <P className="font-bold text-red-800">Role Demotion Prohibited</P>
-              <P className="mt-1 text-slate-700">
-                Cannot demote the last active Super Admin on the platform.
-              </P>
-            </div>
-          )}
-
           {/* Reason Field */}
-          {availableTargetRoles.length > 0 ? (
+          {hasAvailableTransitions ? (
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <Label

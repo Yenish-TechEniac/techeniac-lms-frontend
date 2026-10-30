@@ -5,7 +5,10 @@ import { useRouter } from 'next/navigation';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { BulkImportModal, type CsvUserRowWithLine } from '@/components/app/users/BulkImportModal';
-import { ChangeRoleModal } from '@/components/app/users/ChangeRoleModal';
+import {
+  ChangeRoleModal,
+  SUPER_ADMIN_ROLE_IMMUTABLE_MESSAGE,
+} from '@/components/app/users/ChangeRoleModal';
 import { CreateUserDrawer } from '@/components/app/users/CreateUserDrawer';
 import { EditUserModal } from '@/components/app/users/EditUserModal';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
@@ -1030,13 +1033,18 @@ export function UsersTable() {
                           disabled={u.role === 'SUPER_ADMIN'}
                           title={
                             u.role === 'SUPER_ADMIN'
-                              ? 'Super Admin role cannot be changed'
+                              ? SUPER_ADMIN_ROLE_IMMUTABLE_MESSAGE
+                              : undefined
+                          }
+                          aria-label={
+                            u.role === 'SUPER_ADMIN'
+                              ? `Change Role — disabled: ${SUPER_ADMIN_ROLE_IMMUTABLE_MESSAGE}`
                               : undefined
                           }
                           onClick={() => setUserToChangeRole(u)}
                           className={`h-9 rounded-full px-3 text-xs font-semibold ${
                             u.role === 'SUPER_ADMIN'
-                              ? 'cursor-not-allowed text-slate-400 opacity-60'
+                              ? 'text-slate-400'
                               : 'text-[#0044D3] hover:bg-blue-50'
                           }`}
                         >

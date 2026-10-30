@@ -25,7 +25,7 @@ export const editUserSchema = z.object({
 
 export type EditUserFormData = z.infer<typeof editUserSchema>;
 
-// FR-2.3: Change role anytime with a mandatory reason (10-500 chars)
+// FR-2.3: Change role with a mandatory reason (10-500 chars) subject to allowed role transitions
 export const changeRoleSchema = z.object({
   newRole: userRoleEnum,
   reason: z
