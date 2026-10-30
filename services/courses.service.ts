@@ -64,7 +64,7 @@ export const coursesService = {
     >('/courses', {
       params: {
         page: params?.page ?? 1,
-        limit: params?.limit ?? 20,
+        limit: params?.limit ?? 10,
         search: params?.search || undefined,
         isActive:
           params?.isActive !== undefined && params.isActive !== 'all'
@@ -80,19 +80,20 @@ export const coursesService = {
       return res.data;
     }
     if (res.data && Array.isArray(res.data)) {
+      const meta = res.meta;
       return {
         courses: res.data,
-        pagination: res.meta ?? {
+        pagination: meta ?? {
           page: params?.page ?? 1,
-          limit: params?.limit ?? 20,
+          limit: params?.limit ?? 10,
           total: res.data.length,
-          totalPages: 1,
+          totalPages: Math.max(1, Math.ceil(res.data.length / (params?.limit ?? 10))),
         },
       };
     }
     return {
       courses: [],
-      pagination: { page: 1, limit: 20, total: 0, totalPages: 1 },
+      pagination: { page: 1, limit: params?.limit ?? 10, total: 0, totalPages: 1 },
     };
   },
 

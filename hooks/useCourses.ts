@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 
 import { coursesService } from '@/services/courses.service';
@@ -8,6 +8,7 @@ import type {
   Assignment,
   Course,
   CourseImpact,
+  CoursePagination,
   CreateAssignmentInput,
   CreateCourseInput,
   CreateSubtopicInput,
@@ -28,14 +29,23 @@ export function useCourses(initialQuery?: ListCoursesQuery) {
   const {
     data,
     isLoading,
+    isFetching,
     error: queryError,
   } = useQuery({
     queryKey: ['courses', initialQuery],
     queryFn: ({ signal }) => coursesService.listCourses(initialQuery, { signal }),
+    placeholderData: keepPreviousData,
+    staleTime: 10_000,
   });
 
   const courses = data?.courses ?? [];
-  const total = data?.pagination?.total ?? 0;
+  const pagination: CoursePagination = data?.pagination ?? {
+    page: initialQuery?.page ?? 1,
+    limit: initialQuery?.limit ?? 10,
+    total: 0,
+    totalPages: 1,
+  };
+  const total = pagination.total;
   const error = queryError instanceof Error ? queryError.message : null;
 
   const fetchCourses = useCallback(
@@ -78,8 +88,10 @@ export function useCourses(initialQuery?: ListCoursesQuery) {
 
   return {
     courses,
+    pagination,
     total,
     isLoading,
+    isFetching,
     error,
     fetchCourses,
     createCourse,
