@@ -215,6 +215,7 @@ export function BatchesTable() {
   const {
     data: batchesResponse,
     isLoading,
+    isFetching,
     isSuccess,
     error,
   } = useBatchesList({
@@ -338,6 +339,13 @@ export function BatchesTable() {
             Reset Filters
           </Button>
         ) : null}
+
+        {isFetching && !isLoading && (
+          <div className="flex items-center gap-1.5 text-xs text-slate-400">
+            <div className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-r-transparent" />
+            <Span>Updating...</Span>
+          </div>
+        )}
       </div>
 
       {/* Batches Table View */}
@@ -369,7 +377,11 @@ export function BatchesTable() {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody
+              className={`divide-y divide-slate-100 ${
+                isFetching && !isLoading ? 'opacity-60 transition-opacity' : ''
+              }`}
+            >
               {isLoading && batches.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">

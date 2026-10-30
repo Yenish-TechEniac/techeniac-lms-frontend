@@ -28,6 +28,7 @@ export function useCourses(initialQuery?: ListCoursesQuery) {
   const {
     data,
     isLoading,
+    isFetching,
     error: queryError,
   } = useQuery({
     queryKey: ['courses', initialQuery],
@@ -81,6 +82,7 @@ export function useCourses(initialQuery?: ListCoursesQuery) {
     courses,
     total,
     isLoading,
+    isFetching,
     error,
     fetchCourses,
     createCourse,

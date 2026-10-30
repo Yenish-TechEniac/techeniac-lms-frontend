@@ -26,12 +26,13 @@ function MenteeAssignmentsContent() {
     undefined,
   );
 
-  const { assignments, total, totalPages, isLoading, error, refetch } = useMyAssignments({
-    page,
-    limit,
-    status: selectedStatus,
-    courseId: activeCourseId,
-  });
+  const { assignments, total, totalPages, isLoading, isFetching, error, refetch } =
+    useMyAssignments({
+      page,
+      limit,
+      status: selectedStatus,
+      courseId: activeCourseId,
+    });
 
   const handleStatusChange = (status?: AssignmentDerivedStatus) => {
     setSelectedStatus(status);
@@ -106,6 +107,7 @@ function MenteeAssignmentsContent() {
         <MyAssignmentsTable
           assignments={assignments}
           isLoading={isLoading}
+          isFetching={isFetching}
           error={error}
           onRetry={() => {
             void refetch();

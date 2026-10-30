@@ -202,7 +202,6 @@ export function useMentorMentees(batchId?: string) {
   return useQuery({
     queryKey: batchKeys.mentorMentees(batchId),
     queryFn: () => batchesService.getMentorMentees(batchId),
-    staleTime: 60_000,
   });
 }
 
@@ -210,7 +209,6 @@ export function useMenteeBatch() {
   return useQuery({
     queryKey: batchKeys.menteeBatch(),
     queryFn: () => batchesService.getMyBatch(),
-    staleTime: 5 * 60_000,
   });
 }
 

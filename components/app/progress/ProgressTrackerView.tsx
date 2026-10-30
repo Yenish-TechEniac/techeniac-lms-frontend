@@ -46,6 +46,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
   const {
     data: trackersResponse,
     isLoading: isTrackersLoading,
+    isFetching: isTrackersFetching,
     isError: isTrackersError,
     error: trackersError,
     refetch: refetchTrackers,
@@ -142,6 +143,12 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
           </div>
 
           <div className="flex items-center gap-3">
+            {isTrackersFetching && !isTrackersLoading && (
+              <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                <div className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-r-transparent" />
+                <span>Updating...</span>
+              </div>
+            )}
             <Span className="font-mono text-xs text-slate-500">
               {filteredTrackers.length} Mentees in Scope
             </Span>
@@ -337,7 +344,11 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                     <th className="px-4 py-3.5 text-right sm:px-6">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-xs">
+                <tbody
+                  className={`divide-y divide-slate-100 text-xs ${
+                    isTrackersFetching && !isTrackersLoading ? 'opacity-60 transition-opacity' : ''
+                  }`}
+                >
                   {filteredTrackers.map((item) => {
                     const isSelected = selectedAllocationId === item.allocationId;
                     const isCompleted = item.status === 'COMPLETED';

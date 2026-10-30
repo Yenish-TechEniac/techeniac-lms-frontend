@@ -57,6 +57,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
     courses,
     total,
     isLoading: loadingCourses,
+    isFetching: isFetchingCourses,
     createCourse,
     deleteCourse,
     toggleCourseStatus,
@@ -379,6 +380,12 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                 </Button>
               ))}
             </div>
+            {isFetchingCourses && !loadingCourses && (
+              <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                <div className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-r-transparent" />
+                <span>Updating...</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -397,7 +404,11 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
               </P>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div
+              className={`grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 ${
+                isFetchingCourses && !loadingCourses ? 'opacity-60 transition-opacity' : ''
+              }`}
+            >
               {courses.map((c) => (
                 <CourseCard
                   key={c.id}
