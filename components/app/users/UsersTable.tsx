@@ -6,10 +6,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { DEFAULT_PAGE_SIZE_OPTIONS } from '@/components/app/batches/batchStatus';
 import { BulkImportModal, type CsvUserRowWithLine } from '@/components/app/users/BulkImportModal';
-import {
-  ChangeRoleModal,
-  SUPER_ADMIN_ROLE_IMMUTABLE_MESSAGE,
-} from '@/components/app/users/ChangeRoleModal';
+import { ChangeRoleModal } from '@/components/app/users/ChangeRoleModal';
 import { CreateUserDrawer } from '@/components/app/users/CreateUserDrawer';
 import { EditUserModal } from '@/components/app/users/EditUserModal';
 import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
