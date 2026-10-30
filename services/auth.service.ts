@@ -10,6 +10,8 @@ export interface AuthUser {
   email: string;
   role: UserRole;
   mustChangePassword: boolean;
+  isActive?: boolean;
+  createdAt?: string;
 }
 
 export interface LoginResponse {

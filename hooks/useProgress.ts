@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 
 import {
@@ -54,6 +54,7 @@ export function useAllocationProgress(allocationId: string | undefined) {
       return progressService.getAllocationProgress(allocationId);
     },
     enabled: isValidUuid,
+    staleTime: 30 * 1000,
   });
 }
 
@@ -76,6 +77,7 @@ export function useProgressTrackers(filters: ProgressTrackerFilters = {}) {
   return useQuery<ProgressTrackerResponse>({
     queryKey: progressKeys.trackers(filters),
     queryFn: () => progressService.getProgressTrackers(filters),
+    placeholderData: keepPreviousData,
   });
 }
 

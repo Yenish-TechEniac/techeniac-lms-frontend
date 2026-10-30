@@ -7,12 +7,16 @@ import { Button } from '@/components/ui/Button';
 import { Form } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
+import { Span } from '@/components/ui/Typography';
+import { formatRoleLabel } from '@/lib/roles';
 import { editUserSchema } from '@/lib/validation';
 
 export interface UserToEdit {
   id: string;
   name: string;
   email: string;
+  role?: string | undefined;
+  isLastSuperAdmin?: boolean | undefined;
 }
 
 export interface EditUserModalProps {
@@ -20,16 +24,22 @@ export interface EditUserModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (userId: string, data: { name: string; email: string }) => Promise<void>;
+  onChangeRoleClick?: ((user: UserToEdit) => void) | undefined;
+  canChangeRole?: boolean | undefined;
 }
 
 function EditUserModalContent({
   user,
   onClose,
   onSuccess,
+  onChangeRoleClick,
+  canChangeRole = false,
 }: {
   user: UserToEdit;
   onClose: () => void;
   onSuccess: (userId: string, data: { name: string; email: string }) => Promise<void>;
+  onChangeRoleClick?: ((user: UserToEdit) => void) | undefined;
+  canChangeRole?: boolean | undefined;
 }) {
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
@@ -128,12 +138,54 @@ function EditUserModalContent({
             required
           />
         </div>
+
+        {/* Current Role Display & Option to Change Role */}
+        <div className="flex items-center justify-between rounded-2xl border border-[#E1E6EC] bg-[#F6F8FC] p-3.5">
+          <div className="space-y-0.5">
+            <Span className="block text-[11px] font-bold tracking-wider text-[#667085] uppercase">
+              Current Role
+            </Span>
+            <Span className="text-sm font-bold text-slate-900">
+              {user.role ? formatRoleLabel(user.role) : 'Mentee'}
+            </Span>
+          </div>
+          {canChangeRole && onChangeRoleClick ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                onClose();
+                onChangeRoleClick(user);
+              }}
+              className="h-8 rounded-full border-blue-200 bg-white px-3 text-xs font-semibold text-[#0044D3] shadow-2xs hover:bg-blue-50"
+            >
+              Change Role
+            </Button>
+          ) : null}
+        </div>
       </Form>
     </Modal>
   );
 }
 
-export function EditUserModal({ user, isOpen, onClose, onSuccess }: EditUserModalProps) {
+export function EditUserModal({
+  user,
+  isOpen,
+  onClose,
+  onSuccess,
+  onChangeRoleClick,
+  canChangeRole,
+}: EditUserModalProps) {
   if (!isOpen || !user) return null;
-  return <EditUserModalContent key={user.id} user={user} onClose={onClose} onSuccess={onSuccess} />;
+  return (
+    <EditUserModalContent
+      key={user.id}
+      user={user}
+      onClose={onClose}
+      onSuccess={onSuccess}
+      onChangeRoleClick={onChangeRoleClick}
+      canChangeRole={canChangeRole}
+    />
+  );
 }

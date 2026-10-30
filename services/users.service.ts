@@ -27,6 +27,8 @@ export interface UserQueryFilters {
   search?: string | undefined;
   batchId?: string | undefined;
   mentorId?: string | undefined;
+  sortBy?: 'name' | 'email' | 'createdAt' | undefined;
+  sortOrder?: 'asc' | 'desc' | undefined;
 }
 
 export interface RoleImpactActiveMentee {
@@ -80,6 +82,8 @@ export const usersService = {
     if (filters.search) params.search = filters.search;
     if (filters.batchId) params.batchId = filters.batchId;
     if (filters.mentorId) params.mentorId = filters.mentorId;
+    if (filters.sortBy) params.sortBy = filters.sortBy;
+    if (filters.sortOrder) params.sortOrder = filters.sortOrder;
 
     const res = await apiClient<
       ApiResponse<{ users: ApiUser[]; total: number; counts?: UserDirectoryCounts }>

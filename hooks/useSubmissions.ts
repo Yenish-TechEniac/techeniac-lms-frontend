@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 
 import { submissionsService } from '@/services/submissions.service';
@@ -28,6 +28,7 @@ export function useMyAssignments(query?: ListMyAssignmentsQuery) {
   } = useQuery<PaginatedAssignmentsResponse, Error>({
     queryKey: SUBMISSION_QUERY_KEYS.myAssignments(query),
     queryFn: ({ signal }) => submissionsService.getMyAssignments(query, signal),
+    placeholderData: keepPreviousData,
   });
 
   const assignments = data?.items ?? [];
@@ -62,6 +63,7 @@ export function useAssignmentSubmissionDetails(assignmentId: string) {
     queryFn: ({ signal }) =>
       submissionsService.getAssignmentSubmissionDetails(assignmentId, signal),
     enabled: Boolean(assignmentId),
+    staleTime: 30 * 1000,
   });
 
   return {

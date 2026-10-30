@@ -26,6 +26,7 @@ export interface MyAssignmentsPaginationConfig {
 interface MyAssignmentsTableProps {
   assignments: AssignmentWithSubmissionStatus[];
   isLoading: boolean;
+  isFetching?: boolean;
   error: string | null;
   onRetry?: (() => void) | undefined;
   selectedStatus?: AssignmentDerivedStatus | undefined;
@@ -46,6 +47,7 @@ const STATUS_FILTERS: Array<{ label: string; value?: AssignmentDerivedStatus | u
 export function MyAssignmentsTable({
   assignments,
   isLoading,
+  isFetching = false,
   error,
   onRetry,
   selectedStatus,
@@ -80,15 +82,23 @@ export function MyAssignmentsTable({
         </div>
 
         {/* Search bar */}
-        <div className="w-full md:w-64">
-          <Input
-            type="text"
-            aria-label="Search assignments"
-            placeholder="Search assignments..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-9 text-xs"
-          />
+        <div className="flex w-full items-center gap-3 md:w-auto">
+          {isFetching && !isLoading && (
+            <div className="flex items-center gap-1.5 text-xs text-slate-400">
+              <div className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-r-transparent" />
+              <Span>Updating...</Span>
+            </div>
+          )}
+          <div className="w-full md:w-64">
+            <Input
+              type="text"
+              aria-label="Search assignments"
+              placeholder="Search assignments..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-9 text-xs"
+            />
+          </div>
         </div>
       </div>
 
@@ -157,7 +167,11 @@ export function MyAssignmentsTable({
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody
+                className={`divide-y divide-slate-100 dark:divide-slate-800 ${
+                  isFetching && !isLoading ? 'opacity-60 transition-opacity' : ''
+                }`}
+              >
                 {filteredAssignments.map((assignment) => (
                   <tr
                     key={assignment.id}

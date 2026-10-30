@@ -8,7 +8,7 @@ import { PerformanceFiltersBar } from '@/components/app/performance/PerformanceF
 import { PerformanceMetricsCards } from '@/components/app/performance/PerformanceMetricsCards';
 import { PerformanceTable } from '@/components/app/performance/PerformanceTable';
 import { Header } from '@/components/layout/Header';
-import { H1, P } from '@/components/ui/Typography';
+import { H1, P, Span } from '@/components/ui/Typography';
 import { useExportPerformanceMutation, usePerformanceQuery } from '@/hooks/usePerformance';
 import { useRoleGuard } from '@/hooks/useRoleGuard';
 import type { PerformanceFilterParams } from '@/services/performance.service';
@@ -35,7 +35,7 @@ export function PerformanceDashboardShell({
     sortOrder: 'DESC',
   });
 
-  const { data, isLoading, isError, error, refetch } = usePerformanceQuery(filters);
+  const { data, isLoading, isFetching, isError, error, refetch } = usePerformanceQuery(filters);
   const exportMutation = useExportPerformanceMutation();
 
   const handleFilterChange = (updated: Partial<PerformanceFilterParams>) => {
@@ -63,9 +63,19 @@ export function PerformanceDashboardShell({
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
       <Header {...navConfig} />
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-6">
-          <H1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{title}</H1>
-          <P className="mt-1 text-sm text-slate-500">{description}</P>
+        <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <H1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+              {title}
+            </H1>
+            <P className="mt-1 text-sm text-slate-500">{description}</P>
+          </div>
+          {isFetching && !isLoading && (
+            <div className="flex items-center gap-1.5 text-xs text-slate-400">
+              <div className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-r-transparent" />
+              <Span>Updating...</Span>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col gap-6">
@@ -107,6 +117,7 @@ export function PerformanceDashboardShell({
             onPageChange={(page) => handleFilterChange({ page })}
             onLimitChange={(limit) => handleFilterChange({ limit, page: 1 })}
             isLoading={isLoading}
+            isFetching={isFetching}
             isError={isError}
             error={error}
             onRetry={handleRetry}
