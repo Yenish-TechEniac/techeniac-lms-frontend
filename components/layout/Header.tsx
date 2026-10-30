@@ -8,7 +8,9 @@ import { Button } from '@/components/ui/Button';
 import { Span } from '@/components/ui/Typography';
 import { useSidebar } from '@/context/SidebarContext';
 import { useAuth } from '@/hooks/useAuth';
+import { getRoleProfilePath } from '@/hooks/useRoleRedirect';
 import { formatRoleLabel } from '@/lib/roles';
+import { getUserInitials } from '@/lib/user';
 
 export interface HeaderNavItem {
   readonly label: string;
@@ -24,15 +26,23 @@ export interface HeaderProps {
   readonly nav?: readonly HeaderNavItem[];
 }
 
-function getUserInitials(name?: string): string {
-  if (!name) return 'U';
-  const parts = name.trim().split(/\s+/);
-  if (parts.length >= 2) {
-    const first = parts[0]?.charAt(0) ?? '';
-    const last = parts[parts.length - 1]?.charAt(0) ?? '';
-    return `${first}${last}`.toUpperCase();
-  }
-  return name.slice(0, 2).toUpperCase();
+function ProfileNavIcon({ className }: { readonly className?: string }) {
+  return (
+    <svg
+      className={className ?? 'h-4 w-4 text-slate-400 group-hover:text-[#0044D3]'}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+      />
+    </svg>
+  );
 }
 
 function formatRole(role?: string): string {
@@ -269,6 +279,7 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
 
   const userInitials = getUserInitials(user?.name);
   const formattedRole = formatRole(user?.role);
+  const profileUrl = user ? getRoleProfilePath(user.role) : '/profile';
 
   return (
     <>
@@ -371,6 +382,18 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
                         <Span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-xs font-semibold text-[#0044D3]">
                           {formattedRole}
                         </Span>
+                      </div>
+
+                      {/* Popover Profile Navigation */}
+                      <div className="border-t border-slate-100 pt-2 pb-1">
+                        <Link
+                          href={profileUrl}
+                          onClick={() => setIsProfileOpen(false)}
+                          className="group flex min-h-[44px] w-full items-center gap-2.5 rounded-lg px-2 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-[#0044D3]"
+                        >
+                          <ProfileNavIcon />
+                          <Span>View Profile</Span>
+                        </Link>
                       </div>
 
                       {/* Popover Signout Action */}
@@ -598,8 +621,22 @@ export function Header({ homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
           </Button>
         </div>
 
-        {/* Drawer Footer with Logout Action */}
-        <div className="border-t border-[#E1E6EC] bg-[#F6F8FC]/50 p-4">
+        {/* Drawer Footer with Profile & Logout Actions */}
+        <div className="space-y-2 border-t border-[#E1E6EC] bg-[#F6F8FC]/50 p-4">
+          {user ? (
+            <Link
+              href={profileUrl}
+              onClick={() => {
+                if (typeof window !== 'undefined' && window.innerWidth < 768) {
+                  setIsDrawerOpen(false);
+                }
+              }}
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-full border border-[#E1E6EC] bg-white text-sm font-semibold text-[#111827] transition-colors hover:bg-slate-50 hover:text-[#0044D3]"
+            >
+              <ProfileNavIcon className="h-4 w-4 text-[#667085]" />
+              <Span>My Profile</Span>
+            </Link>
+          ) : null}
           <Button
             type="button"
             variant="outline"
