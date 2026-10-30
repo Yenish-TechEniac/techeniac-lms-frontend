@@ -122,6 +122,7 @@ export function AddMemberModal({
   } = useUsers({
     role,
     status: 'active',
+    withoutActiveBatch: role === 'MENTEE' ? true : undefined,
     limit: 100,
   });
 
@@ -132,7 +133,12 @@ export function AddMemberModal({
     setRole(newRole);
     setSelectedUserIds([]);
     setSubmitError(null);
-    void fetchUsers({ role: newRole, status: 'active', limit: 100 });
+    void fetchUsers({
+      role: newRole,
+      status: 'active',
+      withoutActiveBatch: newRole === 'MENTEE' ? true : undefined,
+      limit: 100,
+    });
   };
 
   if (!isOpen) return null;
