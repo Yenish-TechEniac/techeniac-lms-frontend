@@ -1,6 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
 @import 'tailwindcss';
 
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url('/fonts/plus-jakarta-sans-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'plusJakartaSans';
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url('/fonts/plus-jakarta-sans-latin.woff2') format('woff2');
+}
+
 :root {
   --background: #ffffff;
   --foreground: #0f172a;
@@ -8,12 +24,28 @@
 
 html {
   scrollbar-gutter: stable;
+  font-family:
+    var(--font-plus-jakarta-sans),
+    'Plus Jakarta Sans',
+    plusJakartaSans,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    'Noto Sans',
+    sans-serif;
 }
 
 @theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: 'Plus Jakarta Sans', var(--font-plus-jakarta-sans), sans-serif;
+  --font-sans:
+    var(--font-plus-jakarta-sans), 'Plus Jakarta Sans', plusJakartaSans, system-ui, -apple-system,
+    BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
+  --font-serif:
+    var(--font-plus-jakarta-sans), 'Plus Jakarta Sans', plusJakartaSans, system-ui, -apple-system,
+    BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
   --color-blue-600: #0044d3;
   --color-blue-700: #0036ab;
   --color-brand: #0044d3;
@@ -30,32 +62,15 @@ optgroup,
 select,
 textarea {
   font-family:
-    'Plus Jakarta Sans',
     var(--font-plus-jakarta-sans),
+    'Plus Jakarta Sans',
+    plusJakartaSans,
+    system-ui,
     -apple-system,
     BlinkMacSystemFont,
     'Segoe UI',
     Roboto,
-    sans-serif !important;
-}
-
-*,
-*::before,
-*::after,
-html,
-body,
-button,
-input,
-optgroup,
-select,
-textarea {
-  font-family:
-    'Plus Jakarta Sans',
-    var(--font-plus-jakarta-sans),
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
+    'Noto Sans',
     sans-serif !important;
 }
 

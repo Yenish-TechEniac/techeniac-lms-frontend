@@ -1,10 +1,23 @@
 import './globals.css';
 
 import type { Metadata } from 'next';
+import localFont from 'next/font/local';
 
 import { AuthProvider } from '@/context/AuthContext';
 import { QueryProvider } from '@/context/QueryProvider';
 import { SidebarProvider } from '@/context/SidebarContext';
+
+const plusJakartaSans = localFont({
+  src: [
+    {
+      path: '../public/fonts/plus-jakarta-sans-latin.woff2',
+      weight: '200 800',
+      style: 'normal',
+    },
+  ],
+  variable: '--font-plus-jakarta-sans',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'Techeniac LMS',
@@ -17,8 +30,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className="flex min-h-full flex-col font-sans">
+    <html
+      lang="en"
+      className={`${plusJakartaSans.variable} ${plusJakartaSans.className} h-full font-sans antialiased`}
+    >
+      <body className={`${plusJakartaSans.className} flex min-h-full flex-col font-sans`}>
         <QueryProvider>
           <AuthProvider>
             <SidebarProvider>{children}</SidebarProvider>
