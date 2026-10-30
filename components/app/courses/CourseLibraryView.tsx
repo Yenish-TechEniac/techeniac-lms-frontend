@@ -383,7 +383,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
             {isFetchingCourses && !loadingCourses && (
               <div className="flex items-center gap-1.5 text-xs text-slate-400">
                 <div className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-r-transparent" />
-                <span>Updating...</span>
+                <Span>Updating...</Span>
               </div>
             )}
           </div>

@@ -8,7 +8,7 @@ import { PerformanceFiltersBar } from '@/components/app/performance/PerformanceF
 import { PerformanceMetricsCards } from '@/components/app/performance/PerformanceMetricsCards';
 import { PerformanceTable } from '@/components/app/performance/PerformanceTable';
 import { Header } from '@/components/layout/Header';
-import { H1, P } from '@/components/ui/Typography';
+import { H1, P, Span } from '@/components/ui/Typography';
 import { useExportPerformanceMutation, usePerformanceQuery } from '@/hooks/usePerformance';
 import { useRoleGuard } from '@/hooks/useRoleGuard';
 import type { PerformanceFilterParams } from '@/services/performance.service';
@@ -73,7 +73,7 @@ export function PerformanceDashboardShell({
           {isFetching && !isLoading && (
             <div className="flex items-center gap-1.5 text-xs text-slate-400">
               <div className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-r-transparent" />
-              <span>Updating...</span>
+              <Span>Updating...</Span>
             </div>
           )}
         </div>
