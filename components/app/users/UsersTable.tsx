@@ -1027,8 +1027,18 @@ export function UsersTable() {
                           type="button"
                           variant="ghost"
                           size="sm"
+                          disabled={u.role === 'SUPER_ADMIN'}
+                          title={
+                            u.role === 'SUPER_ADMIN'
+                              ? 'Super Admin role cannot be changed'
+                              : undefined
+                          }
                           onClick={() => setUserToChangeRole(u)}
-                          className="h-9 rounded-full px-3 text-xs font-semibold text-[#0044D3] hover:bg-blue-50"
+                          className={`h-9 rounded-full px-3 text-xs font-semibold ${
+                            u.role === 'SUPER_ADMIN'
+                              ? 'cursor-not-allowed text-slate-400 opacity-60'
+                              : 'text-[#0044D3] hover:bg-blue-50'
+                          }`}
                         >
                           Change Role
                         </Button>
