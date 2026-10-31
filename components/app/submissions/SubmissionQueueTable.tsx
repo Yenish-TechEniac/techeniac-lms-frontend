@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { H3, Muted, P, Span } from '@/components/ui/Typography';
 import { useSubmissionQueue } from '@/hooks/useGrading';
 import { formatDateIST } from '@/lib/date';
@@ -54,7 +55,7 @@ export function SubmissionQueueTable() {
   return (
     <div className="flex flex-col gap-6">
       {/* Filters & Actions Bar (FR-10.2, FR-10.3) */}
-      <div className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs sm:flex-row sm:items-center dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex flex-col justify-between gap-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-xs sm:flex-row sm:items-center dark:border-slate-800 dark:bg-slate-900">
         {/* Search */}
         <div className="w-full sm:w-72">
           <Input
@@ -71,14 +72,16 @@ export function SubmissionQueueTable() {
         <div className="flex flex-wrap items-center gap-2">
           {/* Status Dropdown */}
           <div className="flex items-center gap-1.5">
-            <Span className="font-mono text-xs text-slate-500 dark:text-slate-400">Status:</Span>
+            <Span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+              Status:
+            </Span>
             <Select
               value={statusFilter}
               onChange={(e) => {
                 setStatusFilter(e.target.value as SubmissionStatus | 'ALL');
                 setPage(1);
               }}
-              className="h-9 w-auto font-mono text-xs text-slate-700 dark:text-slate-300"
+              className="h-9 w-auto text-xs font-semibold text-slate-700 dark:text-slate-300"
             >
               <option value={SubmissionStatus.SUBMITTED}>Pending Review (Default)</option>
               <option value="ALL">All Statuses</option>
@@ -96,7 +99,7 @@ export function SubmissionQueueTable() {
               setSortDirection((prev) => (prev === 'latest' ? 'oldest' : 'latest'));
               setPage(1);
             }}
-            className="border-slate-200 text-xs text-slate-700 dark:border-slate-700 dark:text-slate-300"
+            className="border-slate-200 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:text-slate-300"
           >
             {sortDirection === 'latest' ? '⬇ Newest First' : '⬆ Oldest First'}
           </Button>
@@ -119,7 +122,7 @@ export function SubmissionQueueTable() {
       )}
 
       {/* Queue Table */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left text-sm">
             <thead className="border-b border-slate-100 bg-slate-50/80 text-xs font-semibold tracking-wider text-slate-500 uppercase dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-400">
@@ -145,13 +148,35 @@ export function SubmissionQueueTable() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {isLoading && (
-                <tr>
-                  <td colSpan={6} className="p-8 text-center text-xs text-slate-400">
-                    Loading submission queue...
-                  </td>
-                </tr>
-              )}
+              {isLoading &&
+                Array.from({ length: 6 }).map((_, idx) => (
+                  <tr key={`queue-skel-${idx}`} className="h-16">
+                    <td className="px-6 py-4">
+                      <div className="space-y-1.5">
+                        <Skeleton className="h-4 w-32 rounded-md" />
+                        <Skeleton className="h-3 w-40 rounded-md" />
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="space-y-1.5">
+                        <Skeleton className="h-4 w-36 rounded-md" />
+                        <Skeleton className="h-3 w-28 rounded-md" />
+                      </div>
+                    </td>
+                    <td className="px-3 py-4 text-center">
+                      <Skeleton className="mx-auto h-5 w-8 rounded-md" />
+                    </td>
+                    <td className="px-4 py-4">
+                      <Skeleton className="h-4 w-28 rounded-md" />
+                    </td>
+                    <td className="px-4 py-4">
+                      <Skeleton className="h-6 w-24 rounded-full" />
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <Skeleton className="ml-auto h-8 w-20 rounded-xl" />
+                    </td>
+                  </tr>
+                ))}
 
               {!isLoading && submissions.length === 0 && (
                 <tr>

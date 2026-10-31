@@ -7,8 +7,9 @@ import { GradeDistributionChart } from '@/components/app/performance/GradeDistri
 import { PerformanceFiltersBar } from '@/components/app/performance/PerformanceFiltersBar';
 import { PerformanceMetricsCards } from '@/components/app/performance/PerformanceMetricsCards';
 import { PerformanceTable } from '@/components/app/performance/PerformanceTable';
+import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
-import { H1, P } from '@/components/ui/Typography';
+import { PageTitle, SubText } from '@/components/ui/Typography';
 import { useExportPerformanceMutation, usePerformanceQuery } from '@/hooks/usePerformance';
 import { useRoleGuard } from '@/hooks/useRoleGuard';
 import type { PerformanceFilterParams } from '@/services/performance.service';
@@ -62,10 +63,10 @@ export function PerformanceDashboardShell({
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
       <Header {...navConfig} />
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-6">
-          <H1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{title}</H1>
-          <P className="mt-1 text-sm text-slate-500">{description}</P>
+      <DashboardContent className="space-y-6">
+        <div>
+          <PageTitle>{title}</PageTitle>
+          <SubText className="mt-1">{description}</SubText>
         </div>
 
         <div className="flex flex-col gap-6">
@@ -112,7 +113,7 @@ export function PerformanceDashboardShell({
             onRetry={handleRetry}
           />
         </div>
-      </main>
+      </DashboardContent>
     </div>
   );
 }

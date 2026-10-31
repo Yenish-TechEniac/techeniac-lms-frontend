@@ -7,7 +7,8 @@ import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Input } from '@/components/ui/Input';
-import { Code, H3, P, Span } from '@/components/ui/Typography';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { H3, P, Span } from '@/components/ui/Typography';
 import { formatDateTimeIST } from '@/lib/date';
 import { AssignmentDerivedStatus, type AssignmentWithSubmissionStatus } from '@/types/submissions';
 
@@ -115,14 +116,60 @@ export function MyAssignmentsTable({
       ) : null}
 
       {isLoading ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent" />
-          <P className="mt-3 text-xs text-slate-500 dark:text-slate-400">
-            Loading your assignments in Indian Standard Time...
-          </P>
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="border-b border-slate-200 bg-slate-50/75 font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-300">
+                <tr>
+                  <th scope="col" className="px-5 py-3.5">
+                    Assignment & Course
+                  </th>
+                  <th scope="col" className="px-4 py-3.5">
+                    Due Date (IST)
+                  </th>
+                  <th scope="col" className="px-4 py-3.5">
+                    Est. Time & Marks
+                  </th>
+                  <th scope="col" className="px-4 py-3.5">
+                    Status
+                  </th>
+                  <th scope="col" className="px-5 py-3.5 text-right">
+                    Action
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {Array.from({ length: 5 }).map((_, idx) => (
+                  <tr key={`assign-skel-${idx}`} className="h-16">
+                    <td className="px-5 py-4">
+                      <div className="space-y-1.5">
+                        <Skeleton className="h-4 w-44 rounded-md" />
+                        <Skeleton className="h-3 w-32 rounded-md" />
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <Skeleton className="h-4 w-28 rounded-md" />
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="space-y-1">
+                        <Skeleton className="h-3 w-20 rounded-md" />
+                        <Skeleton className="h-3 w-16 rounded-md" />
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <Skeleton className="h-6 w-20 rounded-full" />
+                    </td>
+                    <td className="px-5 py-4 text-right">
+                      <Skeleton className="ml-auto h-8 w-24 rounded-xl" />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : filteredAssignments.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-3xl border border-dashed border-slate-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900">
           <P className="text-sm font-semibold text-slate-700 dark:text-slate-300">
             No assignments found
           </P>
@@ -133,7 +180,7 @@ export function MyAssignmentsTable({
           </P>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="border-b border-slate-200 bg-slate-50/75 font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-300">
@@ -180,7 +227,7 @@ export function MyAssignmentsTable({
                             </>
                           ) : null}
                           <Span>•</Span>
-                          <Span className="py-0.2 rounded bg-slate-100 px-1.5 font-mono text-[10px] dark:bg-slate-800">
+                          <Span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300">
                             {assignment.scope}
                           </Span>
                         </div>
@@ -203,13 +250,13 @@ export function MyAssignmentsTable({
                     </td>
 
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="space-y-0.5 text-[11px] text-slate-600 dark:text-slate-300">
+                      <div className="space-y-0.5 text-xs text-slate-600 dark:text-slate-300">
                         <div>
                           Est:{' '}
                           <Span className="font-semibold">{assignment.estimatedMinutes} mins</Span>
                         </div>
                         <div>
-                          Max Marks: <Code className="text-[11px]">{assignment.maxMarks}</Code>
+                          Max Marks: <Span className="font-semibold">{assignment.maxMarks}</Span>
                           {assignment.passMarks ? ` (Pass: ${assignment.passMarks})` : ''}
                         </div>
                       </div>
