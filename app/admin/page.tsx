@@ -29,7 +29,7 @@ export default function AdminPage() {
 
       <DashboardContent>
         {/* Welcome Section */}
-        <div className="mb-8 rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-8">
+        <div className="mb-8 rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <H1 className="text-3xl font-bold tracking-tight text-[#111827] sm:text-4xl">
@@ -60,7 +60,7 @@ export default function AdminPage() {
           {/* Card 1: Curriculum & Courses */}
           <Link
             href="/admin/courses"
-            className="group flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs transition-all duration-200 hover:border-[#0044D3] hover:bg-white hover:shadow-md"
+            className="group flex flex-col justify-between rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs transition-all duration-200 hover:border-[#0044D3] hover:bg-white hover:shadow-md"
           >
             <div>
               <div className="flex items-center justify-between">
@@ -104,7 +104,7 @@ export default function AdminPage() {
           {/* Card 2: Course Allocations */}
           <Link
             href="/admin/allocations"
-            className="group flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs transition-all duration-200 hover:border-[#0044D3] hover:bg-white hover:shadow-md"
+            className="group flex flex-col justify-between rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs transition-all duration-200 hover:border-[#0044D3] hover:bg-white hover:shadow-md"
           >
             <div>
               <div className="flex items-center justify-between">
@@ -148,7 +148,7 @@ export default function AdminPage() {
           {/* Card 5: Audit Log */}
           <Link
             href="/admin/audit-logs"
-            className="group flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs transition-all duration-200 hover:border-[#0044D3] hover:bg-white hover:shadow-md"
+            className="group flex flex-col justify-between rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs transition-all duration-200 hover:border-[#0044D3] hover:bg-white hover:shadow-md"
           >
             <div>
               <div className="flex items-center justify-between">

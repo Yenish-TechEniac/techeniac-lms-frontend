@@ -126,7 +126,7 @@ export function MultiSelectDropdown<T extends string = string>({
       {/* Trigger Button with Rounded Border & Hover Effect */}
       <div
         className={cn(
-          'flex h-11 w-full items-center justify-between gap-2 rounded-xl border border-[#E1E6EC] bg-white px-3.5 text-xs font-semibold text-slate-700 shadow-xs transition-all hover:border-slate-300 hover:bg-slate-50/70',
+          'flex h-11 w-full items-center justify-between gap-2 rounded-xl border border-[#E1E6EC] bg-white px-3.5 text-sm font-semibold text-slate-700 shadow-xs transition-all hover:border-slate-300 hover:bg-slate-50/70',
           selectedValues.length > 0 && 'border-blue-300 bg-blue-50/40 text-[#0044D3]',
           isOpen && 'border-[#0044D3] ring-2 ring-[#0044D3]/15',
         )}
@@ -147,7 +147,7 @@ export function MultiSelectDropdown<T extends string = string>({
           <Span className="truncate">{triggerLabel}</Span>
           <svg
             className={cn(
-              'h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-200',
+              'h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200',
               isOpen && 'rotate-180 text-[#0044D3]',
             )}
             fill="none"
@@ -169,12 +169,12 @@ export function MultiSelectDropdown<T extends string = string>({
         >
           {/* Header Row: Title & Optional Clear */}
           <div className="flex items-center justify-between border-b border-slate-100 px-2 pb-2">
-            <Span className="text-xs font-bold text-slate-800">{label}</Span>
+            <Span className="text-sm font-bold text-slate-800">{label}</Span>
             {selectedValues.length > 0 ? (
               <button
                 type="button"
                 onClick={handleClear}
-                className="cursor-pointer text-[11px] font-semibold text-[#0044D3] hover:underline"
+                className="cursor-pointer text-xs font-semibold text-[#0044D3] hover:underline"
               >
                 <Span>Clear</Span>
               </button>
@@ -191,13 +191,13 @@ export function MultiSelectDropdown<T extends string = string>({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={`Search ${label.toLowerCase()}...`}
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#0044D3] focus:bg-white focus:outline-none"
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#0044D3] focus:bg-white focus:outline-none"
                 />
                 {searchQuery ? (
                   <button
                     type="button"
                     onClick={() => setSearchQuery('')}
-                    className="absolute inset-y-0 right-2 flex items-center text-xs text-slate-400 hover:text-slate-600"
+                    className="absolute inset-y-0 right-2 flex items-center text-sm text-slate-400 hover:text-slate-600"
                   >
                     ×
                   </button>
@@ -209,7 +209,7 @@ export function MultiSelectDropdown<T extends string = string>({
           {/* Option List */}
           <div className="mt-1 max-h-52 space-y-0.5 overflow-y-auto">
             {filteredOptions.length === 0 ? (
-              <Span className="block px-2.5 py-3 text-center text-xs text-slate-400">
+              <Span className="block px-2.5 py-3 text-center text-sm text-slate-400">
                 No matching options
               </Span>
             ) : (
@@ -224,7 +224,7 @@ export function MultiSelectDropdown<T extends string = string>({
                       aria-selected={isChecked}
                       onClick={() => toggleOption(opt.value)}
                       className={cn(
-                        'flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-left text-xs font-medium transition-colors hover:bg-slate-50',
+                        'flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-left text-sm font-medium transition-colors hover:bg-slate-50',
                         isChecked ? 'bg-blue-50 font-semibold text-[#0044D3]' : 'text-slate-700',
                       )}
                     >
@@ -240,7 +240,7 @@ export function MultiSelectDropdown<T extends string = string>({
                     aria-selected={isChecked}
                     onClick={() => toggleOption(opt.value)}
                     className={cn(
-                      'flex cursor-pointer items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-medium transition-colors hover:bg-slate-50',
+                      'flex cursor-pointer items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors hover:bg-slate-50',
                       isChecked ? 'bg-blue-50/50 font-semibold text-[#0044D3]' : 'text-slate-700',
                     )}
                   >

@@ -281,7 +281,10 @@ export function UsersTable() {
     selectedMentorNames,
   ]);
 
-  const totalPages = Math.max(1, Math.ceil(totalCount / limit));
+  const effectiveTotal =
+    selectedStatus === 'PENDING' || selectedMentorIds.length > 0 ? users.length : totalCount;
+
+  const totalPages = Math.max(1, Math.ceil(effectiveTotal / limit));
 
   const handleFilterUpdate = ({
     role = filtersRef.current.role,
@@ -561,7 +564,7 @@ export function UsersTable() {
                     setPage(1);
                     handleFilterUpdate({ status: pill.value, page: 1 });
                   }}
-                  className={`cursor-pointer rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
+                  className={`cursor-pointer rounded-full px-3.5 py-1.5 text-sm font-semibold transition-all ${
                     isActive
                       ? 'border border-[#0044D3] bg-blue-50 text-[#0044D3] shadow-xs'
                       : 'border border-[#E1E6EC] bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
@@ -892,7 +895,7 @@ export function UsersTable() {
           <PaginationControls
             page={page}
             limit={limit}
-            total={totalCount}
+            total={effectiveTotal}
             totalPages={totalPages}
             onPageChange={handlePageChange}
             onLimitChange={handleLimitChange}

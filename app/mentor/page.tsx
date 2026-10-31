@@ -235,7 +235,7 @@ export default function MentorPage() {
 
       <DashboardContent>
         {/* Welcome Section */}
-        <div className="mb-8 rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-8">
+        <div className="mb-8 rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <H1 className="text-3xl font-bold tracking-tight text-[#111827] sm:text-4xl">
@@ -270,7 +270,7 @@ export default function MentorPage() {
 
         {/* Metric Cards */}
         <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-3">
-          <div className="rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
+          <div className="rounded-3xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
             <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
               Assigned Cohorts
             </Span>
@@ -278,7 +278,7 @@ export default function MentorPage() {
               {isLoadingBatches ? '—' : batches.length}
             </P>
           </div>
-          <div className="rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
+          <div className="rounded-3xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
             <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
               Mapped Mentees
             </Span>
@@ -286,7 +286,7 @@ export default function MentorPage() {
               {isLoadingMentees ? '—' : mentees.length}
             </P>
           </div>
-          <div className="col-span-2 rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs lg:col-span-1">
+          <div className="col-span-2 rounded-3xl border border-[#E1E6EC] bg-white p-5 shadow-xs lg:col-span-1">
             <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
               Live Cohorts
             </Span>
@@ -297,7 +297,7 @@ export default function MentorPage() {
         </div>
 
         {/* Section 1: Assigned Batches */}
-        <div className="mb-8 overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
+        <div className="mb-8 overflow-hidden rounded-3xl border border-[#E1E6EC] bg-white shadow-xs">
           <div className="border-b border-[#E1E6EC] p-5">
             <H2 className="text-xl font-bold text-[#111827]">Assigned Cohorts</H2>
           </div>
@@ -306,7 +306,7 @@ export default function MentorPage() {
         </div>
 
         {/* Section 2: Mapped Mentees */}
-        <div className="mb-8 overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
+        <div className="mb-8 overflow-hidden rounded-3xl border border-[#E1E6EC] bg-white shadow-xs">
           <div className="flex items-center justify-between border-b border-[#E1E6EC] p-5">
             <H2 className="text-xl font-bold text-[#111827]">Your Mapped Mentees</H2>
             <Link

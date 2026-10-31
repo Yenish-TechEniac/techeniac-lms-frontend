@@ -73,12 +73,12 @@ export function PaginationControls({
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-between gap-4 border-t border-[#E1E6EC] bg-white px-6 py-4 text-sm text-slate-500 sm:flex-row',
+        'flex flex-col items-center justify-between gap-4 border-t border-[#E1E6EC] bg-white px-6 py-4 text-sm text-slate-600 sm:flex-row',
         className,
       )}
     >
       <div className="flex items-center gap-2 font-medium" role="status" aria-live="polite">
-        <Span>
+        <Span className="text-sm font-semibold text-slate-700">
           Showing {startItem}-{endItem} of {total} {itemLabel}
         </Span>
       </div>
@@ -92,7 +92,7 @@ export function PaginationControls({
             size="sm"
             onClick={() => onPageChange(page - 1)}
             disabled={page <= 1}
-            className="h-8 w-8 rounded-full border-[#E1E6EC] p-0 text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+            className="h-9 w-9 rounded-full border-[#E1E6EC] p-0 text-slate-600 hover:bg-slate-50 hover:text-slate-900"
             aria-label="Previous page"
           >
             <svg
@@ -118,7 +118,7 @@ export function PaginationControls({
                 variant={p === page ? 'primary' : 'ghost'}
                 size="sm"
                 onClick={() => onPageChange(p)}
-                className={`h-8 min-w-8 rounded-full px-2.5 text-xs font-semibold ${
+                className={`h-9 min-w-9 rounded-full px-3 text-sm font-semibold ${
                   p === page
                     ? 'bg-[#0044D3] text-white shadow-xs'
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
@@ -136,7 +136,7 @@ export function PaginationControls({
             size="sm"
             onClick={() => onPageChange(page + 1)}
             disabled={page >= totalPages}
-            className="h-8 w-8 rounded-full border-[#E1E6EC] p-0 text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+            className="h-9 w-9 rounded-full border-[#E1E6EC] p-0 text-slate-600 hover:bg-slate-50 hover:text-slate-900"
             aria-label="Next page"
           >
             <svg
@@ -152,15 +152,15 @@ export function PaginationControls({
         </div>
 
         {/* Page Size Selector */}
-        <div className="w-40">
+        <div className="w-44">
           <Select
             value={limit}
             onChange={(e) => onLimitChange(Number(e.target.value))}
             aria-label="Entries per page"
-            className="h-9 rounded-lg text-xs font-semibold text-slate-700"
+            className="h-10 rounded-xl text-sm font-semibold text-slate-700"
           >
             {pageSizeOptions.map((opt) => (
-              <option key={opt} value={opt}>
+              <option key={opt} value={opt} className="text-sm font-medium">
                 {opt} Per Page
               </option>
             ))}

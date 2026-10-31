@@ -11,7 +11,7 @@ export const TableContainer = React.forwardRef<HTMLDivElement, TableContainerPro
     <div
       ref={ref}
       className={cn(
-        'w-full overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs',
+        'w-full overflow-hidden rounded-3xl border border-[#E1E6EC] bg-white shadow-xs',
         className,
       )}
       {...props}

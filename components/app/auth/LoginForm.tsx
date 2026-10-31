@@ -69,7 +69,7 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
       }}
     >
       {errors.general ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-medium text-red-700">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-3.5 text-sm font-medium text-red-700">
           {errors.general}
         </div>
       ) : null}
@@ -78,10 +78,10 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
       <div className="space-y-2">
         <Label
           htmlFor="email"
-          className="flex items-center gap-2 text-base font-semibold text-[#111827]"
+          className="flex items-center gap-2 text-base font-semibold text-[#111827] sm:text-lg"
         >
           <svg
-            className="h-4 w-4 text-[#0044D3]"
+            className="h-5 w-5 text-[#0044D3]"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -122,7 +122,7 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
           autoComplete="email"
           hasError={Boolean(errors.email)}
           disabled={isFormLocked}
-          className="h-13 rounded-2xl bg-slate-50 text-base focus:bg-white sm:h-14 sm:text-lg"
+          className="h-14 rounded-2xl bg-slate-50 text-base focus:bg-white sm:h-15 sm:text-lg"
         />
         <FieldError id="email-error" error={errors.email} />
       </div>
@@ -131,10 +131,10 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
       <div className="space-y-2">
         <Label
           htmlFor="password"
-          className="flex items-center gap-2 text-base font-semibold text-[#111827]"
+          className="flex items-center gap-2 text-base font-semibold text-[#111827] sm:text-lg"
         >
           <svg
-            className="h-4 w-4 text-[#0044D3]"
+            className="h-5 w-5 text-[#0044D3]"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -176,7 +176,7 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
             autoComplete="current-password"
             hasError={Boolean(errors.password)}
             disabled={isFormLocked}
-            className="h-13 rounded-2xl bg-slate-50 pr-12 text-base focus:bg-white sm:h-14 sm:text-lg"
+            className="h-14 rounded-2xl bg-slate-50 pr-12 text-base focus:bg-white sm:h-15 sm:text-lg"
           />
           <PasswordVisibilityToggle
             visible={showPassword}
@@ -195,7 +195,7 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
                   ? `/forgot-password?email=${encodeURIComponent(email.trim())}`
                   : '/forgot-password'
               }
-              className="text-sm font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
+              className="text-base font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
             >
               Forgot Password?
             </Link>

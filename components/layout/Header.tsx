@@ -10,7 +10,6 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { Span } from '@/components/ui/Typography';
 import { useSidebar } from '@/context/SidebarContext';
 import { useAuth } from '@/hooks/useAuth';
-import { getRoleProfilePath } from '@/hooks/useRoleRedirect';
 import { formatRoleLabel } from '@/lib/roles';
 import { getUserInitials } from '@/lib/user';
 
@@ -222,7 +221,6 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
     if (user?.role === 'MENTEE') return 'MENTEE PANEL';
     return 'ADMIN PANEL';
   })();
-  const profileUrl = user?.role ? getRoleProfilePath(user.role) : '#';
 
   const activeNavItem = nav.find((item) => item.active);
   const navbarTitle =
@@ -340,29 +338,6 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
                 role="menu"
                 className="animate-in fade-in slide-in-from-top-2 absolute right-0 z-50 mt-2 w-48 rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-lg duration-150"
               >
-                <Link
-                  href={profileUrl}
-                  onClick={() => setIsProfileDropdownOpen(false)}
-                  role="menuitem"
-                  className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#111827] transition-colors hover:bg-slate-50"
-                >
-                  <svg
-                    className="h-4 w-4 text-[#111827]"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
-                  <Span>Profile</Span>
-                </Link>
-
                 <button
                   type="button"
                   role="menuitem"
@@ -370,7 +345,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
                     setIsProfileDropdownOpen(false);
                     setIsSignOutConfirmOpen(true);
                   }}
-                  className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#D92D20] transition-colors hover:bg-red-50"
+                  className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-[#D92D20] transition-colors hover:bg-red-50"
                 >
                   <svg
                     className="h-4 w-4 text-[#D92D20]"
@@ -386,7 +361,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
                       d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                     />
                   </svg>
-                  <Span>Log out</Span>
+                  <Span>Sign out</Span>
                 </button>
               </div>
             )}

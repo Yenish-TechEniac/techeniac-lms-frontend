@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function LoginPage() {
   const loginFooter = (
     <div className="pt-2 text-center">
-      <Span className="text-xs text-slate-500">
+      <Span className="text-sm font-medium text-slate-600 sm:text-base">
         New to Techeniac LMS?{' '}
         <Span className="font-semibold text-[#0044D3]">Contact Administrator</Span>
       </Span>
