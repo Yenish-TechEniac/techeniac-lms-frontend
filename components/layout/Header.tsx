@@ -10,7 +10,6 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { Span } from '@/components/ui/Typography';
 import { useSidebar } from '@/context/SidebarContext';
 import { useAuth } from '@/hooks/useAuth';
-import { getRoleProfilePath } from '@/hooks/useRoleRedirect';
 import { formatRoleLabel } from '@/lib/roles';
 import { getUserInitials } from '@/lib/user';
 
@@ -127,6 +126,17 @@ const NAV_ICON_DEFS: readonly NavIconDef[] = [
       />
     ),
   },
+  {
+    keywords: ['audit', 'log'],
+    path: (
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+      />
+    ),
+  },
 ];
 
 function getNavIcon(itemOrLabel: HeaderNavItem | string) {
@@ -182,12 +192,11 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
     };
   }, [isProfileDropdownOpen]);
 
-  // Handle escape key for drawer and dropdown
+  // Handle escape key for mobile drawer and dropdown only (persistent sidebar collapses only via button or screen resize)
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         setIsMobileNavOpen(false);
-        setIsDrawerOpen(false);
         setIsProfileDropdownOpen(false);
       }
     }
@@ -195,7 +204,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [setIsDrawerOpen, setIsMobileNavOpen]);
+  }, [setIsMobileNavOpen]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -222,7 +231,6 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
     if (user?.role === 'MENTEE') return 'MENTEE PANEL';
     return 'ADMIN PANEL';
   })();
-  const profileUrl = user?.role ? getRoleProfilePath(user.role) : '#';
 
   const activeNavItem = nav.find((item) => item.active);
   const navbarTitle =
@@ -340,29 +348,6 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
                 role="menu"
                 className="animate-in fade-in slide-in-from-top-2 absolute right-0 z-50 mt-2 w-48 rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-lg duration-150"
               >
-                <Link
-                  href={profileUrl}
-                  onClick={() => setIsProfileDropdownOpen(false)}
-                  role="menuitem"
-                  className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#111827] transition-colors hover:bg-slate-50"
-                >
-                  <svg
-                    className="h-4 w-4 text-[#111827]"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
-                  <Span>Profile</Span>
-                </Link>
-
                 <button
                   type="button"
                   role="menuitem"
@@ -370,7 +355,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
                     setIsProfileDropdownOpen(false);
                     setIsSignOutConfirmOpen(true);
                   }}
-                  className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#D92D20] transition-colors hover:bg-red-50"
+                  className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-[#D92D20] transition-colors hover:bg-red-50"
                 >
                   <svg
                     className="h-4 w-4 text-[#D92D20]"
@@ -386,7 +371,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
                       d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                     />
                   </svg>
-                  <Span>Log out</Span>
+                  <Span>Sign out</Span>
                 </button>
               </div>
             )}
@@ -522,12 +507,23 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
       >
         {/* Drawer Header: TL Logo + Techeniac LMS Title + Mobile/Tablet Close Button */}
         <div className="flex h-20 items-center justify-between border-b border-[#E1E6EC] px-6">
-          <div className="flex items-center gap-3.5">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0044D3] text-base font-black text-white shadow-xs">
+          <Link
+            href={homeUrl}
+            onClick={() => {
+              if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                setIsMobileNavOpen(false);
+              }
+            }}
+            className="group flex cursor-pointer items-center gap-3.5 transition-opacity hover:opacity-85"
+            title="Techeniac LMS Home"
+          >
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0044D3] text-base font-black text-white shadow-xs transition-transform group-hover:scale-105">
               TL
             </div>
-            <Span className="text-xl font-bold tracking-tight text-[#111827]">Techeniac LMS</Span>
-          </div>
+            <Span className="text-xl font-bold tracking-tight text-[#111827] group-hover:text-[#0044D3]">
+              Techeniac LMS
+            </Span>
+          </Link>
           <Button
             type="button"
             variant="ghost"
@@ -554,7 +550,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
           {isLoading || !user ? (
             <Skeleton className="h-3.5 w-24 rounded-md" />
           ) : (
-            <Span className="font-mono text-xs font-bold tracking-wider text-[#667085] uppercase">
+            <Span className="text-xs font-bold tracking-wider text-[#667085] uppercase">
               {panelTitle}
             </Span>
           )}
@@ -627,7 +623,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
               <Span className="block truncate text-sm font-bold text-[#111827]">
                 {formattedRole}
               </Span>
-              <Span className="mt-0.5 block truncate text-xs font-normal text-[#667085]">
+              <Span className="mt-0.5 block truncate text-sm font-medium text-slate-600">
                 {user.email}
               </Span>
             </div>

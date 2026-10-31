@@ -180,7 +180,7 @@ function ChangeRoleModalContent({
           <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
             <div>
               <P className="text-sm font-bold text-slate-900">{user.name}</P>
-              <P className="font-mono text-xs text-slate-500">{user.email}</P>
+              <P className="text-xs text-slate-500">{user.email}</P>
             </div>
             <Span className="rounded-full bg-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-800">
               Current: {getRoleLabel(currentRole)}
@@ -256,7 +256,7 @@ function ChangeRoleModalContent({
                   Reason
                 </Label>
                 <Span
-                  className={`font-mono text-xs ${
+                  className={`text-xs ${
                     reason.length < 10 ? 'font-semibold text-amber-800' : 'text-slate-400'
                   }`}
                 >

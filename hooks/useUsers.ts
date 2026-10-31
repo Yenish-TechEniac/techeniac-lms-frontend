@@ -50,7 +50,7 @@ export const userKeys = {
   list: (filters: UserQueryFilters) => [...userKeys.lists(), filters] as const,
 };
 
-export const DEFAULT_USERS_PAGE_SIZE = 20;
+export const DEFAULT_USERS_PAGE_SIZE = 10;
 
 const DEFAULT_FILTERS: UserQueryFilters = {
   page: 1,
@@ -124,8 +124,25 @@ export function useUsers(
   const toggleStatusMutation = useMutation({
     mutationFn: (variables: { id: string; activate: boolean }) =>
       usersService.toggleStatus(variables.id, variables.activate),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: userKeys.all });
+    onSuccess: (updatedUser) => {
+      queryClient.setQueriesData(
+        { queryKey: userKeys.lists() },
+        (
+          oldData:
+            | { users?: ApiUser[]; items?: ApiUser[]; total?: number; counts?: UserDirectoryCounts }
+            | undefined,
+        ) => {
+          if (!oldData) return oldData;
+          const next = { ...oldData };
+          if (Array.isArray(next.users)) {
+            next.users = next.users.map((u) => (u.id === updatedUser.id ? updatedUser : u));
+          }
+          if (Array.isArray(next.items)) {
+            next.items = next.items.map((u) => (u.id === updatedUser.id ? updatedUser : u));
+          }
+          return next;
+        },
+      );
     },
   });
 

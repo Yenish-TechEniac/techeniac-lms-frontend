@@ -6,11 +6,10 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { DEFAULT_PAGE_SIZE_OPTIONS } from '@/components/app/batches/batchStatus';
 import { BulkImportModal, type CsvUserRowWithLine } from '@/components/app/users/BulkImportModal';
-import { ChangeRoleModal } from '@/components/app/users/ChangeRoleModal';
+import { ChangeRoleModal, type UserToChangeRole } from '@/components/app/users/ChangeRoleModal';
 import { CreateUserDrawer } from '@/components/app/users/CreateUserDrawer';
 import { EditUserModal } from '@/components/app/users/EditUserModal';
 import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
-import { PageHeader } from '@/components/patterns/PageHeader';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { SortableColumnHeader } from '@/components/patterns/SortableColumnHeader';
 import { Button } from '@/components/ui/Button';
@@ -87,16 +86,64 @@ function ToggleSwitch({ checked, disabled, onChange, title, ariaLabel }: ToggleS
   );
 }
 
-const USER_STATUS_OPTIONS: MultiSelectOption[] = [
+const STATUS_OPTIONS: MultiSelectOption[] = [
+  { value: 'ALL', label: 'All Users' },
   { value: 'ACTIVE', label: 'Active Users' },
+  { value: 'PENDING', label: 'Pending Users' },
   { value: 'INACTIVE', label: 'Inactive Users' },
 ];
 
+const BATCH_BADGE_COLORS = [
+  'bg-blue-50 text-blue-700 border-blue-200',
+  'bg-purple-50 text-purple-700 border-purple-200',
+  'bg-emerald-50 text-emerald-700 border-emerald-200',
+  'bg-amber-50 text-amber-800 border-amber-200',
+  'bg-indigo-50 text-indigo-700 border-indigo-200',
+  'bg-pink-50 text-pink-700 border-pink-200',
+  'bg-cyan-50 text-cyan-800 border-cyan-200',
+];
+
+function getBatchBadgeColor(batchName: string): string {
+  let hash = 0;
+  for (let i = 0; i < batchName.length; i++) {
+    hash = (hash << 5) - hash + batchName.charCodeAt(i);
+    hash |= 0;
+  }
+  const index = Math.abs(hash) % BATCH_BADGE_COLORS.length;
+  return BATCH_BADGE_COLORS[index]!;
+}
+
+function BatchBadges({ batchString }: { batchString?: string | undefined }) {
+  if (!batchString || batchString === '—') {
+    return <Span className="text-slate-400">—</Span>;
+  }
+  const batches = batchString
+    .split(',')
+    .map((b) => b.trim())
+    .filter(Boolean);
+  if (batches.length === 0) {
+    return <Span className="text-slate-400">—</Span>;
+  }
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {batches.map((batchName) => (
+        <Span
+          key={batchName}
+          className={`inline-block rounded-md border px-2 py-0.5 text-xs font-semibold ${getBatchBadgeColor(batchName)}`}
+        >
+          {batchName}
+        </Span>
+      ))}
+    </div>
+  );
+}
+
 interface FilterUpdateOptions {
   role?: string | undefined;
-  status?: string | undefined;
+  statuses?: string[] | undefined;
   search?: string | undefined;
   mentorId?: string | undefined;
+  mentorIds?: string[] | undefined;
   page?: number | undefined;
   limit?: number | undefined;
   sortBy?: 'name' | 'email' | undefined;
@@ -109,8 +156,8 @@ export function UsersTable() {
 
   const [search, setSearch] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('ALL');
-  const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
-  const [selectedMentor, setSelectedMentor] = useState<string>('ALL');
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(['ALL']);
+  const [selectedMentorIds, setSelectedMentorIds] = useState<string[]>([]);
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
 
@@ -129,9 +176,9 @@ export function UsersTable() {
 
   const filtersRef = useRef({
     role: selectedRole,
-    status: selectedStatus,
+    statuses: selectedStatuses,
     search,
-    mentorId: selectedMentor,
+    mentorIds: selectedMentorIds,
     page,
     limit,
     sortBy: sortField ?? undefined,
@@ -141,15 +188,24 @@ export function UsersTable() {
   useEffect(() => {
     filtersRef.current = {
       role: selectedRole,
-      status: selectedStatus,
+      statuses: selectedStatuses,
       search,
-      mentorId: selectedMentor,
+      mentorIds: selectedMentorIds,
       page,
       limit,
       sortBy: sortField ?? undefined,
       sortOrder: sortField ? sortOrder : undefined,
     };
-  }, [selectedRole, selectedStatus, search, selectedMentor, page, limit, sortField, sortOrder]);
+  }, [
+    selectedRole,
+    selectedStatuses,
+    search,
+    selectedMentorIds,
+    page,
+    limit,
+    sortField,
+    sortOrder,
+  ]);
 
   useEffect(() => {
     if (!isAuthLoading) {
@@ -180,8 +236,7 @@ export function UsersTable() {
 
   const { userBatchMap, userMentorMap } = useAllBatchMembers();
 
-  const isInitialLoading = isLoading && apiUsers.length === 0;
-  const isTableLoading = isInitialLoading;
+  const isTableLoading = isLoading || isFetching;
 
   const handleSort = (field: 'name' | 'email') => {
     let nextField: 'name' | 'email' | null = field;
@@ -210,7 +265,7 @@ export function UsersTable() {
   // Modal controls
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
-  const [userToChangeRole, setUserToChangeRole] = useState<UserItem | null>(null);
+  const [userToChangeRole, setUserToChangeRole] = useState<UserToChangeRole | null>(null);
   const [userToEdit, setUserToEdit] = useState<UserItem | null>(null);
 
   // In-flight row actions tracking
@@ -244,28 +299,81 @@ export function UsersTable() {
     [apiUsers],
   );
 
+  const selectedMentorNames = useMemo(() => {
+    return mentorRoster
+      .filter((m) => selectedMentorIds.includes(m.id))
+      .map((m) => m.name.toLowerCase());
+  }, [mentorRoster, selectedMentorIds]);
+
   const users: UserItem[] = useMemo(() => {
-    return apiUsers.map((u) => ({
+    let list = apiUsers.map((u) => ({
       id: u.id,
       name: u.name,
       email: u.email,
       role: u.role,
-      status: u.isActive ? 'ACTIVE' : 'INACTIVE',
+      status: u.isActive ? ('ACTIVE' as const) : ('INACTIVE' as const),
       batch: userBatchMap.get(u.id) || '—',
       mentorName: userMentorMap.get(u.id) || '—',
       hasLoggedIn: u.lastLoginAt !== null,
       mustChangePassword: u.mustChangePassword,
       isLastSuperAdmin: u.role === 'SUPER_ADMIN' && activeAdminsCount <= 1,
     }));
-  }, [apiUsers, activeAdminsCount, userBatchMap, userMentorMap]);
 
-  const totalPages = Math.max(1, Math.ceil(totalCount / limit));
+    if (!selectedStatuses.includes('ALL') && selectedStatuses.length > 0) {
+      list = list.filter((u) => {
+        if (selectedStatuses.includes('PENDING') && !u.hasLoggedIn) return true;
+        if (selectedStatuses.includes('ACTIVE') && u.status === 'ACTIVE') return true;
+        if (selectedStatuses.includes('INACTIVE') && u.status === 'INACTIVE') return true;
+        return false;
+      });
+    }
+
+    if (selectedMentorIds.length > 0) {
+      list = list.filter((u) => {
+        const assignedMentor = (u.mentorName || '').toLowerCase();
+        return selectedMentorNames.some((name) => assignedMentor.includes(name));
+      });
+    }
+
+    if (sortField) {
+      list.sort((a, b) => {
+        const valA = (a[sortField] || '').toLowerCase();
+        const valB = (b[sortField] || '').toLowerCase();
+        const cmp = valA.localeCompare(valB);
+        return sortOrder === 'asc' ? cmp : -cmp;
+      });
+    }
+
+    return list;
+  }, [
+    apiUsers,
+    activeAdminsCount,
+    userBatchMap,
+    userMentorMap,
+    selectedStatuses,
+    selectedMentorIds,
+    selectedMentorNames,
+    sortField,
+    sortOrder,
+  ]);
+
+  const hasLocalStatusFilter =
+    !selectedStatuses.includes('ALL') &&
+    !(
+      selectedStatuses.length === 1 &&
+      (selectedStatuses[0] === 'ACTIVE' || selectedStatuses[0] === 'INACTIVE')
+    );
+
+  const effectiveTotal =
+    hasLocalStatusFilter || selectedMentorIds.length > 0 ? users.length : totalCount;
+
+  const totalPages = Math.max(1, Math.ceil(effectiveTotal / limit));
 
   const handleFilterUpdate = ({
     role = filtersRef.current.role,
-    status = filtersRef.current.status,
+    statuses = filtersRef.current.statuses,
     search: searchVal = filtersRef.current.search,
-    mentorId = filtersRef.current.mentorId,
+    mentorIds = filtersRef.current.mentorIds,
     page: newPage = filtersRef.current.page,
     limit: newLimit = filtersRef.current.limit,
     sortBy = filtersRef.current.sortBy,
@@ -273,24 +381,50 @@ export function UsersTable() {
   }: FilterUpdateOptions = {}) => {
     filtersRef.current = {
       role,
-      status,
+      statuses,
       search: searchVal,
-      mentorId,
+      mentorIds,
       page: newPage,
       limit: newLimit,
       sortBy,
       sortOrder: newSortOrder,
     };
 
+    const backendStatus =
+      statuses.length === 1 && (statuses[0] === 'ACTIVE' || statuses[0] === 'INACTIVE')
+        ? statuses[0]
+        : undefined;
+    const backendMentorId = mentorIds.length === 1 ? mentorIds[0] : undefined;
+
     void fetchUsers({
       page: newPage,
       limit: newLimit,
       role: role !== 'ALL' ? role : undefined,
-      status: status !== 'ALL' ? status : undefined,
+      status: backendStatus,
       search: searchVal.trim() || undefined,
-      mentorId: mentorId !== 'ALL' ? mentorId : undefined,
+      mentorId: backendMentorId,
       sortBy,
       sortOrder: newSortOrder,
+    });
+  };
+
+  const handleStatusesChange = (vals: string[]) => {
+    let next = vals;
+    if (vals.length === 0) {
+      next = ['ALL'];
+    } else if (vals.includes('ALL') && vals.length > 1) {
+      if (selectedStatuses.includes('ALL')) {
+        next = vals.filter((v) => v !== 'ALL');
+      } else {
+        next = ['ALL'];
+      }
+    }
+    setSelectedStatuses(next);
+    setPage(1);
+
+    handleFilterUpdate({
+      statuses: next,
+      page: 1,
     });
   };
 
@@ -428,54 +562,49 @@ export function UsersTable() {
 
   return (
     <div className="space-y-4">
-      {/* Top Header via Global PageHeader with no breadcrumbs */}
-      <PageHeader
-        title="Users"
-        actions={
-          <>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setIsBulkImportOpen(true)}
-              className="h-9 gap-2 rounded-full border-[#E1E6EC] px-4 text-xs font-semibold text-slate-700 hover:bg-slate-50 sm:h-10 sm:text-sm"
-            >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-                />
-              </svg>
-              <Span>Bulk Import CSV</Span>
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              size="sm"
-              onClick={() => setIsCreateOpen(true)}
-              className="h-9 gap-2 rounded-full bg-[#0044D3] px-4 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] sm:h-10 sm:text-sm"
-            >
-              <Span className="text-base font-bold">+</Span>
-              <Span>Create User</Span>
-            </Button>
-          </>
-        }
-      />
+      {/* Action Buttons Toolbar */}
+      <div className="flex items-center justify-end gap-2.5 pt-2 sm:gap-3">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setIsBulkImportOpen(true)}
+          className="h-9 gap-2 rounded-full border-[#E1E6EC] px-4 text-xs font-semibold text-slate-700 hover:bg-slate-50 sm:h-10 sm:text-sm"
+        >
+          <svg
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+            />
+          </svg>
+          <Span>Bulk Import CSV</Span>
+        </Button>
+        <Button
+          type="button"
+          variant="primary"
+          size="sm"
+          onClick={() => setIsCreateOpen(true)}
+          className="h-9 gap-2 rounded-full bg-[#0044D3] px-4 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] sm:h-10 sm:text-sm"
+        >
+          <Span className="text-base font-bold">+</Span>
+          <Span>Create User</Span>
+        </Button>
+      </div>
 
       {/* Role-Based Navigation Tabs */}
       <div className="flex [scrollbar-width:none] items-center gap-6 overflow-x-auto overflow-y-hidden border-b border-[#E1E6EC] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {[
-          { label: 'All Users', value: 'ALL' },
+          { label: 'All', value: 'ALL' },
           { label: 'Mentees', value: 'MENTEE' },
           { label: 'Mentors', value: 'MENTOR' },
-          { label: 'Super Admins', value: 'SUPER_ADMIN' },
+          { label: 'Super Admin', value: 'SUPER_ADMIN' },
         ].map((tab) => {
           const isActive = selectedRole === tab.value;
           return (
@@ -501,8 +630,8 @@ export function UsersTable() {
         })}
       </div>
 
-      {/* Filter Row with Expanded Search Input and Rounded Dropdowns at the End */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#E1E6EC] bg-white p-3.5 shadow-xs">
+      {/* Filter Row with Expanded Search Input, Status Dropdown, and Mentor Dropdown */}
+      <div className="flex flex-wrap items-center justify-between gap-3 py-1">
         {/* Expanded Search Input */}
         <div className="w-full flex-1 sm:max-w-md lg:max-w-lg">
           <DebouncedSearchInput
@@ -512,34 +641,26 @@ export function UsersTable() {
           />
         </div>
 
-        {/* Rounded Dropdowns at the End */}
-        <div className="flex w-full flex-wrap items-center gap-3 sm:ml-auto sm:w-auto">
-          {/* Status Dropdown */}
+        {/* Dropdowns */}
+        <div className="flex w-full flex-wrap items-center gap-2.5 sm:ml-auto sm:w-auto">
+          {/* Status MultiSelect Dropdown */}
           <MultiSelectDropdown
             label="Status"
-            singleSelect
-            options={USER_STATUS_OPTIONS}
-            selectedValues={selectedStatus === 'ALL' ? [] : [selectedStatus]}
-            onChange={(vals) => {
-              const nextVal = vals[0] ?? 'ALL';
-              setSelectedStatus(nextVal);
-              setPage(1);
-              handleFilterUpdate({ status: nextVal, page: 1 });
-            }}
+            options={STATUS_OPTIONS}
+            selectedValues={selectedStatuses}
+            onChange={handleStatusesChange}
           />
 
-          {/* Mentor Dropdown */}
+          {/* Mentor Dropdown with Multi-select and Search */}
           {selectedRole === 'ALL' || selectedRole === 'MENTEE' ? (
             <MultiSelectDropdown
               label="Mentor"
-              singleSelect
               options={mentorOptions}
-              selectedValues={selectedMentor === 'ALL' ? [] : [selectedMentor]}
+              selectedValues={selectedMentorIds}
               onChange={(vals) => {
-                const nextVal = vals[0] ?? 'ALL';
-                setSelectedMentor(nextVal);
+                setSelectedMentorIds(vals);
                 setPage(1);
-                handleFilterUpdate({ mentorId: nextVal, page: 1 });
+                handleFilterUpdate({ mentorIds: vals, page: 1 });
               }}
             />
           ) : null}
@@ -578,27 +699,16 @@ export function UsersTable() {
                       : 'Batch / Mentor'}
               </TableHead>
               <TableHead className="w-20 text-center">Status</TableHead>
-              <TableHead className="w-24 text-center">Actions</TableHead>
+              <TableHead className="w-24 text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody
-            className={
-              isFetching && !isInitialLoading
-                ? 'opacity-60 transition-opacity'
-                : 'transition-opacity'
-            }
-          >
-            {isInitialLoading ? (
+          <TableBody>
+            {isTableLoading ? (
               // Loading Skeleton Rows - calibrated to exact data row dimensions
               Array.from({ length: limit }).map((_, i) => (
                 <TableRow key={`loading-skel-${i}`} className="h-14">
                   <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Skeleton className="h-9 w-9 shrink-0 rounded-full" />
-                      <div className="space-y-1">
-                        <Skeleton className="h-4 w-36 rounded-md" />
-                      </div>
-                    </div>
+                    <Skeleton className="h-4 w-36 rounded-md" />
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-4 w-44 rounded-md" />
@@ -654,7 +764,7 @@ export function UsersTable() {
                       variant="primary"
                       size="sm"
                       onClick={() => {
-                        handleFilterUpdate();
+                        void fetchUsers();
                       }}
                     >
                       Retry Fetch
@@ -673,15 +783,6 @@ export function UsersTable() {
               </TableRow>
             ) : (
               users.map((u) => {
-                const initials =
-                  (u.name || 'User')
-                    .split(' ')
-                    .filter(Boolean)
-                    .map((n) => n[0])
-                    .join('')
-                    .slice(0, 2)
-                    .toUpperCase() || 'U';
-
                 const isSelf = currentUser?.id === u.id;
                 const isBlockedAdmin = Boolean(u.isLastSuperAdmin && u.status === 'ACTIVE');
                 const isDeactivateDisabled = (isSelf || isBlockedAdmin) && u.status === 'ACTIVE';
@@ -714,19 +815,16 @@ export function UsersTable() {
                     }}
                     className="h-14 cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:bg-slate-50 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none focus-visible:ring-inset"
                   >
-                    {/* User Column (Avatar + Name - Clean non-nested Link with wrapping) */}
+                    {/* User Column (Name only - Avatar circle removed) */}
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Link
                           href={`/admin/users/${u.id}`}
                           title={`View user profile for ${u.name}`}
-                          className="group flex items-center gap-3 rounded-xl p-0.5 text-left transition-colors hover:opacity-85 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
+                          className="group flex items-center rounded-xl p-0.5 text-left transition-colors hover:opacity-85 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
                         >
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-[#0044D3] shadow-xs transition-colors group-hover:bg-[#0044D3] group-hover:text-white">
-                            {initials}
-                          </div>
-                          <div className="max-w-[180px] min-w-0 sm:max-w-[220px]">
-                            <Span className="block text-base leading-snug font-semibold break-words text-slate-900 transition-colors group-hover:text-[#0044D3]">
+                          <div className="min-w-0">
+                            <Span className="block text-base leading-snug font-semibold text-slate-900 transition-colors group-hover:text-[#0044D3]">
                               {u.name || '—'}
                             </Span>
                           </div>
@@ -754,7 +852,7 @@ export function UsersTable() {
                     </TableCell>
 
                     {/* Email Column */}
-                    <TableCell className="max-w-[200px] font-mono text-sm break-all text-slate-600 select-all sm:max-w-[240px]">
+                    <TableCell className="max-w-[200px] text-sm break-all text-slate-600 select-all sm:max-w-[240px]">
                       {u.email}
                     </TableCell>
 
@@ -784,11 +882,11 @@ export function UsersTable() {
                       {selectedRole === 'MENTEE' ? (
                         <Span className="text-slate-700">{u.mentorName || '—'}</Span>
                       ) : selectedRole === 'MENTOR' || selectedRole === 'SUPER_ADMIN' ? (
-                        <Span className="text-slate-700">{u.batch || '—'}</Span>
+                        <BatchBadges batchString={u.batch} />
                       ) : u.role === 'MENTEE' ? (
                         u.batch && u.batch !== '—' ? (
-                          <div className="flex flex-col">
-                            <Span className="text-slate-700">{u.batch}</Span>
+                          <div className="flex flex-col gap-1">
+                            <BatchBadges batchString={u.batch} />
                             {u.mentorName && u.mentorName !== '—' ? (
                               <Span className="text-xs text-slate-400">Mentor: {u.mentorName}</Span>
                             ) : null}
@@ -797,7 +895,7 @@ export function UsersTable() {
                           <Span className="text-slate-700">{u.mentorName || '—'}</Span>
                         )
                       ) : (
-                        <Span className="text-slate-700">{u.batch || '—'}</Span>
+                        <BatchBadges batchString={u.batch} />
                       )}
                     </TableCell>
 
@@ -854,7 +952,7 @@ export function UsersTable() {
           <PaginationControls
             page={page}
             limit={limit}
-            total={totalCount}
+            total={effectiveTotal}
             totalPages={totalPages}
             onPageChange={handlePageChange}
             onLimitChange={handleLimitChange}
@@ -877,9 +975,21 @@ export function UsersTable() {
         isOpen={Boolean(userToEdit)}
         onClose={() => setUserToEdit(null)}
         onSuccess={handleEditUserSuccess}
-        onChangeRoleClick={() => {
-          if (userToEdit) {
-            setUserToChangeRole(userToEdit);
+        onChangeRoleClick={(selectedUser) => {
+          if (selectedUser?.role) {
+            setUserToChangeRole({
+              id: selectedUser.id,
+              name: selectedUser.name,
+              email: selectedUser.email,
+              role: selectedUser.role as UserRole,
+            });
+          } else if (userToEdit) {
+            setUserToChangeRole({
+              id: userToEdit.id,
+              name: userToEdit.name,
+              email: userToEdit.email,
+              role: userToEdit.role,
+            });
           }
         }}
         canChangeRole={
