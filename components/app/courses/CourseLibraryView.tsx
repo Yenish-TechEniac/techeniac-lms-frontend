@@ -11,6 +11,7 @@ import {
   ADMIN_COURSES_NAV,
   MENTOR_COURSES_NAV,
 } from '@/components/app/navigation/portal-nav.config';
+import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 import { Modal } from '@/components/patterns/Modal';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
@@ -18,6 +19,7 @@ import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
+import { Skeleton } from '@/components/ui/Skeleton';
 import {
   Table,
   TableBody,
@@ -27,7 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
-import { H1, H3, P, Span } from '@/components/ui/Typography';
+import { H3, P, PageTitle, Span, SubText } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { useCourses } from '@/hooks/useCourses';
 import { useDurationInput } from '@/hooks/useDurationInput';
@@ -225,9 +227,24 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
   };
 
   if (isLoading || !isAuthenticated || !user) {
+    const fallbackNav = portal === 'mentor' ? MENTOR_COURSES_NAV : ADMIN_COURSES_NAV;
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+      <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
+        <Header {...fallbackNav} />
+        <DashboardContent>
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-64 rounded-xl" />
+              <Skeleton className="h-4 w-96 rounded-md" />
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <Skeleton className="h-24 rounded-3xl" />
+              <Skeleton className="h-24 rounded-3xl" />
+              <Skeleton className="h-24 rounded-3xl" />
+            </div>
+            <Skeleton className="h-96 rounded-3xl" />
+          </div>
+        </DashboardContent>
       </div>
     );
   }
@@ -243,7 +260,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
       <Header {...navConfig} />
 
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+      <DashboardContent>
         {/* Top Breadcrumb & Actions */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -254,12 +271,12 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
               <Span className="text-slate-300">/</Span>
               <Span className="font-semibold text-slate-900">Curriculum & Course Library</Span>
             </div>
-            <H1 className="mt-1.5 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+            <PageTitle className="mt-1.5 text-2xl font-extrabold tracking-tight sm:text-3xl">
               Course Library
-            </H1>
-            <P className="mt-1.5 max-w-2xl text-sm text-slate-500">
+            </PageTitle>
+            <SubText className="mt-1.5 max-w-2xl">
               Manage enterprise learning tracks, syllabus outlines, and live assignments.
-            </P>
+            </SubText>
           </div>
 
           <div className="flex items-center gap-3">
@@ -284,7 +301,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
 
         {/* Telemetry Stat Cards */}
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all hover:border-slate-300 hover:shadow-sm">
+          <div className="flex items-center justify-between rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all hover:border-slate-300 hover:shadow-sm">
             <div>
               <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
                 Total Courses
@@ -309,7 +326,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
               </svg>
             </div>
           </div>
-          <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all hover:border-slate-300 hover:shadow-sm">
+          <div className="flex items-center justify-between rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all hover:border-slate-300 hover:shadow-sm">
             <div>
               <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
                 Active Tracks
@@ -334,7 +351,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
               </svg>
             </div>
           </div>
-          <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all hover:border-slate-300 hover:shadow-sm">
+          <div className="flex items-center justify-between rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all hover:border-slate-300 hover:shadow-sm">
             <div>
               <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
                 Draft / Inactive
@@ -416,9 +433,43 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
         {/* Courses Grid */}
         <div className="mt-6">
           {loadingCourses ? (
-            <div className="flex h-64 items-center justify-center rounded-2xl border border-slate-200 bg-white">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
-            </div>
+            <TableContainer className="w-full">
+              <Table className="w-full">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[36%]">Course</TableHead>
+                    <TableHead>Content Stats</TableHead>
+                    <TableHead>Duration</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Array.from({ length: 6 }).map((_, idx) => (
+                    <TableRow key={`course-skel-${idx}`} className="h-16">
+                      <TableCell>
+                        <div className="space-y-1.5">
+                          <Skeleton className="h-4 w-48 rounded-md" />
+                          <Skeleton className="h-3 w-72 rounded-md" />
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-28 rounded-md" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-20 rounded-md" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-6 w-20 rounded-full" />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Skeleton className="ml-auto h-8 w-24 rounded-xl" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
           ) : (
             <>
               {courses.length === 0 ? (
@@ -601,7 +652,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
             </>
           )}
         </div>
-      </main>
+      </DashboardContent>
 
       {/* Create Course Modal */}
       <Modal

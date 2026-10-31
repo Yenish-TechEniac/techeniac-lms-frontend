@@ -126,3 +126,60 @@ input[type='password']::placeholder {
 .animate-glow {
   animation: pulseGlow 6s ease-in-out infinite;
 }
+
+/* ==========================================================================
+   GLOBAL STANDARDIZED TYPOGRAPHY UTILITIES
+   ========================================================================== */
+@layer utilities {
+  .page-title {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: #111827;
+  }
+  @media (min-width: 640px) {
+    .page-title {
+      font-size: 2.25rem;
+      line-height: 2.5rem;
+    }
+  }
+
+  .section-title {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    color: #111827;
+  }
+
+  .card-title {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .normal-text,
+  .body-text {
+    font-size: 1rem;
+    line-height: 1.5rem;
+    font-weight: 400;
+    color: #111827;
+  }
+
+  .sub-text,
+  .muted-text {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 500;
+    color: #667085;
+  }
+
+  .label-text {
+    font-size: 1rem;
+    line-height: 1.5rem;
+    font-weight: 600;
+    color: #111827;
+  }
+}
