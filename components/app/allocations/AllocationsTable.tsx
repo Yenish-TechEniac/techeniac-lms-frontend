@@ -40,7 +40,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
   const [revokingAllocation, setRevokingAllocation] = useState<CourseAllocation | null>(null);
   const [overridingAllocation, setOverridingAllocation] = useState<CourseAllocation | null>(null);
 
-  const { data, isLoading, isError, error, refetch } = useAllocationsList(filters);
+  const { data, isLoading, isFetching, isError, error, refetch } = useAllocationsList(filters);
   const { data: batchesData } = useBatchesList({ limit: 100 });
   const { courses } = useCourses();
 
@@ -307,6 +307,12 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
               Overdue
             </Button>
           </div>
+          {isFetching && !isLoading && (
+            <div className="flex items-center gap-1.5 text-xs text-slate-400">
+              <div className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-r-transparent" />
+              <Span>Updating...</Span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -337,7 +343,11 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody
+              className={`divide-y divide-slate-100 ${
+                isFetching && !isLoading ? 'opacity-60 transition-opacity' : ''
+              }`}
+            >
               {isLoading ? (
                 Array.from({ length: 6 }).map((_, idx) => (
                   <tr key={`alloc-skel-${idx}`} className="h-16">

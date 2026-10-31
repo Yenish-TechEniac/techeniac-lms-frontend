@@ -26,6 +26,7 @@ export interface MyAssignmentsPaginationConfig {
 interface MyAssignmentsTableProps {
   assignments: AssignmentWithSubmissionStatus[];
   isLoading: boolean;
+  isFetching?: boolean;
   error: string | null;
   onRetry?: (() => void) | undefined;
   selectedStatus?: AssignmentDerivedStatus | undefined;
@@ -46,6 +47,7 @@ const STATUS_FILTERS: Array<{ label: string; value?: AssignmentDerivedStatus | u
 export function MyAssignmentsTable({
   assignments,
   isLoading,
+  isFetching = false,
   error,
   onRetry,
   selectedStatus,
@@ -67,15 +69,23 @@ export function MyAssignmentsTable({
   return (
     <div className="space-y-6">
       {/* Search Bar (Left-aligned, prominent) */}
-      <div className="w-full max-w-lg sm:w-[471px]">
-        <Input
-          type="search"
-          aria-label="Search assignments"
-          placeholder="Search assignments by title, course, or topic..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="h-10 rounded-xl bg-white text-xs shadow-xs"
-        />
+      <div className="flex items-center justify-between gap-4">
+        <div className="w-full max-w-lg sm:w-[471px]">
+          <Input
+            type="search"
+            aria-label="Search assignments"
+            placeholder="Search assignments by title, course, or topic..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-10 rounded-xl bg-white text-xs shadow-xs"
+          />
+        </div>
+        {isFetching && !isLoading && (
+          <div className="flex items-center gap-1.5 text-xs text-slate-400">
+            <div className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-r-transparent" />
+            <Span>Updating...</Span>
+          </div>
+        )}
       </div>
 
       {/* Status Filter Tabs */}
@@ -187,7 +197,11 @@ export function MyAssignmentsTable({
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody
+                className={`divide-y divide-slate-100 ${
+                  isFetching && !isLoading ? 'opacity-60 transition-opacity' : ''
+                }`}
+              >
                 {filteredAssignments.map((assignment) => (
                   <tr key={assignment.id} className="transition-colors hover:bg-slate-50/50">
                     <td className="px-5 py-4">

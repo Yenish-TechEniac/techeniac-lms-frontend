@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   type AddMenteesPayload,
@@ -56,6 +56,7 @@ export function useAllocationsList(filters: AllocationFilters = {}) {
   return useQuery<AllocationListResponse>({
     queryKey: allocationKeys.list(filters),
     queryFn: () => allocationsService.listAllocations(filters),
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -73,6 +74,7 @@ export function useBatchAllocations(batchId: string) {
   return useQuery<AllocationListResponse>({
     queryKey: allocationKeys.batchAllocations(batchId),
     queryFn: () => allocationsService.listAllocations({ batchId, limit: 100 }),
+    placeholderData: keepPreviousData,
     enabled: isValidUuid,
   });
 }

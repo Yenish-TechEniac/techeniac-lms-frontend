@@ -72,6 +72,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
     courses,
     pagination,
     isLoading: loadingCourses,
+    isFetching: isFetchingCourses,
     createCourse,
     deleteCourse,
     toggleCourseStatus,
@@ -427,6 +428,12 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                 </Button>
               ))}
             </div>
+            {isFetchingCourses && !loadingCourses && (
+              <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                <div className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-r-transparent" />
+                <Span>Updating...</Span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -481,7 +488,11 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                   </P>
                 </div>
               ) : (
-                <TableContainer className="w-full">
+                <TableContainer
+                  className={`w-full ${
+                    isFetchingCourses && !loadingCourses ? 'opacity-60 transition-opacity' : ''
+                  }`}
+                >
                   <Table className="w-full">
                     <TableHeader>
                       <TableRow>

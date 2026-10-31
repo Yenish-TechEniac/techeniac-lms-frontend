@@ -9,7 +9,7 @@ import { PerformanceMetricsCards } from '@/components/app/performance/Performanc
 import { PerformanceTable } from '@/components/app/performance/PerformanceTable';
 import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
-import { PageTitle, SubText } from '@/components/ui/Typography';
+import { PageTitle, Span, SubText } from '@/components/ui/Typography';
 import { useExportPerformanceMutation, usePerformanceQuery } from '@/hooks/usePerformance';
 import { useRoleGuard } from '@/hooks/useRoleGuard';
 import type { PerformanceFilterParams } from '@/services/performance.service';
@@ -36,7 +36,7 @@ export function PerformanceDashboardShell({
     sortOrder: 'DESC',
   });
 
-  const { data, isLoading, isError, error, refetch } = usePerformanceQuery(filters);
+  const { data, isLoading, isFetching, isError, error, refetch } = usePerformanceQuery(filters);
   const exportMutation = useExportPerformanceMutation();
 
   const handleFilterChange = (updated: Partial<PerformanceFilterParams>) => {
@@ -64,9 +64,17 @@ export function PerformanceDashboardShell({
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
       <Header {...navConfig} />
       <DashboardContent className="space-y-6">
-        <div>
-          <PageTitle>{title}</PageTitle>
-          <SubText className="mt-1">{description}</SubText>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <PageTitle>{title}</PageTitle>
+            <SubText className="mt-1">{description}</SubText>
+          </div>
+          {isFetching && !isLoading && (
+            <div className="flex items-center gap-1.5 text-xs text-slate-400">
+              <div className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-r-transparent" />
+              <Span>Updating...</Span>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col gap-6">
@@ -108,6 +116,7 @@ export function PerformanceDashboardShell({
             onPageChange={(page) => handleFilterChange({ page })}
             onLimitChange={(limit) => handleFilterChange({ limit, page: 1 })}
             isLoading={isLoading}
+            isFetching={isFetching}
             isError={isError}
             error={error}
             onRetry={handleRetry}
