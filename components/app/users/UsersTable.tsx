@@ -10,7 +10,6 @@ import { ChangeRoleModal, type UserToChangeRole } from '@/components/app/users/C
 import { CreateUserDrawer } from '@/components/app/users/CreateUserDrawer';
 import { EditUserModal } from '@/components/app/users/EditUserModal';
 import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
-import { PageHeader } from '@/components/patterns/PageHeader';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { SortableColumnHeader } from '@/components/patterns/SortableColumnHeader';
 import { Button } from '@/components/ui/Button';
@@ -87,9 +86,16 @@ function ToggleSwitch({ checked, disabled, onChange, title, ariaLabel }: ToggleS
   );
 }
 
+const STATUS_OPTIONS: MultiSelectOption[] = [
+  { value: 'ALL', label: 'All Users' },
+  { value: 'ACTIVE', label: 'Active Users' },
+  { value: 'PENDING', label: 'Pending Users' },
+  { value: 'INACTIVE', label: 'Inactive Users' },
+];
+
 interface FilterUpdateOptions {
   role?: string | undefined;
-  status?: string | undefined;
+  statuses?: string[] | undefined;
   search?: string | undefined;
   mentorId?: string | undefined;
   mentorIds?: string[] | undefined;
@@ -105,7 +111,7 @@ export function UsersTable() {
 
   const [search, setSearch] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('ALL');
-  const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(['ALL']);
   const [selectedMentorIds, setSelectedMentorIds] = useState<string[]>([]);
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
@@ -125,7 +131,7 @@ export function UsersTable() {
 
   const filtersRef = useRef({
     role: selectedRole,
-    status: selectedStatus,
+    statuses: selectedStatuses,
     search,
     mentorIds: selectedMentorIds,
     page,
@@ -137,7 +143,7 @@ export function UsersTable() {
   useEffect(() => {
     filtersRef.current = {
       role: selectedRole,
-      status: selectedStatus,
+      statuses: selectedStatuses,
       search,
       mentorIds: selectedMentorIds,
       page,
@@ -145,7 +151,16 @@ export function UsersTable() {
       sortBy: sortField ?? undefined,
       sortOrder: sortField ? sortOrder : undefined,
     };
-  }, [selectedRole, selectedStatus, search, selectedMentorIds, page, limit, sortField, sortOrder]);
+  }, [
+    selectedRole,
+    selectedStatuses,
+    search,
+    selectedMentorIds,
+    page,
+    limit,
+    sortField,
+    sortOrder,
+  ]);
 
   useEffect(() => {
     if (!isAuthLoading) {
@@ -259,8 +274,13 @@ export function UsersTable() {
       isLastSuperAdmin: u.role === 'SUPER_ADMIN' && activeAdminsCount <= 1,
     }));
 
-    if (selectedStatus === 'PENDING') {
-      list = list.filter((u) => !u.hasLoggedIn);
+    if (!selectedStatuses.includes('ALL') && selectedStatuses.length > 0) {
+      list = list.filter((u) => {
+        if (selectedStatuses.includes('PENDING') && !u.hasLoggedIn) return true;
+        if (selectedStatuses.includes('ACTIVE') && u.status === 'ACTIVE') return true;
+        if (selectedStatuses.includes('INACTIVE') && u.status === 'INACTIVE') return true;
+        return false;
+      });
     }
 
     if (selectedMentorIds.length > 0) {
@@ -276,19 +296,26 @@ export function UsersTable() {
     activeAdminsCount,
     userBatchMap,
     userMentorMap,
-    selectedStatus,
+    selectedStatuses,
     selectedMentorIds,
     selectedMentorNames,
   ]);
 
+  const hasLocalStatusFilter =
+    !selectedStatuses.includes('ALL') &&
+    !(
+      selectedStatuses.length === 1 &&
+      (selectedStatuses[0] === 'ACTIVE' || selectedStatuses[0] === 'INACTIVE')
+    );
+
   const effectiveTotal =
-    selectedStatus === 'PENDING' || selectedMentorIds.length > 0 ? users.length : totalCount;
+    hasLocalStatusFilter || selectedMentorIds.length > 0 ? users.length : totalCount;
 
   const totalPages = Math.max(1, Math.ceil(effectiveTotal / limit));
 
   const handleFilterUpdate = ({
     role = filtersRef.current.role,
-    status = filtersRef.current.status,
+    statuses = filtersRef.current.statuses,
     search: searchVal = filtersRef.current.search,
     mentorIds = filtersRef.current.mentorIds,
     page: newPage = filtersRef.current.page,
@@ -298,7 +325,7 @@ export function UsersTable() {
   }: FilterUpdateOptions = {}) => {
     filtersRef.current = {
       role,
-      status,
+      statuses,
       search: searchVal,
       mentorIds,
       page: newPage,
@@ -307,7 +334,10 @@ export function UsersTable() {
       sortOrder: newSortOrder,
     };
 
-    const backendStatus = status === 'PENDING' ? undefined : status !== 'ALL' ? status : undefined;
+    const backendStatus =
+      statuses.length === 1 && (statuses[0] === 'ACTIVE' || statuses[0] === 'INACTIVE')
+        ? statuses[0]
+        : undefined;
     const backendMentorId = mentorIds.length === 1 ? mentorIds[0] : undefined;
 
     void fetchUsers({
@@ -319,6 +349,26 @@ export function UsersTable() {
       mentorId: backendMentorId,
       sortBy,
       sortOrder: newSortOrder,
+    });
+  };
+
+  const handleStatusesChange = (vals: string[]) => {
+    let next = vals;
+    if (vals.length === 0) {
+      next = ['ALL'];
+    } else if (vals.includes('ALL') && vals.length > 1) {
+      if (selectedStatuses.includes('ALL')) {
+        next = vals.filter((v) => v !== 'ALL');
+      } else {
+        next = ['ALL'];
+      }
+    }
+    setSelectedStatuses(next);
+    setPage(1);
+
+    handleFilterUpdate({
+      statuses: next,
+      page: 1,
     });
   };
 
@@ -456,46 +506,41 @@ export function UsersTable() {
 
   return (
     <div className="space-y-4">
-      {/* Top Header via Global PageHeader with no breadcrumbs */}
-      <PageHeader
-        title="Users"
-        actions={
-          <>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setIsBulkImportOpen(true)}
-              className="h-9 gap-2 rounded-full border-[#E1E6EC] px-4 text-xs font-semibold text-slate-700 hover:bg-slate-50 sm:h-10 sm:text-sm"
-            >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-                />
-              </svg>
-              <Span>Bulk Import CSV</Span>
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              size="sm"
-              onClick={() => setIsCreateOpen(true)}
-              className="h-9 gap-2 rounded-full bg-[#0044D3] px-4 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] sm:h-10 sm:text-sm"
-            >
-              <Span className="text-base font-bold">+</Span>
-              <Span>Create User</Span>
-            </Button>
-          </>
-        }
-      />
+      {/* Action Buttons Toolbar */}
+      <div className="flex items-center justify-end gap-2.5 pt-2 sm:gap-3">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setIsBulkImportOpen(true)}
+          className="h-9 gap-2 rounded-full border-[#E1E6EC] px-4 text-xs font-semibold text-slate-700 hover:bg-slate-50 sm:h-10 sm:text-sm"
+        >
+          <svg
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+            />
+          </svg>
+          <Span>Bulk Import CSV</Span>
+        </Button>
+        <Button
+          type="button"
+          variant="primary"
+          size="sm"
+          onClick={() => setIsCreateOpen(true)}
+          className="h-9 gap-2 rounded-full bg-[#0044D3] px-4 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] sm:h-10 sm:text-sm"
+        >
+          <Span className="text-base font-bold">+</Span>
+          <Span>Create User</Span>
+        </Button>
+      </div>
 
       {/* Role-Based Navigation Tabs */}
       <div className="flex [scrollbar-width:none] items-center gap-6 overflow-x-auto overflow-y-hidden border-b border-[#E1E6EC] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
@@ -529,7 +574,7 @@ export function UsersTable() {
         })}
       </div>
 
-      {/* Filter Row with Expanded Search Input, Pill Filters, and Dropdowns */}
+      {/* Filter Row with Expanded Search Input, Status Dropdown, and Mentor Dropdown */}
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#E1E6EC] bg-white p-3.5 shadow-xs">
         {/* Expanded Search Input */}
         <div className="w-full flex-1 sm:max-w-md lg:max-w-lg">
@@ -540,42 +585,15 @@ export function UsersTable() {
           />
         </div>
 
-        {/* Pill-Style Status Filters and Dynamic Dropdowns */}
+        {/* Dropdowns */}
         <div className="flex w-full flex-wrap items-center gap-2.5 sm:ml-auto sm:w-auto">
-          {/* Pill-Style Filter Buttons (Issue 4 & 5) */}
-          <div
-            className="flex items-center gap-1.5"
-            role="group"
-            aria-label="Filter users by account status"
-          >
-            {[
-              { label: 'All Users', value: 'ALL' },
-              { label: 'Active Users', value: 'ACTIVE' },
-              { label: 'Pending Users', value: 'PENDING' },
-              { label: 'Inactive Users', value: 'INACTIVE' },
-            ].map((pill) => {
-              const isActive = selectedStatus === pill.value;
-              return (
-                <button
-                  key={pill.value}
-                  type="button"
-                  onClick={() => {
-                    setSelectedStatus(pill.value);
-                    setPage(1);
-                    handleFilterUpdate({ status: pill.value, page: 1 });
-                  }}
-                  className={`cursor-pointer rounded-full px-3.5 py-1.5 text-sm font-semibold transition-all ${
-                    isActive
-                      ? 'border border-[#0044D3] bg-blue-50 text-[#0044D3] shadow-xs'
-                      : 'border border-[#E1E6EC] bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
-                  }`}
-                  aria-pressed={isActive}
-                >
-                  <Span>{pill.label}</Span>
-                </button>
-              );
-            })}
-          </div>
+          {/* Status MultiSelect Dropdown */}
+          <MultiSelectDropdown
+            label="Status"
+            options={STATUS_OPTIONS}
+            selectedValues={selectedStatuses}
+            onChange={handleStatusesChange}
+          />
 
           {/* Mentor Dropdown with Multi-select and Search */}
           {selectedRole === 'ALL' || selectedRole === 'MENTEE' ? (
@@ -625,7 +643,7 @@ export function UsersTable() {
                       : 'Batch / Mentor'}
               </TableHead>
               <TableHead className="w-20 text-center">Status</TableHead>
-              <TableHead className="w-24 text-center">Actions</TableHead>
+              <TableHead className="w-24 text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

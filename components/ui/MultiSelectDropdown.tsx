@@ -20,6 +20,7 @@ export interface MultiSelectDropdownProps<T extends string = string> {
   readonly singleSelect?: boolean | undefined;
   readonly placeholder?: string | undefined;
   readonly className?: string | undefined;
+  readonly align?: 'left' | 'right' | undefined;
 }
 
 export function MultiSelectDropdown<T extends string = string>({
@@ -29,6 +30,7 @@ export function MultiSelectDropdown<T extends string = string>({
   onChange,
   singleSelect = false,
   className,
+  align = 'right',
 }: Readonly<MultiSelectDropdownProps<T>>) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -161,11 +163,14 @@ export function MultiSelectDropdown<T extends string = string>({
         </button>
       </div>
 
-      {/* Popover Dropdown matching trigger width with high z-index */}
+      {/* Popover Dropdown matching trigger with high z-index */}
       {isOpen ? (
         <div
           role="listbox"
-          className="animate-in fade-in zoom-in-95 absolute left-0 z-50 mt-1.5 w-full min-w-[220px] rounded-2xl border border-[#E1E6EC] bg-white p-2.5 shadow-xl duration-100"
+          className={cn(
+            'animate-in fade-in zoom-in-95 absolute z-50 mt-1.5 min-w-[240px] rounded-2xl border border-[#E1E6EC] bg-white p-2.5 shadow-xl duration-100',
+            align === 'left' ? 'left-0' : 'right-0',
+          )}
         >
           {/* Header Row: Title & Optional Clear */}
           <div className="flex items-center justify-between border-b border-slate-100 px-2 pb-2">
@@ -181,8 +186,8 @@ export function MultiSelectDropdown<T extends string = string>({
             ) : null}
           </div>
 
-          {/* Search Box inside Dropdown */}
-          {options.length >= 4 ? (
+          {/* Search Box inside Dropdown (for larger option lists) */}
+          {options.length > 5 ? (
             <div className="pt-2 pb-1">
               <div className="relative">
                 <input
