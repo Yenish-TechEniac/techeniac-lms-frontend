@@ -181,12 +181,11 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
     };
   }, [isProfileDropdownOpen]);
 
-  // Handle escape key for drawer and dropdown
+  // Handle escape key for mobile drawer and dropdown only (persistent sidebar collapses only via button or screen resize)
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         setIsMobileNavOpen(false);
-        setIsDrawerOpen(false);
         setIsProfileDropdownOpen(false);
       }
     }
@@ -194,7 +193,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [setIsDrawerOpen, setIsMobileNavOpen]);
+  }, [setIsMobileNavOpen]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);

@@ -55,7 +55,7 @@ export function SubmissionQueueTable() {
   return (
     <div className="flex flex-col gap-6">
       {/* Filters & Actions Bar (FR-10.2, FR-10.3) */}
-      <div className="flex flex-col justify-between gap-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-xs sm:flex-row sm:items-center dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex flex-col justify-between gap-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-xs sm:flex-row sm:items-center">
         {/* Search */}
         <div className="w-full sm:w-72">
           <Input
@@ -72,16 +72,14 @@ export function SubmissionQueueTable() {
         <div className="flex flex-wrap items-center gap-2">
           {/* Status Dropdown */}
           <div className="flex items-center gap-1.5">
-            <Span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-              Status:
-            </Span>
+            <Span className="text-xs font-semibold text-slate-500">Status:</Span>
             <Select
               value={statusFilter}
               onChange={(e) => {
                 setStatusFilter(e.target.value as SubmissionStatus | 'ALL');
                 setPage(1);
               }}
-              className="h-9 w-auto text-xs font-semibold text-slate-700 dark:text-slate-300"
+              className="h-9 w-auto text-xs font-semibold text-slate-700"
             >
               <option value={SubmissionStatus.SUBMITTED}>Pending Review (Default)</option>
               <option value="ALL">All Statuses</option>
@@ -99,7 +97,7 @@ export function SubmissionQueueTable() {
               setSortDirection((prev) => (prev === 'latest' ? 'oldest' : 'latest'));
               setPage(1);
             }}
-            className="border-slate-200 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:text-slate-300"
+            className="border-slate-200 text-xs font-semibold text-slate-700"
           >
             {sortDirection === 'latest' ? '⬇ Newest First' : '⬆ Oldest First'}
           </Button>
@@ -110,7 +108,7 @@ export function SubmissionQueueTable() {
             variant="ghost"
             size="sm"
             onClick={() => void refetch()}
-            className="text-xs text-slate-500 dark:text-slate-400"
+            className="text-xs text-slate-500"
           >
             ↻
           </Button>
@@ -122,10 +120,10 @@ export function SubmissionQueueTable() {
       )}
 
       {/* Queue Table */}
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left text-sm">
-            <thead className="border-b border-slate-100 bg-slate-50/80 text-xs font-semibold tracking-wider text-slate-500 uppercase dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-400">
+            <thead className="border-b border-slate-100 bg-slate-50/80 text-xs font-semibold tracking-wider text-slate-500 uppercase">
               <tr>
                 <th className="px-6 py-3.5">
                   <Span>Mentee</Span>
@@ -147,7 +145,7 @@ export function SubmissionQueueTable() {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-slate-100">
               {isLoading &&
                 Array.from({ length: 6 }).map((_, idx) => (
                   <tr key={`queue-skel-${idx}`} className="h-16">
@@ -181,10 +179,8 @@ export function SubmissionQueueTable() {
               {!isLoading && submissions.length === 0 && (
                 <tr>
                   <td colSpan={6} className="p-10 text-center">
-                    <H3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                      No submissions found
-                    </H3>
-                    <P className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    <H3 className="text-sm font-semibold text-slate-700">No submissions found</H3>
+                    <P className="mt-1 text-xs text-slate-500">
                       {statusFilter === SubmissionStatus.SUBMITTED
                         ? 'All pending submissions have been reviewed and graded! 🎉'
                         : 'No submissions match your active filter criteria.'}
@@ -195,20 +191,13 @@ export function SubmissionQueueTable() {
 
               {!isLoading &&
                 submissions.map((sub) => (
-                  <tr
-                    key={sub.id}
-                    className="transition-colors hover:bg-slate-50/60 dark:hover:bg-slate-800/40"
-                  >
+                  <tr key={sub.id} className="transition-colors hover:bg-slate-50/60">
                     {/* Mentee Column */}
                     <td className="px-6 py-4">
-                      <P className="font-semibold text-slate-900 dark:text-slate-100">
-                        {sub.mentee.name}
-                      </P>
-                      <P className="text-xs text-slate-500 dark:text-slate-400">
-                        {sub.mentee.email}
-                      </P>
+                      <P className="font-semibold text-slate-900">{sub.mentee.name}</P>
+                      <P className="text-xs text-slate-500">{sub.mentee.email}</P>
                       {sub.batchName && (
-                        <Span className="mt-1 inline-block rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                        <Span className="mt-1 inline-block rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-600">
                           {sub.batchName}
                         </Span>
                       )}
@@ -216,10 +205,8 @@ export function SubmissionQueueTable() {
 
                     {/* Assignment Column */}
                     <td className="px-4 py-4">
-                      <P className="font-semibold text-slate-800 dark:text-slate-200">
-                        {sub.assignmentTitle}
-                      </P>
-                      <P className="text-xs text-slate-500 dark:text-slate-400">
+                      <P className="font-semibold text-slate-800">{sub.assignmentTitle}</P>
+                      <P className="text-xs text-slate-500">
                         {sub.courseTitle}
                         {sub.topicTitle && ` • ${sub.topicTitle}`}
                       </P>
@@ -227,7 +214,7 @@ export function SubmissionQueueTable() {
 
                     {/* Version Column */}
                     <td className="px-3 py-4 text-center">
-                      <Span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                      <Span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-700">
                         v{sub.version}
                       </Span>
                     </td>
@@ -235,13 +222,11 @@ export function SubmissionQueueTable() {
                     {/* Submitted At Column */}
                     <td className="px-4 py-4">
                       <div className="flex flex-col gap-0.5">
-                        <Span className="font-mono text-xs text-slate-700 dark:text-slate-300">
+                        <Span className="text-xs text-slate-700">
                           {formatDateIST(sub.submittedAt)}
                         </Span>
                         {sub.isLate && (
-                          <Span className="font-mono text-[10px] font-bold text-rose-600 dark:text-rose-400">
-                            ⚠ LATE
-                          </Span>
+                          <Span className="text-xs font-bold text-rose-600">⚠ LATE</Span>
                         )}
                       </div>
                     </td>
@@ -251,7 +236,7 @@ export function SubmissionQueueTable() {
                       <div className="flex flex-col items-start gap-1">
                         <SubmissionStatusBadge status={sub.status} isLate={sub.isLate} />
                         {sub.marks !== null && (
-                          <Span className="font-mono text-xs font-bold text-slate-800 dark:text-slate-200">
+                          <Span className="text-xs font-bold text-slate-800">
                             {sub.marks}/{sub.maxMarks} ({sub.gradeLabel})
                           </Span>
                         )}
@@ -278,7 +263,7 @@ export function SubmissionQueueTable() {
 
         {/* Server-Side Pagination Bar (FR-10.7) */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/50 px-6 py-3 dark:border-slate-800 dark:bg-slate-800/40">
+          <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/50 px-6 py-3">
             <Muted className="text-xs">
               Showing {submissions.length} of {total} submissions
             </Muted>
@@ -294,7 +279,7 @@ export function SubmissionQueueTable() {
               >
                 Previous
               </Button>
-              <Span className="font-mono text-xs text-slate-600 dark:text-slate-400">
+              <Span className="text-xs text-slate-600">
                 Page {page} of {totalPages}
               </Span>
               <Button
