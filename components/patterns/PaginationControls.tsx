@@ -69,7 +69,7 @@ export function PaginationControls({
       )}
     >
       {/* Navigation Buttons with Numbered Page Pills (Left-aligned) */}
-      <div className="flex items-center gap-1.5">
+      <div className="flex w-full flex-wrap items-center justify-start gap-1.5 sm:w-auto">
         <Button
           type="button"
           variant="outline"
@@ -136,7 +136,7 @@ export function PaginationControls({
       </div>
 
       {/* Page Size Selector (Right-aligned, theme matched, no/page format) */}
-      <div className="w-36">
+      <div className="flex w-full justify-end sm:w-36">
         <Select
           value={limit}
           onChange={(e) => onLimitChange(Number(e.target.value))}

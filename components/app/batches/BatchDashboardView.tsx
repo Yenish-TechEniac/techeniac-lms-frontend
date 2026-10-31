@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useMemo, useState } from 'react';
 
@@ -416,16 +415,8 @@ export function BatchDashboardView({
 
   return (
     <div className="space-y-6">
-      {/* Breadcrumb & Navigation */}
+      {/* Top Header & Actions */}
       <div>
-        <div className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-wider text-slate-400 uppercase">
-          <Link href="/admin/batches" className="transition-colors hover:text-blue-600">
-            <Span>Batches</Span>
-          </Link>
-          <Span>/</Span>
-          <Span className="text-slate-600">{batch.name}</Span>
-        </div>
-
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
           <div className="flex flex-wrap items-center gap-3">
             <H1 className="text-2xl font-extrabold tracking-tight break-words text-slate-900 sm:text-3xl">
@@ -536,9 +527,6 @@ export function BatchDashboardView({
           <div className="flex items-center justify-between border-b border-slate-100 p-4">
             <div>
               <H3 className="text-sm font-bold text-slate-800">Cohort Roster</H3>
-              <P className="text-xs text-slate-500">
-                A mentee can belong to only 1 active cohort at a time (FR-5.2)
-              </P>
             </div>
             <div className="flex items-center gap-2">
               {mentors.length > 0 && unmappedMentees.length > 0 && !isArchived ? (
