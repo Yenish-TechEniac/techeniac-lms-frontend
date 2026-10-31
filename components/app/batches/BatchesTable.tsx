@@ -8,6 +8,7 @@ import { CreateBatchModal } from '@/components/app/batches/CreateBatchModal';
 import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
 import { PageHeader } from '@/components/patterns/PageHeader';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
+import { SortableColumnHeader } from '@/components/patterns/SortableColumnHeader';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { MultiSelectDropdown, type MultiSelectOption } from '@/components/ui/MultiSelectDropdown';
@@ -181,12 +182,16 @@ export function BatchesPageSkeleton() {
   );
 }
 
+type BatchSortField = 'name' | 'code' | 'status' | 'startDate';
+
 export function BatchesTable() {
   const { user, isAuthorized, sessionError } = useRoleRedirect({ allowedRoles: ['SUPER_ADMIN'] });
   const [search, setSearch] = useState('');
   const [selectedStatuses, setSelectedStatuses] = useState<BatchStatus[]>([]);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const [sortField, setSortField] = useState<BatchSortField | null>(null);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [isCreateOpen, setIsCreateOpen] = useState(
     () => typeof window !== 'undefined' && window.location.search.includes('create=true'),
   );
@@ -196,6 +201,7 @@ export function BatchesTable() {
   const {
     data: batchesResponse,
     isLoading,
+    isFetching,
     error,
   } = useBatchesList({
     status: filterStatus,
@@ -204,8 +210,46 @@ export function BatchesTable() {
     limit,
   });
 
-  const batches = useMemo(() => batchesResponse?.items ?? [], [batchesResponse]);
-  const isInitialLoading = isLoading && batches.length === 0;
+  const handleSort = (field: BatchSortField) => {
+    if (sortField === field) {
+      if (sortOrder === 'asc') {
+        setSortOrder('desc');
+      } else {
+        setSortField(null);
+        setSortOrder('asc');
+      }
+    } else {
+      setSortField(field);
+      setSortOrder('asc');
+    }
+  };
+
+  const batches = useMemo(() => {
+    const raw = batchesResponse?.items ? [...batchesResponse.items] : [];
+    if (!sortField) return raw;
+
+    return raw.sort((a, b) => {
+      let valA = '';
+      let valB = '';
+      if (sortField === 'name') {
+        valA = a.name.toLowerCase();
+        valB = b.name.toLowerCase();
+      } else if (sortField === 'code') {
+        valA = a.code.toLowerCase();
+        valB = b.code.toLowerCase();
+      } else if (sortField === 'status') {
+        valA = a.status.toLowerCase();
+        valB = b.status.toLowerCase();
+      } else if (sortField === 'startDate') {
+        valA = a.startDate || '';
+        valB = b.startDate || '';
+      }
+      const cmp = valA.localeCompare(valB);
+      return sortOrder === 'asc' ? cmp : -cmp;
+    });
+  }, [batchesResponse, sortField, sortOrder]);
+
+  const isTableLoading = isLoading || isFetching;
   const pagination = useMemo(
     () =>
       batchesResponse?.pagination ?? {
@@ -302,16 +346,44 @@ export function BatchesTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Batch Name</TableHead>
-              <TableHead>Code</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Timeline</TableHead>
+              <SortableColumnHeader<BatchSortField>
+                field="name"
+                label="Batch Name"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                tooltip="Sort by Batch Name"
+              />
+              <SortableColumnHeader<BatchSortField>
+                field="code"
+                label="Code"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                tooltip="Sort by Code"
+              />
+              <SortableColumnHeader<BatchSortField>
+                field="status"
+                label="Status"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                tooltip="Sort by Status"
+              />
+              <SortableColumnHeader<BatchSortField>
+                field="startDate"
+                label="Timeline"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                tooltip="Sort by Timeline"
+              />
               <TableHead>Members</TableHead>
               <TableHead className="text-right">Overall Progress</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isInitialLoading ? (
+            {isTableLoading ? (
               <BatchesTableSkeleton count={limit} />
             ) : batches.length === 0 ? (
               <TableRow>
@@ -333,7 +405,7 @@ export function BatchesTable() {
           totalPages={pagination.totalPages}
           onPageChange={handlePageChange}
           onLimitChange={handleLimitChange}
-          isLoading={isInitialLoading}
+          isLoading={isTableLoading}
           itemLabel="cohorts"
           pageSizeOptions={DEFAULT_PAGE_SIZE_OPTIONS}
         />

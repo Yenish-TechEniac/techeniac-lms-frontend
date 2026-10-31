@@ -623,7 +623,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
               <Span className="block truncate text-sm font-bold text-[#111827]">
                 {formattedRole}
               </Span>
-              <Span className="mt-0.5 block truncate text-xs font-normal text-[#667085]">
+              <Span className="mt-0.5 block truncate text-sm font-medium text-slate-600">
                 {user.email}
               </Span>
             </div>

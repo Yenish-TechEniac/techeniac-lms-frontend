@@ -93,6 +93,51 @@ const STATUS_OPTIONS: MultiSelectOption[] = [
   { value: 'INACTIVE', label: 'Inactive Users' },
 ];
 
+const BATCH_BADGE_COLORS = [
+  'bg-blue-50 text-blue-700 border-blue-200',
+  'bg-purple-50 text-purple-700 border-purple-200',
+  'bg-emerald-50 text-emerald-700 border-emerald-200',
+  'bg-amber-50 text-amber-800 border-amber-200',
+  'bg-indigo-50 text-indigo-700 border-indigo-200',
+  'bg-pink-50 text-pink-700 border-pink-200',
+  'bg-cyan-50 text-cyan-800 border-cyan-200',
+];
+
+function getBatchBadgeColor(batchName: string): string {
+  let hash = 0;
+  for (let i = 0; i < batchName.length; i++) {
+    hash = (hash << 5) - hash + batchName.charCodeAt(i);
+    hash |= 0;
+  }
+  const index = Math.abs(hash) % BATCH_BADGE_COLORS.length;
+  return BATCH_BADGE_COLORS[index]!;
+}
+
+function BatchBadges({ batchString }: { batchString?: string | undefined }) {
+  if (!batchString || batchString === '—') {
+    return <Span className="text-slate-400">—</Span>;
+  }
+  const batches = batchString
+    .split(',')
+    .map((b) => b.trim())
+    .filter(Boolean);
+  if (batches.length === 0) {
+    return <Span className="text-slate-400">—</Span>;
+  }
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {batches.map((batchName) => (
+        <Span
+          key={batchName}
+          className={`inline-block rounded-md border px-2 py-0.5 text-xs font-semibold ${getBatchBadgeColor(batchName)}`}
+        >
+          {batchName}
+        </Span>
+      ))}
+    </div>
+  );
+}
+
 interface FilterUpdateOptions {
   role?: string | undefined;
   statuses?: string[] | undefined;
@@ -178,6 +223,7 @@ export function UsersTable() {
     users: apiUsers,
     total: totalCount,
     isLoading,
+    isFetching,
     error: usersError,
     fetchUsers,
     createUser,
@@ -190,8 +236,7 @@ export function UsersTable() {
 
   const { userBatchMap, userMentorMap } = useAllBatchMembers();
 
-  const isInitialLoading = isLoading && apiUsers.length === 0;
-  const isTableLoading = isInitialLoading;
+  const isTableLoading = isLoading || isFetching;
 
   const handleSort = (field: 'name' | 'email') => {
     let nextField: 'name' | 'email' | null = field;
@@ -290,6 +335,15 @@ export function UsersTable() {
       });
     }
 
+    if (sortField) {
+      list.sort((a, b) => {
+        const valA = (a[sortField] || '').toLowerCase();
+        const valB = (b[sortField] || '').toLowerCase();
+        const cmp = valA.localeCompare(valB);
+        return sortOrder === 'asc' ? cmp : -cmp;
+      });
+    }
+
     return list;
   }, [
     apiUsers,
@@ -299,6 +353,8 @@ export function UsersTable() {
     selectedStatuses,
     selectedMentorIds,
     selectedMentorNames,
+    sortField,
+    sortOrder,
   ]);
 
   const hasLocalStatusFilter =
@@ -545,10 +601,10 @@ export function UsersTable() {
       {/* Role-Based Navigation Tabs */}
       <div className="flex [scrollbar-width:none] items-center gap-6 overflow-x-auto overflow-y-hidden border-b border-[#E1E6EC] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {[
-          { label: 'All Users', value: 'ALL' },
+          { label: 'All', value: 'ALL' },
           { label: 'Mentees', value: 'MENTEE' },
           { label: 'Mentors', value: 'MENTOR' },
-          { label: 'Super Admins', value: 'SUPER_ADMIN' },
+          { label: 'Super Admin', value: 'SUPER_ADMIN' },
         ].map((tab) => {
           const isActive = selectedRole === tab.value;
           return (
@@ -575,7 +631,7 @@ export function UsersTable() {
       </div>
 
       {/* Filter Row with Expanded Search Input, Status Dropdown, and Mentor Dropdown */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#E1E6EC] bg-white p-3.5 shadow-xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 py-1">
         {/* Expanded Search Input */}
         <div className="w-full flex-1 sm:max-w-md lg:max-w-lg">
           <DebouncedSearchInput
@@ -647,17 +703,12 @@ export function UsersTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isInitialLoading ? (
+            {isTableLoading ? (
               // Loading Skeleton Rows - calibrated to exact data row dimensions
               Array.from({ length: limit }).map((_, i) => (
                 <TableRow key={`loading-skel-${i}`} className="h-14">
                   <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Skeleton className="h-9 w-9 shrink-0 rounded-full" />
-                      <div className="space-y-1">
-                        <Skeleton className="h-4 w-36 rounded-md" />
-                      </div>
-                    </div>
+                    <Skeleton className="h-4 w-36 rounded-md" />
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-4 w-44 rounded-md" />
@@ -732,15 +783,6 @@ export function UsersTable() {
               </TableRow>
             ) : (
               users.map((u) => {
-                const initials =
-                  (u.name || 'User')
-                    .split(' ')
-                    .filter(Boolean)
-                    .map((n) => n[0])
-                    .join('')
-                    .slice(0, 2)
-                    .toUpperCase() || 'U';
-
                 const isSelf = currentUser?.id === u.id;
                 const isBlockedAdmin = Boolean(u.isLastSuperAdmin && u.status === 'ACTIVE');
                 const isDeactivateDisabled = (isSelf || isBlockedAdmin) && u.status === 'ACTIVE';
@@ -773,17 +815,14 @@ export function UsersTable() {
                     }}
                     className="h-14 cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:bg-slate-50 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none focus-visible:ring-inset"
                   >
-                    {/* User Column (Avatar + Name - Clean non-nested Link with wrapping) */}
+                    {/* User Column (Name only - Avatar circle removed) */}
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Link
                           href={`/admin/users/${u.id}`}
                           title={`View user profile for ${u.name}`}
-                          className="group flex items-center gap-3 rounded-xl p-0.5 text-left transition-colors hover:opacity-85 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
+                          className="group flex items-center rounded-xl p-0.5 text-left transition-colors hover:opacity-85 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
                         >
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-[#0044D3] shadow-xs transition-colors group-hover:bg-[#0044D3] group-hover:text-white">
-                            {initials}
-                          </div>
                           <div className="min-w-0">
                             <Span className="block text-base leading-snug font-semibold text-slate-900 transition-colors group-hover:text-[#0044D3]">
                               {u.name || '—'}
@@ -843,11 +882,11 @@ export function UsersTable() {
                       {selectedRole === 'MENTEE' ? (
                         <Span className="text-slate-700">{u.mentorName || '—'}</Span>
                       ) : selectedRole === 'MENTOR' || selectedRole === 'SUPER_ADMIN' ? (
-                        <Span className="text-slate-700">{u.batch || '—'}</Span>
+                        <BatchBadges batchString={u.batch} />
                       ) : u.role === 'MENTEE' ? (
                         u.batch && u.batch !== '—' ? (
-                          <div className="flex flex-col">
-                            <Span className="text-slate-700">{u.batch}</Span>
+                          <div className="flex flex-col gap-1">
+                            <BatchBadges batchString={u.batch} />
                             {u.mentorName && u.mentorName !== '—' ? (
                               <Span className="text-xs text-slate-400">Mentor: {u.mentorName}</Span>
                             ) : null}
@@ -856,7 +895,7 @@ export function UsersTable() {
                           <Span className="text-slate-700">{u.mentorName || '—'}</Span>
                         )
                       ) : (
-                        <Span className="text-slate-700">{u.batch || '—'}</Span>
+                        <BatchBadges batchString={u.batch} />
                       )}
                     </TableCell>
 

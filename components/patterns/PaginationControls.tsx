@@ -135,19 +135,19 @@ export function PaginationControls({
         </Button>
       </div>
 
-      {/* Page Size Selector (Right-aligned, theme matched, no/page format) */}
-      <div className="flex w-full justify-end sm:w-36">
+      {/* Page Size Selector (Right-aligned, matching filter button theme without checkboxes or intrusive popovers) */}
+      <div className="w-32">
         <Select
           value={limit}
           onChange={(e) => onLimitChange(Number(e.target.value))}
           aria-label="Entries per page"
-          className="h-9 w-full rounded-xl border border-[#E1E6EC] bg-white px-3 text-xs font-semibold text-slate-700 shadow-xs transition-colors hover:border-slate-300 focus:border-[#0044D3]"
+          className="h-9 w-full rounded-xl border border-[#E1E6EC] bg-white pr-8 pl-3 text-xs font-semibold text-slate-700 shadow-xs transition-all hover:border-slate-300 hover:bg-slate-50/70 focus:border-[#0044D3] focus:ring-2 focus:ring-[#0044D3]/15"
         >
           {pageSizeOptions.map((opt) => (
             <option
               key={opt}
               value={opt}
-              className="bg-white py-1 text-xs font-medium text-slate-800"
+              className="bg-white py-1.5 text-xs font-medium text-slate-800"
             >
               {opt} / page
             </option>
